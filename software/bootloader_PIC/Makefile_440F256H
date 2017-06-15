@@ -1,0 +1,47 @@
+# MPLAB IDE generated this makefile for use with GNU make.
+# Project: USBHIDBootloader.mcp
+# Date: Tue Feb 28 13:39:13 2023
+
+SHELL = cmd
+AS = xc32-as.exe
+CC = xc32-gcc.exe
+LD = xc32-ld.exe
+AR = xc32-ar.exe
+HX = xc32-bin2hex.exe
+RM = del
+
+all: ./output/USBHIDBootloader.hex
+
+./output/USBHIDBootloader.hex : ./output/USBHIDBootloader.elf
+	$(HX) ".\output\USBHIDBootloader.elf"
+
+./output/USBHIDBootloader.elf : output/BootLoader.o output/Framework.o output/NVMem.o output/usb_descriptors.o output/usb_device.o output/usb_function_hid.o output/Usb_HID_tasks.o output/int_tbl_lib.o
+	$(CC) -mprocessor=32MX440F256H "output\BootLoader.o" "output\Framework.o" "output\NVMem.o" "output\usb_descriptors.o" "output\usb_device.o" "output\usb_function_hid.o" "output\Usb_HID_tasks.o" "output\int_tbl_lib.o" -o".\output\USBHIDBootloader.elf" -Wl,--script="lkr\btl_32MX440F256H_generic.ld",--defsym=__MPLAB_BUILD=1,-Map=".\output\USBHIDBootloader.map"
+
+output/BootLoader.o : src/BootLoader.c inc/GenericTypeDefs.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/Bootloader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h
+	$(CC) -mprocessor=32MX440F256H -x c -c "src\BootLoader.c" -o".\output\BootLoader.o" -MMD -MF".\output\BootLoader.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+output/Framework.o : src/Framework.c inc/c_bootloader.h inc/GenericTypeDefs.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/BootLoader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h inc/NVMem.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h
+	$(CC) -mprocessor=32MX440F256H -x c -c "src\Framework.c" -o".\output\Framework.o" -MMD -MF".\output\Framework.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+output/NVMem.o : src/NVMem.c inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/GenericTypeDefs.h inc/BootLoader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h inc/NVMem.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h
+	$(CC) -mprocessor=32MX440F256H -x c -c "src\NVMem.c" -o".\output\NVMem.o" -MMD -MF".\output\NVMem.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+output/usb_descriptors.o : src/usb_descriptors.c inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/usb_function_hid.h
+	$(CC) -mprocessor=32MX440F256H -x c -c "src\usb_descriptors.c" -o".\output\usb_descriptors.o" -MMD -MF".\output\usb_descriptors.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+output/usb_device.o : src/usb_device.c inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/usb_device_local.h
+	$(CC) -mprocessor=32MX440F256H -x c -c "src\usb_device.c" -o".\output\usb_device.o" -MMD -MF".\output\usb_device.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+output/usb_function_hid.o : src/usb_function_hid.c inc/GenericTypeDefs.h inc/Compiler.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/usb_function_hid.h
+	$(CC) -mprocessor=32MX440F256H -x c -c "src\usb_function_hid.c" -o".\output\usb_function_hid.o" -MMD -MF".\output\usb_function_hid.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+output/Usb_HID_tasks.o : src/Usb_HID_tasks.c inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/my_plib.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/usb_function_hid.h inc/BootLoader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h
+	$(CC) -mprocessor=32MX440F256H -x c -c "src\Usb_HID_tasks.c" -o".\output\Usb_HID_tasks.o" -MMD -MF".\output\Usb_HID_tasks.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+output/int_tbl_lib.o : src/int_tbl_lib.c inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h src/int_tbl_3xx_4xx_lib.c
+	$(CC) -mprocessor=32MX440F256H -x c -c "src\int_tbl_lib.c" -o".\output\int_tbl_lib.o" -MMD -MF".\output\int_tbl_lib.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+clean : 
+	$(RM) "output\BootLoader.o" "output\Framework.o" "output\NVMem.o" "output\usb_descriptors.o" "output\usb_device.o" "output\usb_function_hid.o" "output\Usb_HID_tasks.o" "output\int_tbl_lib.o" ".\output\USBHIDBootloader.elf" ".\output\USBHIDBootloader.hex"
+

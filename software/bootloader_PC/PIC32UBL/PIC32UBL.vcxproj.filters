@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\MFC">
+      <UniqueIdentifier>{0a0d056c-7af6-4946-8b64-a134add520a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Bootloader">
+      <UniqueIdentifier>{b760491d-1631-42e8-a8f4-ecb8a9e0fa99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\MFC">
+      <UniqueIdentifier>{9a12ae62-4f69-4a07-84b4-22b45c215bd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Bootloader">
+      <UniqueIdentifier>{847bdf38-5230-4c29-b7ab-01d0e92871ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PIC32UBL.cpp">
+      <Filter>Source Files\MFC</Filter>
+    </ClCompile>
+    <ClCompile Include="PIC32UBLDlg.cpp">
+      <Filter>Source Files\MFC</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files\MFC</Filter>
+    </ClCompile>
+    <ClCompile Include="BootLoader.cpp">
+      <Filter>Source Files\Bootloader</Filter>
+    </ClCompile>
+    <ClCompile Include="ComPort.cpp">
+      <Filter>Source Files\Bootloader</Filter>
+    </ClCompile>
+    <ClCompile Include="Ethernet.cpp">
+      <Filter>Source Files\Bootloader</Filter>
+    </ClCompile>
+    <ClCompile Include="Hex.cpp">
+      <Filter>Source Files\Bootloader</Filter>
+    </ClCompile>
+    <ClCompile Include="USB_HID.cpp">
+      <Filter>Source Files\Bootloader</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PIC32UBL.h">
+      <Filter>Header Files\MFC</Filter>
+    </ClInclude>
+    <ClInclude Include="PIC32UBLDlg.h">
+      <Filter>Header Files\MFC</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files\MFC</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files\MFC</Filter>
+    </ClInclude>
+    <ClInclude Include="BootLoader.h">
+      <Filter>Header Files\Bootloader</Filter>
+    </ClInclude>
+    <ClInclude Include="ComPort.h">
+      <Filter>Header Files\Bootloader</Filter>
+    </ClInclude>
+    <ClInclude Include="Ethernet.h">
+      <Filter>Header Files\Bootloader</Filter>
+    </ClInclude>
+    <ClInclude Include="Hex.h">
+      <Filter>Header Files\Bootloader</Filter>
+    </ClInclude>
+    <ClInclude Include="USB_HID.h">
+      <Filter>Header Files\Bootloader</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\icon1.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\PIC32UBL.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\PIC32UBL.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="PIC32UBL.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="res\PIC32UBL.manifest" />
+  </ItemGroup>
+</Project>

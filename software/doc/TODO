@@ -1,0 +1,414 @@
+G28 G91 Z0;G90 ha ezt igy lekuldom megdoglik
+
+
+A homeolas vegen az osszes koordinatat egyszerre ujra irni, igy elkerulheto lenne, hogy ide oda szamolgatas miatt szetcsusszanak
+
+A probeolas vegne kell neki egy ~, kulonben nem megy tovabb.
+
+Az Eepromnal megnezni, hogy az Alarm jol van-e. Olyan kellene, hogy legyen, hogy ha nincs eeprom vagy serult, akkor ne a default adatokat toltse be hanem az usernek kelljen az UGS-en keresztul beleirni az adatokat valahogyan.
+
+Megint volt leallas az uj SW-el. Menet kozben megallt.
+	Mikor all meg? Csak ha marok? Lehetne hagyni a gépet pár napig menni és megnézni, hogy akkor is leáll-e. Vigyázat mert a futasido ugye mentodik az eepromba
+	Problema, hogy utana nem tudok ujra kapcsolodni ezert nincs lehetoseg a diagnosztikara
+		Kellene valami megoldas, hogy ilyen esetben lehessen ujra kapcsolodni
+			Miert all meg az ethernet?
+			Discoveryre se valaszolt
+			PING-et nem probaltam
+		Lehetne kuldeni folyamatosan broadcastot. Csak hogy tudjam megy-e az ethernet.
+			Implementava, de nem flasheltem meg
+			16:03 12.04.2023: Flashelve, eddig mukodik es nem tortent furcsa leallas.
+	Exception kiolvasasa valahogy a leallas utan. Pl atmenteni a noinibe es onnan
+		
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wiresharkkal sikerult egy leallast rogzitenem. A teljes logban talaltam par helyen uratransmissiot. Nem tudom pontosan, hogy ez is valami SW hiba vagy a halozat ilyen. A leallasnal viszont nem errol van szo. Ott ugyanis kuld ket parancsot az UGS. Majd kuld egy ? -et amire nem jon valasz. A TCP elkezdi egy ido utan retransmissionozni. Majd az eszkoz elkezd valaszolni. Itt viszont amit eszrevettem, hogy RUN-bol atment IDLE-ba. Emiatt nem is fut a CNC gep. Ha küldöm neki a ~ akkor elindul. Ugy tunik a ket parancsra elkuldi az OK-t es fut tovabb rendesen. Filtered.zip.
+	- Miert nem valaszolt a csomagokra?
+		- Elküldte a két parancsot, arra még a TCP küldött ACK-ot. 
+		- Elküldte a ?-et, amit ujraprobal es a vegen tenyleg valszol is ra ketszer, mert idokozben ketszer kuldte el.
+	- Miert ment at RUN-bol IDLE-ba?
+
+
+Megint volt egy leallas. Utana UGS ujrainditas utan ment tovabb rendesen.
+>>> G1X80.646Y61.601Z-1.240
+ok
+>>> G1X81.321Y62.770Z-1.218
+ok
+>>> G1X81.592Y63.238Z-1.246
+ok
+>>> G1X81.727Y63.472Z-1.299
+0,200ok
+
+
+
+>>> G1X177.254Y248.129Z-1.227
+[verbose] <Run|MPos:-222.163,-103.478,22.656|FS:1470,20000|Ov:100,100,100>
+
+[verbose] <Run|MPos:-231.166,-114.275,22.688|FS:1470,20000|WCO:-364.997,-291.991,23.900> Ennel lehet az az okes hiba
+
+
+-----------------------------------
+
+
+Menet kozben megallt a cucc. Az interruptos resz meg valaszolt mert jott a pozicioadat a pollozasra. De parancsok mar nem mentek. Lehet, hogy egy ARC volt a ludas. Ja es az UDP discovery is valaszolt.
+
+
+A szandis fele marasnal megint volt egy leallas. 10MHz-es SPI-val. Es utana furcsa hogy nem is sikerult ujra elinditani konnyen. Mintha belul kapott volna egy parancsot hogy allj.
+Uj teoria: Mi van ha nem is az OK veszik el hanem belul azt hiszi, hogy nyomtak neki egy pause-t
+
+Spindle running minutes az nulla. Furcsa
+
+Gyanus hogy tobboszor ugyan annyi utasitas marad ki a vegen. Lasd a nc filet itt.
+	Feltevesek:
+		- Adatvesztes a PC -> PIC fele. G kod nem kuldodik el		PC oldali hiba
+			- Ha lenne sorszam akkor ha logolnam konnyen kiderulne.
+		- Adatvesztes a PC -> PIC fele. G kod nem erkezik meg		PIC oldali hiba
+			- Ha az OK-nal lenne sorszam hogy melyiket okezza le akkor kiderulne
+		- Adatvesztes a PIC -> PC fele. OK valasz nem kuldodik el	PIC oldali hiba
+			- Megint csak a logolas.
+		- Adatvesztes a PIC -> PC fele. OK valasz nem erkezik meg	PC oldali hiba
+			- Mi van ha a JAVA rosszul kezeli az OK-kat? Pl ha ketto jon back to back akkor abbol egyet eldob?
+			- Megintcsak a logolas
+	Debuggolast segito lepes: 
+		- PIC-en kiolvashatova tenni az utolso G kodot amit kapott
+		- Line number kuldese a G koddal es az OK valasszal is.
+		
+Maras kozben leallt. Utana folytattam de ilyet kaptam pl:
+>>> G1X55.044Y97.372Z-0.250
+ok
+>>> G1X57.146Y98.585Z-0.235
+ok
+>>> G1X57.896Y99.019Z-0.177
+8ok
+ok
+>>> G1X58.347Y99.279Z-0.249
+ok
+Nem tudom az a 8-as honnan jon. Az eszkoz kuldte? A PC irta ki rosszul?	
+Kesobb a vegen nem allt le a motor es ilyeneket is talaltam meg:
+8ok
+2ok
+-ok
+
+>>> G1X57.896Y99.019Z-0.177
+8ok
+ok
+>>> G1X128.065Y185.141Z-0.031
+2ok
+ok
+>>> G1X109.657Y192.411Z-0.170
+-ok
+ok
+Erdekes, hogy amikor ez a hiba van akkor rogton ket oket is kikuld
+
+void report_status_message(uint8 status_code, int32_t line_number) {
+	switch(status_code) {
+		case STATUS_OK: { // STATUS_OK
+			printPgmString(("ok\r\n"));
+Az a szam szerintem a polling lesz, amikor lekerdezi a poziciot.
+CMD_STATUS_REPORT
+#define CMD_STATUS_REPORT '?'
+
+
+static void system_exec_rt_system_state(void) {
+		// Execute and serial print status
+		if (rt_exec & EXEC_STATUS_REPORT) {
+			report_realtime_status();
+			system_clear_exec_state_flag(EXEC_STATUS_REPORT);
+		}
+
+static uint8 process_single_char_command(uint8 data) {
+	uint8 result = 0;
+	
+	switch (data) { 
+		case CMD_STATUS_REPORT : {
+			system_set_exec_state_flag(EXEC_STATUS_REPORT); 
+			result = 1;
+			break; // Set as true
+		}
+
+void do_protocol_main_loop(void) {
+	{
+		int ch = getChar_grbl();
+		if (ch != -1) {
+			uint8 dataCh = ch;
+			if (process_single_char_command(dataCh) != 0) { 
+		
+
+
+
+G kod parancs elkuldve
+G kod parancs elkuldve
+G kod parancs elkuldve
+G kod parancs elkuldve
+varakozik az OK-ra. Kozben polloza a Status-t
+
+A status amit kuld az tobb mint 64 karakter:
+<Idle|MPos:-384.994,-271.188,47.619|FS:0,0|WCO:-384.997,-271.191,32.620>
+Szerintem a PC oldalon van problema. Mert az en oldalamon a bufferek miatt nem torheti meg az ok a status stringet. Szerintem a Java valahogy nem jol dolgozza fel.
+
+>>> ?\n
+<<< <Idle|MPos:-384.994,-271.188,47.619|FS:0,0|WCO:-384.997,-271.191,32.620>\r\n
+<<< ok\r\n
+
+
+
+
+
+Maras kozben leallt. A log:
+system_log:
+sm_g28 00000000
+sm_sys_suspend 00000000
+sm_sys_state 00000008
+sm_st_wake_up 00000000
+sm_home_spindle_on 0000002C
+sm_st_go_idle 00000000
+sm_sys_suspend 00000000
+sm_sys_state 00000000
+sm_sys_suspend 00000000
+sm_sys_state 00000008
+sm_st_wake_up 00000000
+sm_st_update_plan_block_parameters 00000001
+sm_limit_y	1
+sm_limit_y	0
+sm_limit_y	1
+sm_limit_y	0
+sm_limit_y	1
+sm_home_spindle_off 0000001E
+sm_plan_reset 00000003
+sm_st_reset 00000002
+sm_st_go_idle 00000001
+sm_sys_state 00000001
+sm_sys_suspend 00000000
+sm_st_update_plan_block_parameters 00000001
+sm_limit_y	0
+sm_abort_input
+sm_home_spindle_off 00000000
+sm_plan_reset 00000001
+sm_st_reset 00000001
+sm_st_go_idle 00000001
+sm_sys_state 00000001
+sm_internal_stepper_disable 00000003
+
+
+
+PROBE-olas utan a JOG nem mukodik csak a G0. Viszont itt volt egy exception amit mar javitottam. Jog utan a G0 sem ment csak ha ! majd play gombot nyomtam.
+
+Home-olasnal ha sosem er kapcsolora akkor nincs opcio az abortra. Jo lenne valami ami kilep belole ido leott.
+	Homeing ha nem talal limitet a vegtelensegig teker
+	Sztm amugy nem mert van valami max ut ami utan feladja.
+
+Probeolasnal van valami hang amikor fehuzza a Z tengelyt. Ha kezzel csinalom ugyan azt a parancsot akkor nincs. Szoval valami bentmarad a bufferben. Meg kell nezni.
+	Idozitesi problema lehet mert ha kezzel kuldom akkor nem csinaly ilyet
+	Inkabb az lehet, hogy vissza kell mennie Idle-ba. Ha kezzel csinalom akkor jo.
+
+Volt egy maras amikor menet kozben az egyik G kodra hibat dobott. Sajna nincs log. Felejtos a dolog analizisre. Viszont tippre a kommunikacio valahol meg nem tokeletes.
+
+Eltort egy fej, mert menet kozben leallt a maras. UGS bezar, ujranyit. Nem tudtam kapcsolodni. Tapreszet. Majd kapcsolodott. Aztan sztm hulye voltam es home-ot nyomtam. Alarmot is torolhettem, maskepp nem indulna el. Erre eltorete a fejet. Sztm nem jegyzi meg a gep poziciojat es emiatt a hianyzo home-olas miatt elbaszodott. Vagy a tul gyors tapki miatt nem tudta elmenteni. Eepromba valo mentes gyorsitasa es folyamatosan legyen.
+	- Eeprom vizsgalata, hogy folyamatosan tudjak bele menteni. Vagy kellene annyi kondi, hogy ha elmegy a tap tudjak menteni.
+	- Hirtelen Reset eseten szivas, mert akkor nem lehet menteni. De ott nem megy el a tap. Akkor valami NoInibe kellene menteni.
+
+Emergency abort utan csomo mozgas benne marad es kovetkezo jognal ezeket elkezdi. Eltort egy kibaszott draga fej.
+Emergency abort, majd toroltem es engedelyeztem. Home-olast nyomtam es elindult lassan lefele. Nem jo.
+Abort utan a mozgas benne marad meg valahol es amikor indulok akkor lemozogja. Ez baj. Torolni kellene.
+		if (rt_exec & EXEC_ABORT) {
+			stepper_enable_emergency_stop();
+			spindle_set_state(SPINDLE_DISABLE, 0.0f);
+			system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE);		
+			//Empty out other movements
+			plan_reset();
+			st_reset();
+			gc_sync_position();
+			plan_sync_position(); 
+
+			system_clear_exec_state_flag(EXEC_ABORT);
+		}
+
+
+
+Homeolas kozben lehet nem kellene limit switch alarmokat kuldeni.
+
+Homeolas utan neha azt latom hogy a Z tengely nem 74-en van.
+
+Homeolas neha elindul ugy hogy kozben motor nem mozos. Ez akkor tortenik ha tap bekapcsolaskor valami fura konstellacio van az Emergency -vel. Ilyenkor nem lehet a Homeolast leallitani sehogy. A vegtelensegig szamol de a motorok nem mennek.
+
+Volt megint leallas maras kozben. Az ENC driverre gyanakszom. Lassabra vettem az SPI-t. Irtam bele par robosztussagot. Meglassuk. Szimulacioval tesztelek.
+Kellene egy belso szamlalo, hogy hany ok-t kuldtunk ki.
+
+Ha ket vegen vegallason van es ugy home-olom akkor hulyeseget csinal.
+
+Ha a probe zarva van es sokaig varok majd ugy akarok elindulni akkor megdoglik. DE csak ha JOG-olok. Egyebkent G00-val megy tovabb
+
+Probeolas utan az abort teljesen meghulyiti a rendszert. Nem allitja at rendesen az allapotot
+
+Az auto cycle startot ki kellene venni
+	static uint8 lastState = 0;
+	// If there are no more characters in the serial read buffer to be processed and executed,
+	// this indicates that g-code streaming has either filled the planner buffer or has
+	// completed. In either case, auto-cycle start, if enabled, any queued moves.
+	if (lastState == 0) {
+		if (plan_get_current_block() != NULL) { // Check if there are any blocks in the buffer.
+			lastState = 1;
+			system_set_exec_state_flag(EXEC_CYCLE_START); // If so, execute them!
+		}
+	} else {
+		if (plan_get_current_block() == NULL) { // Check if there are any blocks in the buffer.
+			lastState = 0;
+		}
+	} 
+			
+
+Kellene egy olyan hogy ha van PROBE-akkor abort utan egyszer azt be kelljen kezzel nyomni, hogy tenyleg mukodik-e
+
+Bekapcsoltam ugy hogy veszleallito be volt nyomja. Kiengedtem. Alarm torlese nelkul homoltam. A motor nem indult el de a szamok novekedtek
+Munka vegen meg mindig nem all le a marofej. Lasd also file peldanak. Csak akkor all le ha mozgok vele X Y -ban. Z-ben nem.
+A menet kozben marofej kikapcsolasa nem mukodik. Sztm azert mert ujra es ujra engedelyezi a kimenetet
+Neha ha mozgok akkor engedelyezi a maromotort de 0 PWM-el, magyarul nem forog. Ilyenkor nem kellene sztm.
+
+Lehetne csinalni kezi marofejcseret. Ha homeolva van akkor elmegy egy adott pozicioba, majd varja, hogy ki elgyen cserelve a fej. Ott Probe-ol egyet majd visszamegy es folytatja a munkat.
+Emergency Stop tovabbi fejlesztese a Safety Dooral. Osszeakadnak az eventek. Az egesz event kezelosdit at kellene dolgozni picit ha lehet.
+Emergency Stop megnyomasa le kell allitsa a PWM-et meg az engedelyezojelet is.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Megoldva:
+Logolashoz jo lenne idot adni, hogy lassam az eventek kozti idot
+
+Emergency Abortot megnyomtam de nem allitotta le a motorokat!!
+Hiba kijavitva. Viszont furi, hogy a gepben nem volt HW-esen megoldva.
+
+
+$# Felbontani kisebb kiirasokra. Volt hogy az OK nem jott at. Mondjuk fura miert. Hibas volt a kuldes, mert socket error is jlenetheti azt, hogy tele volt a buffer.
+
+
+TLO Nincs mentve. Betettem az eepromba. Duplan van, csak akkor tolti be ha a ket ertek azonos. Ja es CRC es backup is van.
+
+
+Mivel nagy a buffer, a file vege sokkal korabban jon mint hogy tenyleg ott tartananak. Itt hallani ahogy egy pillanatra leesik a marofej fordulatszama. Betettem egy szinkronizaciot, hogy a command csak akkor menjen ha az osszes tobbi mar lement.
+
+Maras kozben a Limit switch X aktivalodott pedig nem voltunk a szelen. Talan elektromos zaj. Limit switchek kaptak szurest.
+
+Bootloader flashelese ne torolje az eepromot
+A bootloader eloszor elmenthetne az eepromot majd csak utana lephetne a bootloaderbe
+A Probe-nak kulon event kellene ami iditja a probeolast, hogy az asynch ezt tudja figyelni elindult-e mar.: Exec kiemelve, hogy konnyebb legyen 16 bitesre atteni. Uj exec letrehozva es arra atkotve a probeolas.
+Stepper motor enable lefixalasa: Eeprombol kiszedve, SW-ben sincs invertalasi lehetoseg
+Motor ki be kapcsolaskor neha nem valaszol a GRBL Gui. USB hiba? Megoldas USB levalasztas segiteni latszik
+Emergency Stop nem mukodik lathatolag: Mukodik de meg nem tokeletes, mert az alarm torlodik. A mozgas a hatterben meg lemegy.
+Maro program vegen a M5 nem allitja le a marofejet. Sot ha soros porton kuldom akkor se all le, csak ha elobb S3 M5000-el pl elinditom es utana allitom le: Sztm megoldva.
+Homeolaskor a tengelyek erteke elcsuszik. Valoszinu a motor_controlban: Kerekitesi hiba. Ez van el kell fogadni
+Simulator: Kellene egy Homeing simulator hogy lehessen tesztelni
+Utana megnezni az abort problemat. Sztm a HOme utani abort torlodik es ez a baj
+sys.state: 0001 rossz allapotban volt amikor menet kozben abortot nyomtam. 0000-ban volt nem pedig 0001-ben
+
+
+
+
+
+Szerintem az ENC driverben volt a hiba. Volt benne egy Reset(). Atirva. Regen azert nem jott elo mert direktben volt a PC-re kotve. Most a LAN halon ul. Ott lehet jonnek hibas csomagok.
+Maras kozben leallt:
+ Szerintem a bemenet zajos volt.
+ok
+>>> G3X40.272Y74.408Z-7I0J-1.82F1478
+ok
+>>> G1X40.272Y48.589Z-7F1478
+ok
+>>> G3X42.093Y46.768Z-7I1.821J0F1478
+ok
+>>> G2X44.69Y46.741Z-7I-0.031J-127.36F1478
+[Error] An error was detected while sending 'G1X40.272Y48.589Z-7F1478': (ALARM:1) Hard limit has been triggered. Machine position is likely lost due to sudden halt. Re-homing is highly recommended. Streaming has been paused.
+[Error] Error while processing response <An error was detected while sending 'G1X40.272Y48.589Z-7F1478': (ALARM:1) Hard limit has been triggered. Machine position is likely lost due to sudden halt. Re-homing is highly recommended. Streaming has been paused.>
+>>> G2X47.26Y46.371Z-7I-0.22J-10.635F1478
+[MSG:Reset to continue]
+ok
+>>> G2X50.615Y45.054Z-7I-4.353J-16.016F1478
+[Error] An error was detected while sending 'G2X44.69Y46.741Z-7I-0.031J-127.36F1478': (error:9) G-code commands are locked out during alarm or jog state. Streaming has been paused.
+[Error] Error while processing response <An error was detected while sending 'G2X44.69Y46.741Z-7I-0.031J-127.36F1478': (error:9) G-code commands are locked out during alarm or jog state. Streaming has been paused.>
+**** The communicator has been paused ****
+
+**** Pausing file transfer. ****
+
+[Error] An error was detected while sending 'G2X47.26Y46.371Z-7I-0.22J-10.635F1478': (error:9) G-code commands are locked out during alarm or jog state. Streaming has been paused.
+[Error] Error while processing response <An error was detected while sending 'G2X47.26Y46.371Z-7I-0.22J-10.635F1478': (error:9) G-code commands are locked out during alarm or jog state. Streaming has been paused.>
+**** The communicator has been paused ****
+
+**** Pausing file transfer. ****
+
+[Error] An error was detected while sending 'G2X50.615Y45.054Z-7I-4.353J-16.016F1478': (error:9) G-code commands are locked out during alarm or jog state. Streaming has been paused.
+[Error] Error while processing response <An error was detected while sending 'G2X50.615Y45.054Z-7I-4.353J-16.016F1478': (error:9) G-code commands are locked out during alarm or jog state. Streaming has been paused.>
+**** The communicator has been paused ****
+
+**** Pausing file transfer. ****
+
+Hosszu allas utan ahol elvileg kapcsolodva volt az UGS megszunt a kommunikacio etherneten. Lasd fent.
+Leallt a motor es nem mart tovabb. Majd alarmban volt. A log nem mutatott semmit. Szerintem resetelt egyet. Lasd fent.
+Stepper disablet kivenni mert nem igazan kell. Vagy nem tudom. Eddig csak zavart ha nem volt kapcsolat akkor lekapcsolt mert picit odebbmegy a tengely. Elvileg nincs most benne ilyen. Nem tudom meg kell nezni. Lasd fent.
+Ketszer megallt maras kozben. nem tudom miert, a marofej is megallt. Lehet veszleallas volt. Kellene valami logger. Lasd fent
+
+
+
+
+
+Ide a beallitasbol kellene venni az erteket
+							switch (idx) {
+								case X_AXIS : {
+									if ( bit_istrue(settings.homing_dir_mask, bit(idx)) ) {
+										set_axis_position = lround_my((-DEFAULT_X_MAX_TRAVEL + settings.homing_pulloff) * settings.steps_per_mm[idx]);
+									} else {
+										set_axis_position = lround_my((DEFAULT_X_MAX_TRAVEL - settings.homing_pulloff) * settings.steps_per_mm[idx]);
+									}
+									break;
+								}
+								case Y_AXIS : {
+									if ( bit_istrue(settings.homing_dir_mask, bit(idx)) ) {
+										set_axis_position = lround_my((-DEFAULT_Y_MAX_TRAVEL + settings.homing_pulloff) * settings.steps_per_mm[idx]);
+									} else {
+										set_axis_position = lround_my((DEFAULT_Y_MAX_TRAVEL - settings.homing_pulloff) * settings.steps_per_mm[idx]);
+									}
+									break;
+								}
+								case Z_AXIS : {
+									if ( bit_istrue(settings.homing_dir_mask, bit(idx)) ) {
+										set_axis_position = lround_my((-DEFAULT_Z_MAX_TRAVEL + settings.homing_pulloff) * settings.steps_per_mm[idx]);
+									} else {
+										set_axis_position = lround_my((DEFAULT_Z_MAX_TRAVEL - settings.homing_pulloff) * settings.steps_per_mm[idx]);
+									}
+									break;
+								}
+								/*case A_AXIS : {
+									break;
+								}*/
+								default : {
+									break;
+								}
+							}  
+ 
