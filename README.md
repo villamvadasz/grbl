@@ -1,10 +1,10 @@
 # grbl
 
-The Project contains a port of GRBL from Atmel to a PIC32MZ and/or PIC32MX. 
-Supposed to run on the boards from Oliemx:
-- PIC32-HMZ144 @200MHz :)
-- PIC32-PINGUINO-OTG (CNC shields fit here very nice)
+The Project contains a port of GRBL from Atmel to a PIC32MX and/or PIC32MZ. 
+Supposed to run on the boards from Olimex:
 - PIC32-PINGUINO-MICRO (can be used for testing without any CNC machine or stepper motors)
+- PIC32-PINGUINO-OTG (CNC shields fit here very nice)
+- PIC32-HMZ144 @200MHz :)
 
 Features:
 - Faster CPU @200MHz -> More CPU time is left for other usefull upcoming features
@@ -14,3 +14,4 @@ Features:
 - Added Eeprom Emulation -> Position save into Data Flash. Since flash is used it only stores changes incrementally, keeps flash long lifed
 - USB CDC communication -> No external device is necessary to connect to the PC.
 - Ethernet UDP communication
+
