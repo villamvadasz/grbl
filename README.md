@@ -13,4 +13,4 @@ Features:
 - Only soft reset is provided, hard reset is removed. -> Sorry but other components might be not happy to be reseted just like so
 - Added Eeprom Emulation -> Position save into Data Flash. Since flash is used it only stores changes incrementally, keeps flash long lifed
 - USB CDC communication -> No external device is necessary to connect to the PC.
-
+- Ethernet UDP communication
