@@ -1,0 +1,11 @@
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\bin\Release\Microchip Ethernet Discoverer.exe.manifest
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\bin\Release\Microchip Ethernet Discoverer.application
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\bin\Release\Microchip Ethernet Discoverer.exe
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\bin\Release\Microchip Ethernet Discoverer.pdb
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\obj\Release\Embedded_Device_Discoverer.Form1.resources
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\obj\Release\Microchip_Ethernet_Discoverer.Properties.Resources.resources
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\obj\Release\Microchip Ethernet Discoverer.csproj.GenerateResource.Cache
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\obj\Release\Microchip Ethernet Discoverer.exe.manifest
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\obj\Release\Microchip Ethernet Discoverer.application
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\obj\Release\Microchip Ethernet Discoverer.exe
+c:\microchip_solutions_v2013-06-15\Microchip\TCPIP Stack\Utilities\Source\Microchip Ethernet Discoverer\obj\Release\Microchip Ethernet Discoverer.pdb

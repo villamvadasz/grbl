@@ -1,0 +1,43 @@
+# MPLAB IDE generated this makefile for use with GNU make.
+# Project: USBHIDBootloader.mcp
+# Date: Mon Feb 11 21:10:53 2019
+
+AS = xc32-as.exe
+CC = xc32-gcc.exe
+LD = xc32-ld.exe
+AR = xc32-ar.exe
+HX = xc32-bin2hex.exe
+RM = del
+
+all: ./out/USBHIDBootloader.hex
+
+./out/USBHIDBootloader.hex : ./out/USBHIDBootloader.elf
+	$(HX) ".\out\USBHIDBootloader.elf"
+
+./out/USBHIDBootloader.elf : out/BootLoader.o out/Framework.o out/NVMem.o out/usb_descriptors.o out/usb_device.o out/usb_function_hid.o out/Usb_HID_tasks.o
+	$(CC) -mprocessor=32MX460F512L "out\BootLoader.o" "out\Framework.o" "out\NVMem.o" "out\usb_descriptors.o" "out\usb_device.o" "out\usb_function_hid.o" "out\Usb_HID_tasks.o" -o".\out\USBHIDBootloader.elf" -Wl,--script="lkr\btl_32MX460F512L_generic.ld",--defsym=__MPLAB_BUILD=1,-Map=".\out\USBHIDBootloader.map"
+
+out/BootLoader.o : src/BootLoader.c inc/GenericTypeDefs.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/Bootloader.h inc/Usb_Tasks.h inc/Framework.h
+	$(CC) -mprocessor=32MX460F512L -x c -c "src\BootLoader.c" -o".\out\BootLoader.o" -MMD -MF".\out\BootLoader.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+out/Framework.o : src/Framework.c inc/GenericTypeDefs.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/BootLoader.h inc/Usb_Tasks.h inc/Framework.h inc/NVMem.h
+	$(CC) -mprocessor=32MX460F512L -x c -c "src\Framework.c" -o".\out\Framework.o" -MMD -MF".\out\Framework.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+out/NVMem.o : src/NVMem.c inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/GenericTypeDefs.h inc/BootLoader.h inc/Usb_Tasks.h inc/Framework.h inc/NVMem.h
+	$(CC) -mprocessor=32MX460F512L -x c -c "src\NVMem.c" -o".\out\NVMem.o" -MMD -MF".\out\NVMem.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+out/usb_descriptors.o : src/usb_descriptors.c inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/usb_function_hid.h
+	$(CC) -mprocessor=32MX460F512L -x c -c "src\usb_descriptors.c" -o".\out\usb_descriptors.o" -MMD -MF".\out\usb_descriptors.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+out/usb_device.o : src/usb_device.c inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/usb_device_local.h
+	$(CC) -mprocessor=32MX460F512L -x c -c "src\usb_device.c" -o".\out\usb_device.o" -MMD -MF".\out\usb_device.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+out/usb_function_hid.o : src/usb_function_hid.c inc/GenericTypeDefs.h inc/Compiler.h inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/usb_function_hid.h
+	$(CC) -mprocessor=32MX460F512L -x c -c "src\usb_function_hid.c" -o".\out\usb_function_hid.o" -MMD -MF".\out\usb_function_hid.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+out/Usb_HID_tasks.o : src/Usb_HID_tasks.c inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/usb_function_hid.h inc/BootLoader.h inc/Usb_Tasks.h inc/Framework.h
+	$(CC) -mprocessor=32MX460F512L -x c -c "src\Usb_HID_tasks.c" -o".\out\Usb_HID_tasks.o" -MMD -MF".\out\Usb_HID_tasks.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+
+clean : 
+	$(RM) "out\BootLoader.o" "out\Framework.o" "out\NVMem.o" "out\usb_descriptors.o" "out\usb_device.o" "out\usb_function_hid.o" "out\Usb_HID_tasks.o" ".\out\USBHIDBootloader.elf" ".\out\USBHIDBootloader.hex"
+

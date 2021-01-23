@@ -1,0 +1,276 @@
+Archive member included because of file (symbol)
+
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(_fixunssfdi.o)
+                              output\stepper.o (__fixunssfdi)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(_floatundisf.o)
+                              output\stepper.o (__floatundisf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(floatunsisf.o)
+                              output\grbl_limits.o (__floatunsisf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(floatunsidf.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(_fixunssfdi.o) (__floatunsidf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(memcmp.o)
+                              output\grbl_eeprom.o (memcmp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(memcpy.o)
+                              output\eep_manager.o (memcpy)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(memset.o)
+                              output\ringBuffer.o (memset)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(strcmp.o)
+                              output\grbl_protocol.o (strcmp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(strlen.o)
+                              output\Helpers.o (strlen)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(default-bootstrap-exception-handler.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (_bootstrap_exception_handler)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(default-on-reset.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (_on_reset)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(default-on-bootstrap.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (_on_bootstrap)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(default-nmi-handler.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (_nmi_handler)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(pic32_data_init.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (__pic32_data_init)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(pic32_init_cache.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (__pic32_init_cache)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(pic32_init_tlb_ebi_sqi.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (__pic32_tlb_init_ebi_sqi)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(general-exception.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (_general_exception_context)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(cache-err-exception.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (_cache_err_exception_context)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(simple-tlb-refill-exception.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccoQTPa8.o (_simple_tlb_refill_exception_context)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(defaultinterrupt.o)
+                              C:\Users\kyrk\AppData\Local\Temp\ccLIrQsl.o (_DefaultInterrupt)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(default-cache-err-exception-handler.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(cache-err-exception.o) (_cache_err_exception_handler)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(default-simple-tlb-refill-exception-handler.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(simple-tlb-refill-exception.o) (_simple_tlb_refill_exception_handler)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\liblega-c.a(strncmp.o)
+                              output\grbl_protocol.o (strncmp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\liblega-c.a(strncpy.o)
+                              output\Helpers.o (strncpy)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(dp32mul.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(_fixunssfdi.o) (dpmul)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(dp32subadd.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(_fixunssfdi.o) (dpsub)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(dptofp.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(_floatundisf.o) (dptofp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(dptoul.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(_fixunssfdi.o) (dptoul)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fp32div.o)
+                              output\gcode.o (fpdiv)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fp32mul.o)
+                              output\gcode.o (fpmul)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fp32subadd.o)
+                              output\gcode.o (fpsub)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpceil32.o)
+                              output\nuts_bolts.o (ceilf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpcmp.o)
+                              output\gcode.o (fpcmp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpcos32.o)
+                              output\motion_control.o (cosf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpfloo32.o)
+                              output\motion_control.o (floorf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpreduct32.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpcos32.o) (fpreduct)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpsin32.o)
+                              output\motion_control.o (sinf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fptodp.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(_fixunssfdi.o) (fptodp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fptoli.o)
+                              output\gcode.o (fptosi)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fptoul.o)
+                              output\gcode.o (fptoui)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(litodp.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3\libgcc.a(floatunsidf.o) (litodp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(sincof32.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpcos32.o) (_sincof)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(sitofp.o)
+                              output\gcode.o (sitofp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(w_atan2f.o)
+                              output\motion_control.o (atan2f)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(w_sqrtf.o)
+                              output\gcode.o (sqrtf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(support.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(w_atan2f.o) (copysignl)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(dpldexp.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(support.o) (ldexp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(dp32div.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(support.o) (dpdiv)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(dpcmp.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(w_atan2f.o) (dpcmp)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpatan2.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(w_atan2f.o) (__mchp_atan2f)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpexatan.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpatan2.o) (fpexatan)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpexsqrt32.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpexatan.o) (fpexsqrt)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(fpsqrt32.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(w_sqrtf.o) (__mchp_sqrtf)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(s_lib_ver.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(w_sqrtf.o) (math_errhandling)
+c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libpic32.a(errno.o)
+                              c:/program files (x86)/microchip/xc32/v2.30/bin/bin/../../lib/gcc/pic32mx/4.8.3/../../../../pic32mx/lib\libm.a(w_sqrtf.o) (errno)
+
+Allocating common symbols
+Common symbol       size              file
+
+is_clockwise_arc_buffer
+                    0x1               output\motion_control.o
+r_axis0             0x4               output\motion_control.o
+r_axis1             0x4               output\motion_control.o
+pwm_duty            0x40              output\pwm.o
+eth_rx              0x200             output\ethernet_grbl_multi.o
+tempResult          0x4               output\exceptions.o
+usb_delay_timer     0x4               output\usb.o
+gUSBDeviceCDCInstance
+                    0x40              output\usb_device_cdc.o
+theta_per_segment   0x4               output\motion_control.o
+cos_Ti              0x4               output\motion_control.o
+coord_offset_eep    0xc               output\gcode.o
+adResults           0x2               output\ad.o
+UDPRxCount          0x2               output\UDP.o
+center_axis1        0x4               output\motion_control.o
+appData             0x30              output\usb_app.o
+dummyPORT5          0x4               output\grbl.o
+dummyPORT4          0x4               output\grbl.o
+dummyPORT2          0x4               output\grbl.o
+system_log_caller   0x80              output\system.o
+dummyPORT3          0x4               output\grbl.o
+dummyPORT1          0x4               output\grbl.o
+axis_linear_buffer  0x1               output\motion_control.o
+gc_state            0x44              output\gcode.o
+cycle_mask_buffer   0x1               output\motion_control.o
+dummyPORT6          0x4               output\grbl.o
+dummyPORT7          0x4               output\grbl.o
+gcodePositionSave   0x4               output\grbl_eeprom.o
+segments_buffer     0x2               output\motion_control.o
+st                  0x28              output\stepper.o
+gUSBDeviceCDCIRP    0x6c              output\usb_device_cdc.o
+gDrvUSBEndpoints    0x60              output\drv_usbhs.o
+UDPTxCount          0x2               output\UDP.o
+system_log          0x80              output\system.o
+cycle_mask_asynch   0x1               output\grbl_limits.o
+center_axis0        0x4               output\motion_control.o
+_return_addr        0x4               output\exceptions.o
+cos_T               0x4               output\motion_control.o
+limits_set_state_filtered_currentState
+                    0x1               output\grbl_limits.o
+sin_T               0x4               output\motion_control.o
+target_buffer       0xc               output\motion_control.o
+axislock            0x1               output\grbl_limits.o
+dataEEFlags         0x4               output\dee.o
+eep_settings        0x60              output\settings.o
+sysObj              0xc               output\system_init.o
+limit_state         0x1               output\grbl_limits.o
+gDrvUSBObj          0xbc              output\drv_usbhs.o
+i_buffer            0x2               output\motion_control.o
+eep_settings_backup
+                    0x60              output\settings.o
+axis_1_buffer       0x1               output\motion_control.o
+r_axisi             0x4               output\motion_control.o
+settings            0x60              output\settings.o
+activeUDPSocket     0x1               output\UDP.o
+grbl_toolchange_failsafe_timeout
+                    0x4               output\grbl_toolchange.o
+myRingBuffer_grbl_protocol_rx
+                    0x18              output\grbl_protocol.o
+block_buffer_planned
+                    0x1               output\planner.o
+read_dee_page_size  0x4               output\dee_page.o
+dee_debug_page_status
+                    0xc               output\dee_page.o
+pl                  0x1c              output\planner.o
+UDPSocketInfo       0xe0              output\UDP.o
+segment_buffer_head
+                    0x1               output\stepper.o
+myRingBuffer_eth_tx
+                    0x18              output\ethernet_grbl_multi.o
+myRingBuffer_hid_rx
+                    0x18              output\serial_usb.o
+eep_manager_write_all_trigger
+                    0x3c              output\eep_manager.o
+hid_tx              0x200             output\serial_usb.o
+bsdServerSocket     0x1               output\ethernet_grbl_multi.o
+eth_tx              0x200             output\ethernet_grbl_multi.o
+ClientSock          0x1               output\ethernet_grbl_multi.o
+myRingBuffer_hid_tx
+                    0x18              output\serial_usb.o
+taskLists           0x480             output\task.o
+st_block_buffer     0x1cc             output\stepper.o
+dummyLAT4           0x4               output\grbl.o
+segment_next_head   0x1               output\stepper.o
+dummyLAT5           0x4               output\grbl.o
+dummyLAT6           0x4               output\grbl.o
+dummyLAT7           0x4               output\grbl.o
+next_buffer_head    0x1               output\planner.o
+linear_per_segment  0x4               output\motion_control.o
+position_buffer     0xc               output\motion_control.o
+sin_Ti              0x4               output\motion_control.o
+block_buffer_head   0x1               output\planner.o
+dummyTRIS3          0x4               output\grbl.o
+dummyTRIS4          0x4               output\grbl.o
+dummyTRIS7          0x4               output\grbl.o
+dummyTRIS2          0x4               output\grbl.o
+dummyTRIS1          0x4               output\grbl.o
+dummyTRIS6          0x4               output\grbl.o
+dummyTRIS5          0x4               output\grbl.o
+addr                0x10              output\ethernet_grbl_multi.o
+sys                 0x14              output\system.o
+gc_block            0x40              output\gcode.o
+target              0xc               output\grbl_limits.o
+coord_system_eep    0xc               output\gcode.o
+sys_probe_position  0xc               output\system.o
+n_active_axis       0x1               output\grbl_limits.o
+remoteNode          0xa               output\StackTsk.o
+step_pin            0x3               output\grbl_limits.o
+axis_0_buffer       0x1               output\motion_control.o
+eep_coord_teached   0xa               output\settings.o
+_excep_code         0x4               output\exceptions.o
+protocol_dwellTime  0x4               output\grbl_protocol.o
+read_dee_page       0x4               output\dee_page.o
+AppConfig           0x33              output\ethernet.o
+block_buffer        0xd00             output\planner.o
+ReceivedDataBuffer_grbl_ethernet_multi
+                    0x40              output\ethernet_grbl_multi.o
+loopCntHistory      0xf0              output\main.o
+max_travel          0x4               output\grbl_limits.o
+radius_buffer       0x4               output\motion_control.o
+gUSBDeviceCdcCommonDataObj
+                    0x2               output\usb_device_cdc.o
+hid_rx              0x200             output\serial_usb.o
+segment_buffer      0x120             output\stepper.o
+tempB               0x4               output\exceptions.o
+tempA               0x4               output\exceptions.o
+approach            0x1               output\grbl_limits.o
+plan_data           0xc               output\grbl_limits.o
+line_buffer         0x50              output\grbl_protocol.o
+ToSendDataBuffer_grbl_ethernet_multi
+                    0x40              output\ethernet_grbl_multi.o
+homing_rate         0x4               output\grbl_limits.o
+system_suspendTime  0x4               output\system.o
+eep_coord_data      0x78              output\settings.o
+grbl_protocol_rx    0x80              output\grbl_protocol.o
+segment_buffer_tail
+                    0x1               output\stepper.o
+dummyLAT3           0x4               output\grbl.o
+dummyLAT2           0x4               output\grbl.o
+dummyLAT1           0x4               output\grbl.o
+read_dee_page_startaddress
+                    0x4               output\dee_page.o
+eep_settings_version
+                    0x1               output\settings.o
+prep                0x38              output\stepper.o
+addRemote           0x10              output\ethernet_grbl_multi.o
+grbl_bootloader_timer
+                    0x4               output\grbl_bootloader.o
+_excep_addr         0x4               output\exceptions.o
+n_cycle             0x1               output\grbl_limits.o
+offset_buffer       0xc               output\motion_control.o
+block_buffer_tail   0x1               output\planner.o
+myRingBuffer_eth_rx
+                    0x18              output\ethernet_grbl_multi.o
+eep_manager_debug_address
+                    0x3c              output\eep_manager.o
+pl_data_buffer      0xc               output\motion_control.o
+limit_filter_state  0x2               output\grbl_limits.o
+sys_position        0xc               output\system.o
