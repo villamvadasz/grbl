@@ -242,7 +242,7 @@ static void mc_arc_pre(float *target, plan_line_data_t *pl_data, float *position
 		// all segments.
 		if (pl_data->condition & PL_COND_FLAG_INVERSE_TIME) { 
 			pl_data->feed_rate *= segments_buffer; 
-			bit_false(pl_data->condition,PL_COND_FLAG_INVERSE_TIME); // Force as feed absolute mode over arc segments.
+			pl_data->condition &= ~(PL_COND_FLAG_INVERSE_TIME); // Force as feed absolute mode over arc segments.
 		}
 		theta_per_segment = angular_travel / segments_buffer;
 		linear_per_segment = (target[axis_linear] - position[axis_linear])/segments_buffer;
@@ -360,8 +360,9 @@ void mc_stop(void) {
 		} else { 
 			system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE);
 		}
+		system_log_sm_plan_reset(3);
 		plan_reset();
-		//st_go_idle();
+		system_log_st_reset(2);
 		st_reset();
 		// Sync cleared gcode and planner positions to current system position.
 		plan_sync_position();

@@ -119,6 +119,9 @@ uint8 gc_check_for_sync_needed(char *line) {
 				} else if ( (letter == 'M') && (int_value == 5) ) { //M5
 					result = true;
 					break;
+				} else if ( (letter == 'G') && (int_value == 38) ) { //G38
+					result = true;
+					break;
 				}
 			}
 		}
@@ -216,6 +219,7 @@ uint8 gc_execute_line(char *line) {
 				// Determine 'G' command and its modal group
 				switch(int_value) {
 					case 10: case 28: case 30: case 92: {
+						system_log_sm_g28(0);
 						// Check for G10/28/30/92 being called with G0/1/2/3/38 on same block.
 						// * G43.1 is also an axis command but is not explicitly defined this way.
 						if (mantissa == 0) { // Ignore G28.1, G30.1, and G92.1
@@ -532,7 +536,7 @@ uint8 gc_execute_line(char *line) {
 			FAIL(STATUS_GCODE_INVALID_LINE_NUMBER);
 		} // [Exceeds max line number]
 	}
-	// bit_false(value_words,bit(WORD_N)); // NOTE: Single-meaning value word. Set at end of error-checking.
+	// value_words &= ~(bit(WORD_N)); // NOTE: Single-meaning value word. Set at end of error-checking.
 
 	// Track for unused words at the end of error-checking.
 	// NOTE: Single-meaning value words are removed all at once at the end of error-checking, because
@@ -588,16 +592,16 @@ uint8 gc_execute_line(char *line) {
 			} // Else, switching to G94 from G93, so don't push last state feed rate. Its undefined or the passed F word value.
 		}
 	}
-	// bit_false(value_words,bit(WORD_F)); // NOTE: Single-meaning value word. Set at end of error-checking.
+	// value_words &= ~(bit(WORD_F)); // NOTE: Single-meaning value word. Set at end of error-checking.
 
 	// [4. Set spindle speed ]: S is negative (done.)
 	if (bit_isfalse(value_words,bit(WORD_S))) {
 		gc_block.values.s = gc_state.spindle_speed;
 	}
-	// bit_false(value_words,bit(WORD_S)); // NOTE: Single-meaning value word. Set at end of error-checking.
+	// value_words &= ~(bit(WORD_S)); // NOTE: Single-meaning value word. Set at end of error-checking.
 
 	// [5. Select tool ]: NOT SUPPORTED. Only tracks value. T is negative (done.) Not an integer. Greater than max tool value.
-	// bit_false(value_words,bit(WORD_T)); // NOTE: Single-meaning value word. Set at end of error-checking.
+	// value_words &= ~(bit(WORD_T)); // NOTE: Single-meaning value word. Set at end of error-checking.
 
 	// [6. Change tool ]: N/A
 	// [7. Spindle control ]: N/A
@@ -609,7 +613,7 @@ uint8 gc_execute_line(char *line) {
 		if (bit_isfalse(value_words,bit(WORD_P))) { // [P word missing]
 			FAIL(STATUS_GCODE_VALUE_WORD_MISSING);
 		}
-		bit_false(value_words,bit(WORD_P));
+		value_words &= ~(bit(WORD_P));
 	}
 
 	// [11. Set active plane ]: N/A
@@ -714,7 +718,7 @@ uint8 gc_execute_line(char *line) {
 					FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
 				}
 			}
-			bit_false(value_words,(bit(WORD_L)|bit(WORD_P)));
+			value_words &= ~(bit(WORD_L)|bit(WORD_P));
 
 			// Determine coordinate system to change and try to load from EEPROM.
 			if (coord_select > 0) { // Adjust P1-P6 index to EEPROM coordinate data indexing.
@@ -902,7 +906,7 @@ uint8 gc_execute_line(char *line) {
 				y = gc_block.values.xyz[axis_1]-gc_state.position[axis_1]; // Delta y between current position and target
 
 				if (value_words & bit(WORD_R)) { // Arc Radius Mode
-					bit_false(value_words, bit(WORD_R));
+					value_words &= ~(bit(WORD_R));
 					#if (N_AXIS == 3)
 						if (isequal_position_vector(gc_state.position[X_AXIS], gc_state.position[Y_AXIS], gc_state.position[Z_AXIS], gc_block.values.xyz[X_AXIS], gc_block.values.xyz[Y_AXIS], gc_block.values.xyz[Z_AXIS])) { // [Invalid target]
 							FAIL(STATUS_GCODE_INVALID_TARGET); 
@@ -1011,7 +1015,7 @@ uint8 gc_execute_line(char *line) {
 					if (!(ijk_words & (bit(axis_0)|bit(axis_1)))) { // [No offsets in plane]
 						FAIL(STATUS_GCODE_NO_OFFSETS_IN_PLANE);
 					}
-					bit_false(value_words,(bit(WORD_I)|bit(WORD_J)|bit(WORD_K)));
+					value_words &= ~(bit(WORD_I)|bit(WORD_J)|bit(WORD_K));
 
 					// Convert IJK values to proper units.
 					if (gc_block.modal.units == UNITS_MODE_INCHES) {
@@ -1075,12 +1079,12 @@ uint8 gc_execute_line(char *line) {
 	// radius mode, or axis words that aren't used in the block.
 	if (gc_parser_flags & GC_PARSER_JOG_MOTION) {
 		// Jogging only uses the F feed rate and XYZ value words. N is valid, but S and T are invalid.
-		bit_false(value_words,(bit(WORD_N)|bit(WORD_F)));
+		value_words &= ~(bit(WORD_N)|bit(WORD_F));
 	} else {
-		bit_false(value_words,(bit(WORD_N)|bit(WORD_F)|bit(WORD_S)|bit(WORD_T))); // Remove single-meaning value words.
+		value_words &= ~(bit(WORD_N)|bit(WORD_F)|bit(WORD_S)|bit(WORD_T)); // Remove single-meaning value words.
 	}
 	if (axis_command) { // Remove axis words.
-		bit_false(value_words,(bit(WORD_X)|bit(WORD_Y)|bit(WORD_Z)));
+		value_words &= ~(bit(WORD_X)|bit(WORD_Y)|bit(WORD_Z));
 	}
 	if (value_words) { // [Unused words]
 		FAIL(STATUS_GCODE_UNUSED_WORDS);
@@ -1317,7 +1321,7 @@ uint8 gc_execute_line(char *line) {
 			system_flag_wco_change();
 			break;
 		case NON_MODAL_RESET_COORDINATE_OFFSET:
-			clear_vector(gc_state.coord_offset); // Disable G92 offsets by zeroing offset vector.
+			memset(gc_state.coord_offset, 0, sizeof(gc_state.coord_offset)); // Disable G92 offsets by zeroing offset vector.
 			system_flag_wco_change();
 			break;
 	}

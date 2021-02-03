@@ -37,6 +37,8 @@ Timer gcodePositionSave;
 volatile unsigned char grbl_eeprom_trigger_prev = 1;
 volatile unsigned char grbl_eeprom_trigger_current = 0;
 
+unsigned char grbl_eeprom_checkIs(void);
+
 void init_grbl_eeprom(void) {
 	initTimer(&gcodePositionSave);
 
@@ -75,48 +77,41 @@ void do_grbl_eeprom(void) {
 			{
 				switch (gc_main_eeprom_trigger) {
 					case 0 : {
-						if (
-							(plan_check_full_buffer()) ||
-							(st_isRunning() != 0) ||
-							(isProbing_cycleRunning() != 0) ||
-							(protocol_get_requestSynchMotion()) ||
-							(protocol_get_requestDwell()) ||
-							(isToolChangeRunning()) ||
-							(isArcGeneratingRunning() != 0) ||
-							(isLimits_go_homeRunning() != 0) ||
-							(isMc_homing_cycleRunning() != 0) ||
-							(isDelayRunning() != 0)
-						) {
+						if (grbl_eeprom_checkIs()) {
 							grbl_eeprom_trigger_current = 1;
 						} else {
 							grbl_eeprom_trigger_current = 0;
 						}
 						if ((grbl_eeprom_trigger_prev == 1) && (grbl_eeprom_trigger_current == 0)) {
 							gc_main_eeprom_trigger = 1;
+							writeTimer(&gcodePositionSave, GCODE_POSITION_SAVE_TIME);
 						}
 						grbl_eeprom_trigger_prev = grbl_eeprom_trigger_current;
 						break;
 					}
 					case 1 : {
-						writeTimer(&gcodePositionSave, GCODE_POSITION_SAVE_TIME);
-						gc_main_eeprom_trigger = 2;
+						if (grbl_eeprom_checkIs()) {
+							gc_main_eeprom_trigger = 0;
+						} else {
+							if (readTimer(&gcodePositionSave) == 0) {
+								gc_main_eeprom_trigger = 2;
+							}
+						}
 						break;
 					}
 					case 2 : {
-						if (readTimer(&gcodePositionSave) == 0) {
-							gc_main_eeprom_trigger = 0;
-								{
-									uint8 idx = 0;
-									for (idx = 0; idx < N_AXIS; idx++) {
-										coord_system_eep[idx] = gc_state.coord_system[idx];
-									} 
-									for (idx = 0; idx < N_AXIS; idx++) {
-										coord_offset_eep[idx] = gc_state.coord_offset[idx];
-									}
-									eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_5);
-									eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_6);
-									eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_7);
-								}
+						gc_main_eeprom_trigger = 0;
+						{
+							uint8 idx = 0;
+							for (idx = 0; idx < N_AXIS; idx++) {
+								coord_system_eep[idx] = gc_state.coord_system[idx];
+							} 
+							for (idx = 0; idx < N_AXIS; idx++) {
+								coord_offset_eep[idx] = gc_state.coord_offset[idx];
+							}
+							eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_5);
+							eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_6);
+							eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_7);
 						}
 						break;
 					}
@@ -182,6 +177,26 @@ void grbl_reset_eep_messages(void) {
 	master_eep_error_single_shoot = 1;
 	backup_eep_error_single_shoot = 1;
 }
+
+unsigned char grbl_eeprom_checkIs(void) {
+	unsigned char result = 0;
+	if (
+		(plan_check_full_buffer()) ||
+		(st_isRunning() != 0) ||
+		(isProbing_cycleRunning() != 0) ||
+		(protocol_get_requestSynchMotion()) ||
+		(protocol_get_requestDwell()) ||
+		(isToolChangeRunning()) ||
+		(isArcGeneratingRunning() != 0) ||
+		(isLimits_go_homeRunning() != 0) ||
+		(isMc_homing_cycleRunning() != 0) ||
+		(isDelayRunning() != 0)
+	) {
+		result = 1;
+	}
+	return result;
+}
+
 
 void grbl_eeprom_storePositionToNoInit(void) {
 	//<= RESET

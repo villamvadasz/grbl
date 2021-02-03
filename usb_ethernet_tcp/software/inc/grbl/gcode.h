@@ -160,17 +160,6 @@
 #define GC_UPDATE_POS_NONE     2
 #define GC_UPDATE_POS_PENDING     0xFF
 
-// Define probe cycle exit states and assign proper position updating.
-#define GC_PROBE_FOUND      GC_UPDATE_POS_SYSTEM
-#define GC_PROBE_ABORT      GC_UPDATE_POS_NONE
-#define GC_PROBE_FAIL_INIT  GC_UPDATE_POS_NONE
-#define GC_PROBE_FAIL_END   GC_UPDATE_POS_TARGET
-#ifdef SET_CHECK_MODE_PROBE_TO_START
-  #define GC_PROBE_CHECK_MODE   GC_UPDATE_POS_NONE  
-#else
-  #define GC_PROBE_CHECK_MODE   GC_UPDATE_POS_TARGET
-#endif
-
 // Define gcode parser flags for handling special cases.
 #define GC_PARSER_NONE                  0 // Must be zero.
 #define GC_PARSER_JOG_MOTION            bit(0)

@@ -99,7 +99,8 @@
 
 	// Prints Grbl help and current global settings
 	extern void report_grbl_help(void);
-	extern void report_grbl_debug(void);
+	extern void report_grbl_debug_0(void);
+	extern void report_grbl_debug_1(void);
 
 	// Prints Grbl global settings
 	extern void report_grbl_settings(void);

@@ -99,7 +99,7 @@ uint8 stepper_enable_emergency_stop_cleared(unsigned int auth) {
 	auth *= 3;
 	if (auth == 9) {
 		uint8 ctrl_pin_state_ABORT = system_control_get_state_ABORT();
-		if (ctrl_pin_state_ABORT) {
+		if (ctrl_pin_state_ABORT == 0) {
 			stepper_enable_emergency_stop_active = STEPPER_ENABLE_OFF_STATE;
 			#ifdef STEPPERS_ALWAYS_ENABLED
 				stepper_enable_enable();

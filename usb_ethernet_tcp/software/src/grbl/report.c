@@ -37,7 +37,8 @@
 #include "stackmeasure.h"
 
 
-unsigned int grbl_report_sys_log = 0;
+unsigned int grbl_report_sys_log_0 = 0;
+unsigned int grbl_report_sys_log_1 = 0;
 unsigned int grbl_report_eeprom_dump = 0;
 volatile unsigned int do_grbl_report_50ms = 0;
 
@@ -163,10 +164,10 @@ void do_grbl_report(void) {
 				}
 			}
 		}
-		if (grbl_report_sys_log) {
-			static unsigned int grbl_report_sys_log_state = 0;
+		if (grbl_report_sys_log_0) {
+			static unsigned int grbl_report_sys_log_0_state = 0;
 			static unsigned int xterm = 0;
-			switch (grbl_report_sys_log_state) {
+			switch (grbl_report_sys_log_0_state) {
 				case 0 : {
 					printPgmString("softwareIdentification: ");
 					print_uint16_base16(softwareIdentification.year);
@@ -208,7 +209,7 @@ void do_grbl_report(void) {
 					printPgmString("Spindle Running Minutes: ");
 					print_uint32_base10(grbl_running_spindle_running_minutes);
 					printPgmString("\r\n");
-					grbl_report_sys_log_state++;
+					grbl_report_sys_log_0_state++;
 					break;
 					
 				}
@@ -306,7 +307,7 @@ void do_grbl_report(void) {
 							printPgmString("\r\n");
 						}
 					}
-					grbl_report_sys_log_state++;
+					grbl_report_sys_log_0_state++;
 					break;
 				}
 				case 2 : {
@@ -360,7 +361,7 @@ void do_grbl_report(void) {
 							break;
 						}
 					}
-					grbl_report_sys_log_state++;
+					grbl_report_sys_log_0_state++;
 					break;
 				}
 				case 3 : {
@@ -369,19 +370,19 @@ void do_grbl_report(void) {
 					printPgmString("reset reason raw: ");
 					print_uint32_base16(rcon_value);
 					printPgmString("\r\n");
-					grbl_report_sys_log_state++;
+					grbl_report_sys_log_0_state++;
 					break;
 				}
 				case 4 : {
 					printPgmString("system_log:\r\n");
 					xterm = 0;
-					grbl_report_sys_log_state++;
+					grbl_report_sys_log_0_state++;
 					break;
 				}
 				case 5 : {
 					unsigned int cnt = (sizeof(system_log) / sizeof(*system_log));
 					if (xterm >= cnt) {
-						grbl_report_sys_log_state++;
+						grbl_report_sys_log_0_state++;
 					} else {
 						switch (system_log[(cnt - 1) - xterm]) {
 							case sm_empty : {
@@ -446,8 +447,99 @@ void do_grbl_report(void) {
 								printPgmString("\r\n");
 								break;
 							}
+							case sm_probe_start : {
+								printPgmString("sm_probe_start ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_probe_touch : {
+								printPgmString("sm_probe_touch ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_st_reset : {
+								printPgmString("sm_st_reset ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_plan_reset : {
+								printPgmString("sm_plan_reset ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_st_go_idle : {
+								printPgmString("sm_st_go_idle ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_st_wake_up : {
+								printPgmString("sm_st_wake_up ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_g28 : {
+								printPgmString("sm_g28 ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_st_update_plan_block_parameters : {
+								printPgmString("sm_st_update_plan_block_parameters ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_EXEC_MOTION_CANCEL : {
+								printPgmString("sm_EXEC_MOTION_CANCEL ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_init_log : {
+								printPgmString("sm_init_log ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_idle_log : {
+								printPgmString("sm_idle_log ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_suspend_log : {
+								printPgmString("sm_suspend_log ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_suspend_delay_log : {
+								printPgmString("sm_suspend_delay_log ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_sys_state : {
+								printPgmString("sm_sys_state ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
+							case sm_sys_suspend : {
+								printPgmString("sm_sys_suspend ");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								printPgmString("\r\n");
+								break;
+							}
 							default : {
 								printPgmString("system_log UNKOWN");
+								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
 								printPgmString("\r\n");
 								break;
 							}
@@ -461,7 +553,7 @@ void do_grbl_report(void) {
 					print_uint32_base16(exceptions_getException());
 					printPgmString("\r\n");
 					xterm = 0;
-					grbl_report_sys_log_state++;
+					grbl_report_sys_log_0_state++;
 					break;
 				}
 				case 7 : {
@@ -475,7 +567,7 @@ void do_grbl_report(void) {
 					xterm++;
 				
 					if (xterm == (sizeof(exceptionLog) / sizeof(*exceptionLog)) ) {
-						grbl_report_sys_log_state++;
+						grbl_report_sys_log_0_state++;
 					}
 					break;
 				}
@@ -490,12 +582,101 @@ void do_grbl_report(void) {
 					printPgmString("\r\n");
 					report_status_message(STATUS_OK);
 
-					grbl_report_sys_log_state++;
+					grbl_report_sys_log_0_state++;
 					break;
 				}
 				default : {
-					grbl_report_sys_log_state = 0;
-					grbl_report_sys_log = 0;
+					grbl_report_sys_log_0_state = 0;
+					grbl_report_sys_log_0 = 0;
+				}
+			}
+		}
+		if (grbl_report_sys_log_1) {
+			static unsigned int grbl_report_sys_log_1_state = 0;
+			switch (grbl_report_sys_log_1_state) {
+				case 0 : {
+					{
+						printPgmString("Probe HW: ");
+						#ifdef PROBE_TRIS
+							if (PROBE_PIN) {
+								printPgmString("1");
+							} else {
+								printPgmString("0");
+							}
+						#else
+								printPgmString("N/A");
+						#endif
+						printPgmString("\r\n");
+					}
+					{
+						printPgmString("Limit X: ");
+						#ifdef LIMIT_X_PIN
+							if (LIMIT_X_PIN) {
+								printPgmString("1");
+							} else {
+								printPgmString("0");
+							}
+						#else
+								printPgmString("N/A");
+						#endif
+						printPgmString("\r\n");
+					}
+					{
+						printPgmString("Limit Y: ");
+						#ifdef LIMIT_Y_PIN
+							if (LIMIT_Y_PIN) {
+								printPgmString("1");
+							} else {
+								printPgmString("0");
+							}
+						#else
+								printPgmString("N/A");
+						#endif
+						printPgmString("\r\n");
+					}
+					{
+						printPgmString("Limit Z: ");
+						#ifdef LIMIT_Z_PIN
+							if (LIMIT_Z_PIN) {
+								printPgmString("1");
+							} else {
+								printPgmString("0");
+							}
+						#else
+								printPgmString("N/A");
+						#endif
+						printPgmString("\r\n");
+					}
+					
+					{
+						printPgmString("Abort/Emergency: ");
+						#ifdef CONTROL_ABORT_PIN
+							if (CONTROL_ABORT_PIN) {
+								printPgmString("1");
+							} else {
+								printPgmString("0");
+							}
+						#else
+								printPgmString("N/A");
+						#endif
+						printPgmString("\r\n");
+					}
+					{
+						printPgmString("Abort/Emergency Function: ");
+						if (system_control_get_state_ABORT()) {
+							printPgmString("1");
+						} else {
+							printPgmString("0");
+						}
+						printPgmString("\r\n");
+					}
+					
+					grbl_report_sys_log_1_state++;
+					break;
+				}
+				default : {
+					grbl_report_sys_log_1_state = 0;
+					grbl_report_sys_log_1 = 0;
 				}
 			}
 		}
@@ -594,8 +775,12 @@ void report_grbl_help(void) {
 	printPgmString(("[HLP:$$ $# $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H ~ ! ? ctrl-x]\r\n"));    
 }
 
-void report_grbl_debug(void) {
-	grbl_report_sys_log = 1;
+void report_grbl_debug_0(void) {
+	grbl_report_sys_log_0 = 1;
+}
+
+void report_grbl_debug_1(void) {
+	grbl_report_sys_log_1 = 1;
 }
 
 // Grbl global settings print out.

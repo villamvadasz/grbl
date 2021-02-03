@@ -56,6 +56,7 @@ void system_init(void) {
 	memset(system_log, 0x00, sizeof(system_log));
 	
 	initTimer(&system_suspendTime);
+	system_log_sm_init_log(0);
 	grbl_system_sm = sm_init;
 
 	system_clear_exec_state_flag(EXEC_ALL);
@@ -65,7 +66,7 @@ void system_init(void) {
 
 	// Initialize system state.
 	// Force Grbl into an ALARM state upon a power-cycle or hard reset.
-	sys.state = STATE_ALARM;
+	system_set_sys_state(STATE_ALARM);
 
 	// Check for power-up and set system alarm if homing is enabled to force homing cycle
 	// by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
@@ -75,7 +76,7 @@ void system_init(void) {
 	// not after disabling the alarm locks. Prevents motion startup blocks from crashing into
 	// things uncontrollably. Very bad.
 	if (bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE)) {
-		sys.state = STATE_ALARM;
+		system_set_sys_state(STATE_ALARM);
 	}
 
 	// Grbl initialization loop upon power-up or a system abort. For the latter, all processes
@@ -84,7 +85,7 @@ void system_init(void) {
 	// Reset system variables.
 	uint8 prior_state = sys.state;
 	memset(&sys, 0, sizeof(system_t)); // Clear system struct variable.
-	sys.state = prior_state;
+	system_set_sys_state(prior_state);
 	sys.f_override = DEFAULT_FEED_OVERRIDE;  // Set to 100%
 	sys.r_override = DEFAULT_RAPID_OVERRIDE; // Set to 100%
 	sys.spindle_speed_ovr = DEFAULT_SPINDLE_SPEED_OVERRIDE; // Set to 100%
@@ -106,7 +107,7 @@ void do_system(void) {
 			// Perform some machine checks to make sure everything is good to go.
 			if (bit_istrue(settings.flags, BITFLAG_HARD_LIMIT_ENABLE)) {
 				if (limits_get_state_filtered()) {
-					sys.state = STATE_ALARM; // Ensure alarm state is active.
+					system_set_sys_state(STATE_ALARM); // Ensure alarm state is active.
 					report_feedback_message(MESSAGE_CHECK_LIMITS);
 				}
 			}
@@ -115,14 +116,15 @@ void do_system(void) {
 			// Re-initialize the sleep state as an ALARM mode to ensure user homes or acknowledges.
 			if (sys.state & (STATE_ALARM)) {
 				report_feedback_message(MESSAGE_ALARM_LOCK);
-				sys.state = STATE_ALARM; // Ensure alarm state is set.
+				system_set_sys_state(STATE_ALARM); // Ensure alarm state is set.
 			} else {
 				// Check if the safety door is open.
-				sys.state = STATE_IDLE;
+				system_set_sys_state(STATE_IDLE);
 				if (system_check_safety_door_ajar()) {
 					system_set_exec_state_flag(EXEC_SAFETY_DOOR);
 				}
 			}
+			system_log_sm_idle_log(0);
 			grbl_system_sm = sm_idle;
 			break;
 		}
@@ -144,6 +146,7 @@ void do_system(void) {
 
 			if (sys.suspend) {
 				protocol_exec_rt_suspend_preapare();
+				system_log_sm_suspend_log(0);
 				grbl_system_sm = sm_suspend;
 			}
 			break;
@@ -152,19 +155,23 @@ void do_system(void) {
 			protocol_exec_rt_suspend_async();
 
 			if (sys.suspend == SUSPEND_DISABLE) {
+				system_log_sm_idle_log(1);
 				grbl_system_sm = sm_idle;
 			} else if (system_get_requestSuspendTime()) {
+				system_log_sm_suspend_delay_log(0);
 				grbl_system_sm = sm_suspend_delay;
 			}
 			break;
 		}
 		case sm_suspend_delay : {
 			if (readTimer(&system_suspendTime) == 0) {
+				system_log_sm_suspend_log(1);
 				grbl_system_sm = sm_suspend;
 			}
 			break;
 		}
 		default : {
+			system_log_sm_init_log(2);
 			grbl_system_sm = sm_init;
 			break;
 		}
@@ -271,7 +278,7 @@ static void system_exec_rt_system_alarm(void) {
 		// System alarm. Everything has shutdown by something that has gone severely wrong. Report
 		// the source of the error to the user. If critical, Grbl disables by entering an infinite
 		// loop until system reset/abort.
-		sys.state = STATE_ALARM; // Set system alarm state
+		system_set_sys_state(STATE_ALARM); // Set system alarm state
 		report_alarm_message(rt_exec);
 		// Halt everything upon a critical event flag. Currently hard and soft limits flag this.
 		if ((rt_exec == EXEC_ALARM_HARD_LIMIT) || (rt_exec == EXEC_ALARM_SOFT_LIMIT)) {
@@ -311,6 +318,7 @@ static void system_exec_rt_system_state(void) {
 				// If in CYCLE or JOG states, immediately initiate a motion HOLD.
 				if (sys.state & (STATE_CYCLE | STATE_JOG)) {
 					if (!(sys.suspend & (SUSPEND_MOTION_CANCEL | SUSPEND_JOG_CANCEL))) { // Block, if already holding.
+						system_log_st_update_plan_block_parameters(0);
 						st_update_plan_block_parameters(); // Notify stepper module to recompute for hold deceleration.
 						sys.step_control = STEP_CONTROL_EXECUTE_HOLD; // Initiate suspend state with active flag.
 						if (sys.state == STATE_JOG) { // Jog cancelled upon any hold event, except for sleeping.
@@ -320,12 +328,14 @@ static void system_exec_rt_system_state(void) {
 				}
 				// If IDLE, Grbl is not in motion. Simply indicate suspend state and hold is complete.
 				if (sys.state == STATE_IDLE) {
-					sys.suspend = SUSPEND_HOLD_COMPLETE;
+					system_set_sys_suspend(SUSPEND_HOLD_COMPLETE);
 				}
 
 				// Execute and flag a motion cancel with deceleration and return to idle. Used primarily by probing cycle
 				// to halt and cancel the remainder of the motion.
 				if (rt_exec & EXEC_MOTION_CANCEL) {
+					system_log_EXEC_MOTION_CANCEL(0);
+
 					// MOTION_CANCEL only occurs during a CYCLE, but a HOLD and SAFETY_DOOR may been initiated beforehand
 					// to hold the CYCLE. Motion cancel is valid for a single planner block motion only, while jog cancel
 					// will handle and clear multiple planner block motions.
@@ -338,7 +348,7 @@ static void system_exec_rt_system_state(void) {
 				if (rt_exec & EXEC_FEED_HOLD) {
 					// Block SAFETY_DOOR, JOG, and SLEEP states from changing to HOLD state.
 					if (!(sys.state & (STATE_SAFETY_DOOR | STATE_JOG ))) {
-						sys.state = STATE_HOLD;
+						system_set_sys_state(STATE_HOLD);
 					}
 				}
 
@@ -358,7 +368,7 @@ static void system_exec_rt_system_state(void) {
 								sys.suspend |= SUSPEND_RESTART_RETRACT;
 							}
 						}
-						sys.state = STATE_SAFETY_DOOR;
+						system_set_sys_state(STATE_SAFETY_DOOR);
 					}
 					// NOTE: This flag doesn't change when the door closes, unlike sys.state. Ensures any parking motions
 					// are executed if the door switch closes and the state returns to HOLD.
@@ -368,17 +378,15 @@ static void system_exec_rt_system_state(void) {
 			}
 
 			system_clear_exec_state_flag((EXEC_MOTION_CANCEL | EXEC_FEED_HOLD | EXEC_SAFETY_DOOR));
-		}
-
-		// Execute a cycle start by starting the stepper interrupt to begin executing the blocks in queue.
-		if (rt_exec & EXEC_CYCLE_START) {
-			// Block if called at same time as the hold commands: feed hold, motion cancel, and safety door.
-			// Ensures auto-cycle-start doesn't resume a hold without an explicit user-input.
-			if (!(rt_exec & (EXEC_FEED_HOLD | EXEC_MOTION_CANCEL | EXEC_SAFETY_DOOR))) {
+		} else {
+			// Execute a cycle start by starting the stepper interrupt to begin executing the blocks in queue.
+			if (rt_exec & EXEC_CYCLE_START) {
+				// Block if called at same time as the hold commands: feed hold, motion cancel, and safety door.
+				// Ensures auto-cycle-start doesn't resume a hold without an explicit user-input.
 				// Resume door state when parking motion has retracted and door has been closed.
 				if ((sys.state == STATE_SAFETY_DOOR) && !(sys.suspend & SUSPEND_SAFETY_DOOR_AJAR)) {
 					if (sys.suspend & SUSPEND_RESTORE_COMPLETE) {
-						sys.state = STATE_IDLE; // Set to IDLE to immediately resume the cycle.
+						system_set_sys_state(STATE_IDLE); // Set to IDLE to immediately resume the cycle.
 					} else if (sys.suspend & SUSPEND_RETRACT_COMPLETE) {
 						// Flag to re-energize powered components and restore original position, if disabled by SAFETY_DOOR.
 						// NOTE: For a safety door to resume, the switch must be closed, as indicated by HOLD state, and
@@ -396,43 +404,43 @@ static void system_exec_rt_system_state(void) {
 						// Start cycle only if queued motions exist in planner buffer and the motion is not canceled.
 						sys.step_control = STEP_CONTROL_NORMAL_OP; // Restore step control to normal operation
 						if (plan_get_current_block() && bit_isfalse(sys.suspend, SUSPEND_MOTION_CANCEL)) {
-							sys.suspend = SUSPEND_DISABLE; // Break suspend state.
-							sys.state = STATE_CYCLE;
+							system_set_sys_suspend(SUSPEND_DISABLE); // Break suspend state.
+							system_set_sys_state(STATE_CYCLE);
 							st_prep_buffer(); // Initialize step segment buffer before beginning cycle.
+							system_log_st_wake_up(0);
 							st_wake_up();
 						} else { // Otherwise, do nothing. Set and resume IDLE state.
-							sys.suspend = SUSPEND_DISABLE; // Break suspend state.
-							sys.state = STATE_IDLE;
+							system_set_sys_suspend(SUSPEND_DISABLE); // Break suspend state.
+							system_set_sys_state(STATE_IDLE);
 						}
 					}
 				}
+				system_clear_exec_state_flag(EXEC_CYCLE_START);
 			}
-			system_clear_exec_state_flag(EXEC_CYCLE_START);
-		}
-		
-		// Execute a probe start by starting the stepper interrupt to begin executing the blocks in queue.
-		if (rt_exec & EXEC_PROBE_START) {
-			// Block if called at same time as the hold commands: feed hold, motion cancel, and safety door.
-			// Ensures auto-cycle-start doesn't resume a hold without an explicit user-input.
-			if (!(rt_exec & (EXEC_FEED_HOLD | EXEC_MOTION_CANCEL | EXEC_SAFETY_DOOR))) {
+			
+			// Execute a probe start by starting the stepper interrupt to begin executing the blocks in queue.
+			if (rt_exec & EXEC_PROBE_START) {
+				// Block if called at same time as the hold commands: feed hold, motion cancel, and safety door.
+				// Ensures auto-cycle-start doesn't resume a hold without an explicit user-input.
 				// Cycle start only when IDLE.
 				if (sys.state == STATE_IDLE) {
 					// Start cycle only if queued motions exist in planner buffer and the motion is not canceled.
 					sys.step_control = STEP_CONTROL_NORMAL_OP; // Restore step control to normal operation
 					if (plan_get_current_block() && bit_isfalse(sys.suspend, SUSPEND_MOTION_CANCEL)) {
-						sys.suspend = SUSPEND_DISABLE; // Break suspend state.
-						sys.state = STATE_CYCLE;
+						system_set_sys_suspend(SUSPEND_DISABLE); // Break suspend state.
+						system_set_sys_state(STATE_CYCLE);
 						st_prep_buffer(); // Initialize step segment buffer before beginning cycle.
+						system_log_st_wake_up(1);
 						st_wake_up();
 					} else { // Otherwise, do nothing. Set and resume IDLE state.
-						sys.suspend = SUSPEND_DISABLE; // Break suspend state.
-						sys.state = STATE_IDLE;
+						system_set_sys_suspend(SUSPEND_DISABLE); // Break suspend state.
+						system_set_sys_state(STATE_IDLE);
 					}
 				}
+				system_clear_exec_state_flag(EXEC_PROBE_START);
 			}
-			system_clear_exec_state_flag(EXEC_PROBE_START);
 		}
-		
+	
 		if (rt_exec & EXEC_CYCLE_STOP) {
 			limits_EXEC_CYCLE_STOP_event();
 			// Reinitializes the cycle plan and stepper system after a feed hold for a resume. Called by
@@ -447,13 +455,15 @@ static void system_exec_rt_system_state(void) {
 				if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD) {
 					sys.suspend |= SUSPEND_HOLD_COMPLETE;
 				}
-				bit_false(sys.step_control,(STEP_CONTROL_EXECUTE_HOLD | STEP_CONTROL_EXECUTE_SYS_MOTION));
+				sys.step_control &= ~(STEP_CONTROL_EXECUTE_HOLD | STEP_CONTROL_EXECUTE_SYS_MOTION);
 			} else {
 				// Motion complete. Includes CYCLE/JOG/HOMING states and jog cancel/motion cancel/soft limit events.
 				// NOTE: Motion and jog cancel both immediately return to idle after the hold completes.
 				if (sys.suspend & SUSPEND_JOG_CANCEL) {	// For jog cancel, flush buffers and sync positions.
 					sys.step_control = STEP_CONTROL_NORMAL_OP;
+					system_log_sm_plan_reset(0);
 					plan_reset();
+					system_log_st_reset(0);
 					st_reset();
 					gc_sync_position();
 					plan_sync_position();
@@ -461,11 +471,11 @@ static void system_exec_rt_system_state(void) {
 				if (sys.suspend & SUSPEND_SAFETY_DOOR_AJAR) { // Only occurs when safety door opens during jog.
 					sys.suspend &= ~(SUSPEND_JOG_CANCEL);
 					sys.suspend |= SUSPEND_HOLD_COMPLETE;
-					sys.state = STATE_SAFETY_DOOR;
+					system_set_sys_state(STATE_SAFETY_DOOR);
 				} else {
-					sys.suspend = SUSPEND_DISABLE;
+					system_set_sys_suspend(SUSPEND_DISABLE);
 					if (sys.state != STATE_ALARM) {
-						sys.state = STATE_IDLE;
+						system_set_sys_state(STATE_IDLE);
 					}
 				}
 			}
@@ -478,7 +488,9 @@ static void system_exec_rt_system_state(void) {
 			spindle_set_state(SPINDLE_DISABLE, 0.0f);
 			system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE);		
 			//Empty out other movements
+			system_log_sm_plan_reset(1);
 			plan_reset();
+			system_log_st_reset(1);
 			st_reset();
 			gc_sync_position();
 			plan_sync_position(); 
@@ -491,7 +503,7 @@ static void system_exec_rt_system_state(void) {
 			} else {
 				report_feedback_message(MESSAGE_ALARM_UNLOCK);
 				system_log_unlock();
-				sys.state = STATE_IDLE;
+				system_set_sys_state(STATE_IDLE);
 				// Don't run startup script. Prevents stored moves in startup from causing accidents.
 			}
 			system_clear_exec_state_flag(EXEC_CLEAR_ALARM);
@@ -544,7 +556,7 @@ static void system_exec_rt_system_override(void) {
 		last_s_override = max(last_s_override,MIN_SPINDLE_SPEED_OVERRIDE);
 
 		if (last_s_override != sys.spindle_speed_ovr) {
-			bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+			sys.step_control |= STEP_CONTROL_UPDATE_SPINDLE_PWM;
 			sys.spindle_speed_ovr = last_s_override;
 			sys.report_ovr_counter = 0; // Set to report change immediately
 		}
@@ -565,16 +577,25 @@ static void system_exec_rt_system_override(void) {
 				uint8 coolant_state = gc_state.modal.coolant;
 				#ifdef ENABLE_M7
 					if (rt_exec & EXEC_COOLANT_MIST_OVR_TOGGLE) {
-						if (coolant_state & COOLANT_MIST_ENABLE) { bit_false(coolant_state,COOLANT_MIST_ENABLE); }
+						if (coolant_state & COOLANT_MIST_ENABLE) {
+							coolant_state &= ~(COOLANT_MIST_ENABLE); 
+						}
 						else { coolant_state |= COOLANT_MIST_ENABLE; }
 					}
 					if (rt_exec & EXEC_COOLANT_FLOOD_OVR_TOGGLE) {
-						if (coolant_state & COOLANT_FLOOD_ENABLE) { bit_false(coolant_state,COOLANT_FLOOD_ENABLE); }
-						else { coolant_state |= COOLANT_FLOOD_ENABLE; }
+						if (coolant_state & COOLANT_FLOOD_ENABLE) {
+							coolant_state &= ~ (COOLANT_FLOOD_ENABLE); 
+						}
+						else { 
+							coolant_state |= COOLANT_FLOOD_ENABLE; 
+						}
 					}
 				#else
-					if (coolant_state & COOLANT_FLOOD_ENABLE) { bit_false(coolant_state,COOLANT_FLOOD_ENABLE); }
-					else { coolant_state |= COOLANT_FLOOD_ENABLE; }
+					if (coolant_state & COOLANT_FLOOD_ENABLE) { 
+						coolant_state &= ~(COOLANT_FLOOD_ENABLE); 
+					} else { 
+						coolant_state |= COOLANT_FLOOD_ENABLE; 
+					}
 				#endif
 				coolant_set_state(coolant_state); // Report counter set in coolant_set_state().
 				gc_state.modal.coolant = coolant_state;
@@ -644,7 +665,7 @@ static void protocol_exec_rt_suspend_async(void) {
 						if (bit_isfalse(sys.suspend,SUSPEND_RESTART_RETRACT)) {
 							if (bit_istrue(settings.flags,BITFLAG_LASER_MODE)) {
 								// When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
-								bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+								sys.step_control |= STEP_CONTROL_UPDATE_SPINDLE_PWM;
 							} else {
 								if (restore_spindle_speed == 0.0f) {
 									system_log_spindle_off(2);
@@ -692,7 +713,7 @@ static void protocol_exec_rt_suspend_async(void) {
 						report_feedback_message(MESSAGE_SPINDLE_RESTORE);
 						if (bit_istrue(settings.flags,BITFLAG_LASER_MODE)) {
 							// When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
-							bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+							sys.step_control |= STEP_CONTROL_UPDATE_SPINDLE_PWM;
 						} else {
 							if (restore_spindle_speed == 0.0f) {
 								system_log_spindle_off(5);
@@ -717,7 +738,7 @@ static void protocol_exec_rt_suspend_async(void) {
 						system_log_spindle_on(8);
 					}
 					spindle_set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), restore_spindle_speed);
-					bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+					sys.step_control &= ~(STEP_CONTROL_UPDATE_SPINDLE_PWM);
 				}
 			}
 		}
@@ -735,11 +756,21 @@ void system_log_add_event(grbl_system_log ev, unsigned int caller) {
 	system_log_caller[0] = caller;
 }
 
+void system_set_sys_state(unsigned int new_sys_state) {
+	system_log_sm_sys_state(new_sys_state);
+	sys.state = new_sys_state;
+}
+
+void system_set_sys_suspend(unsigned int new_sys_suspend) {
+	system_log_sm_sys_suspend(new_sys_suspend);
+	sys.suspend = new_sys_suspend;
+}
+
 void system_log_unlock(void) {
 	system_log_add_event(sm_unlock, 0);
 }
 
-void system_log_abort_input(void) {
+void system_log_sm_abort_input(void) {
 	system_log_add_event(sm_abort_input, 0);
 }
 
@@ -777,4 +808,64 @@ void system_log_spindle_on(unsigned int caller) {
 
 void system_log_spindle_off(unsigned int caller) {
 	system_log_add_event(sm_home_spindle_off, caller);
+}
+
+void system_log_probe_start(unsigned int caller) {
+	system_log_add_event(sm_probe_start, caller);
+}
+
+void system_log_probe_touch(unsigned int caller) {
+	system_log_add_event(sm_probe_touch, caller);
+}
+
+void system_log_st_reset(unsigned int caller) {
+	system_log_add_event(sm_st_reset, caller);
+}
+
+void system_log_sm_plan_reset(unsigned int caller) {
+	system_log_add_event(sm_plan_reset, caller);
+}
+
+void system_log_st_go_idle(unsigned int caller) {
+	system_log_add_event(sm_st_go_idle, caller);
+}
+
+void system_log_st_wake_up(unsigned int caller) {
+	system_log_add_event(sm_st_wake_up, caller);
+}
+
+void system_log_sm_g28(unsigned int caller) {
+	system_log_add_event(sm_g28, caller);
+}
+
+void system_log_st_update_plan_block_parameters(unsigned int caller) {
+	system_log_add_event(sm_st_update_plan_block_parameters, caller);
+}
+
+void system_log_EXEC_MOTION_CANCEL(unsigned int caller) {
+	system_log_add_event(sm_EXEC_MOTION_CANCEL, caller);
+}
+
+void system_log_sm_init_log(unsigned int caller) {
+	system_log_add_event(sm_init_log, caller);
+}
+
+void system_log_sm_idle_log(unsigned int caller) {
+	system_log_add_event(sm_idle_log, caller);
+}
+
+void system_log_sm_suspend_log(unsigned int caller) {
+	system_log_add_event(sm_suspend_log, caller);
+}
+
+void system_log_sm_suspend_delay_log(unsigned int caller) {
+	system_log_add_event(sm_suspend_delay_log, caller);
+}
+
+void system_log_sm_sys_state(unsigned int caller) {
+	system_log_add_event(sm_sys_state, caller);
+}
+
+void system_log_sm_sys_suspend(unsigned int caller) {
+	system_log_add_event(sm_sys_suspend, caller);
 }

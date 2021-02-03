@@ -91,6 +91,10 @@ void CONTROL_INT_vect(void) {
 	do_system_poll_control_pins = 1;
 }
 
+//uC PIN is 1 ==> Emergency abort button is pressed in, so machine must stop everything
+//uC PIN is 0 ==> Emergency abort button is released, it is allowed to move
+//uC PIN is 1 ==> Function returns 1
+//uC PIN is 0 ==> Function returns 0
 uint8 system_control_get_state_ABORT(void) {
 	volatile uint8 pin = 0;
 	#ifdef CONTROL_ABORT_PIN
@@ -190,26 +194,24 @@ static void system_control_pins(void) {
 
 		system_control_get_state_debug = system_control_get_state_current_ABORT | system_control_get_state_current_FEED_HOLD | system_control_get_state_current_CYCLE_START | system_control_get_state_current_SAFETY_DOOR;
 		
-		if (system_control_get_state_current_ABORT != system_control_get_state_last_ABORT) {
-			if ( (system_control_get_state_current_ABORT != 0) && (system_control_get_state_last_ABORT == 0) ) {
-				system_set_exec_state_flag(EXEC_ABORT);
-				system_log_abort_input();
-			} 
+		//For this pin it is a safer strategy to issue an abort for booth direction of change. User have to ack this any way.
+		if ( (system_control_get_state_current_ABORT != 0) && (system_control_get_state_last_ABORT == 0) ) {
+			system_set_exec_state_flag(EXEC_ABORT);
+			system_log_sm_abort_input();
+		} 
+		if ( (system_control_get_state_current_ABORT == 0) && (system_control_get_state_last_ABORT != 0) ) {
+			system_set_exec_state_flag(EXEC_ABORT);
+			system_log_sm_abort_input();
 		}
-		if (system_control_get_state_current_FEED_HOLD != system_control_get_state_last_FEED_HOLD) {
-			if ( (system_control_get_state_current_FEED_HOLD != 0) && (system_control_get_state_last_FEED_HOLD == 0) ) {
-				system_set_exec_state_flag(EXEC_FEED_HOLD);
-			} 
+		
+		if ( (system_control_get_state_current_FEED_HOLD != 0) && (system_control_get_state_last_FEED_HOLD == 0) ) {
+			system_set_exec_state_flag(EXEC_FEED_HOLD);
+		} 
+		if ( (system_control_get_state_current_CYCLE_START != 0) && (system_control_get_state_last_CYCLE_START == 0) ) {
+			system_set_exec_state_flag(EXEC_CYCLE_START);
 		}
-		if (system_control_get_state_current_CYCLE_START != system_control_get_state_last_CYCLE_START) {
-			if ( (system_control_get_state_current_CYCLE_START != 0) && (system_control_get_state_last_CYCLE_START == 0) ) {
-				system_set_exec_state_flag(EXEC_CYCLE_START);
-			}
-		}
-		if (system_control_get_state_current_SAFETY_DOOR != system_control_get_state_last_SAFETY_DOOR) {
-			if ( (system_control_get_state_current_SAFETY_DOOR != 0) && (system_control_get_state_last_SAFETY_DOOR == 0) ) {
-				system_set_exec_state_flag(EXEC_SAFETY_DOOR);
-			}
+		if ( (system_control_get_state_current_SAFETY_DOOR != 0) && (system_control_get_state_last_SAFETY_DOOR == 0) ) {
+			system_set_exec_state_flag(EXEC_SAFETY_DOOR);
 		}
 		system_control_get_state_last_ABORT = system_control_get_state_current_ABORT;
 		system_control_get_state_last_FEED_HOLD = system_control_get_state_current_FEED_HOLD;

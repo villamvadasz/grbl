@@ -114,6 +114,21 @@ typedef enum _grbl_system_log {
 	sm_home_finished,
 	sm_home_spindle_on,
 	sm_home_spindle_off,
+	sm_probe_start,
+	sm_probe_touch,
+	sm_st_reset,
+	sm_plan_reset,
+	sm_st_go_idle,
+	sm_st_wake_up,
+	sm_g28,
+	sm_st_update_plan_block_parameters,
+	sm_EXEC_MOTION_CANCEL,
+	sm_init_log,
+	sm_idle_log,
+	sm_suspend_log,
+	sm_suspend_delay_log,
+	sm_sys_state,
+	sm_sys_suspend,
 } grbl_system_log;
 
 // NOTE: These position variables may need to be declared as volatiles, if problems arise.
@@ -153,11 +168,14 @@ extern void system_set_exec_accessory_override_flag(uint8 mask);
 extern void system_clear_exec_motion_overrides(void);
 extern void system_clear_exec_accessory_overrides(void);
 
+extern void system_set_sys_state(unsigned int new_sys_state);
+extern void system_set_sys_suspend(unsigned int new_sys_state);
+
 #define SYSTEM_LOG_ITEMS 32
 extern grbl_system_log system_log[SYSTEM_LOG_ITEMS];
 extern unsigned int system_log_caller[SYSTEM_LOG_ITEMS];
 extern void system_log_unlock(void);
-extern void system_log_abort_input(void);
+extern void system_log_sm_abort_input(void);
 extern void system_log_internal_stepper_enable(void);
 extern void system_log_internal_stepper_disable(void);
 extern void system_log_home(void);
@@ -167,5 +185,20 @@ extern void system_log_limit_z(void);
 extern void system_log_home_finished(void);
 extern void system_log_spindle_on(unsigned int caller);
 extern void system_log_spindle_off(unsigned int caller);
+extern void system_log_probe_start(unsigned int caller);
+extern void system_log_probe_touch(unsigned int caller);
+extern void system_log_st_reset(unsigned int caller);
+extern void system_log_sm_plan_reset(unsigned int caller);
+extern void system_log_st_go_idle(unsigned int caller);
+extern void system_log_st_wake_up(unsigned int caller);
+extern void system_log_sm_g28(unsigned int caller);
+extern void system_log_st_update_plan_block_parameters(unsigned int caller);
+extern void system_log_EXEC_MOTION_CANCEL(unsigned int caller);
+extern void system_log_sm_init_log(unsigned int caller);
+extern void system_log_sm_idle_log(unsigned int caller);
+extern void system_log_sm_suspend_log(unsigned int caller);
+extern void system_log_sm_suspend_delay_log(unsigned int caller);
+extern void system_log_sm_sys_state(unsigned int caller);
+extern void system_log_sm_sys_suspend(unsigned int caller);
 
 #endif

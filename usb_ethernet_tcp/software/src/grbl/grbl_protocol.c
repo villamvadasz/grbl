@@ -147,7 +147,8 @@ void do_protocol_main_loop(void) {
 			if (isMc_homing_cycleRunning()) {
 			} else {
 				report_status_message(protocol_execute_line_status);
-				sys.state = STATE_IDLE; // Set to IDLE when complete.
+				system_set_sys_state(STATE_IDLE); // Set to IDLE when complete.
+				system_log_st_go_idle(3);
 				st_go_idle(); // Set steppers to the settings idle state before returning.
 				lineStateMachine = sm_processing_chars;
 			}
@@ -479,7 +480,20 @@ sint16 protocol_execute_line(char *line) {
 			break;
 		}
 		case '$': case 'G': case 'C': case 'X': case 'D': {
-			if ( line[2] != 0 ) { 
+			if ( line[2] != 0 ) {
+				switch( line[1] ) {
+					case 'D' : {
+						if (line[2] == '1') {
+							report_grbl_debug_1();
+						} else if (line[2] == '0') {
+							report_grbl_debug_0();
+						} else {
+							report_grbl_debug_0();
+						}
+						return (STATUS_ASYNCH_OK);
+						break;
+					}
+				}
 				return(STATUS_INVALID_STATEMENT); 
 			}
 			switch( line[1] ) {
@@ -492,7 +506,7 @@ sint16 protocol_execute_line(char *line) {
 					break;
 				}
 				case 'D' : {
-					report_grbl_debug();
+					report_grbl_debug_1();
 					return (STATUS_ASYNCH_OK);
 					break;
 				}
@@ -542,7 +556,7 @@ sint16 protocol_execute_line(char *line) {
 					if (get_stepper_enable_emergency_stop_active() == STEPPER_ENABLE_ON_STATE) {// Check if motors are enabled
 						return(STATUS_IDLE_ERROR);
 					}
-					sys.state = STATE_HOMING; // Set system state variable
+					system_set_sys_state(STATE_HOMING); // Set system state variable
 					if (line[2] == 0) {
 						mc_homing_cycle(HOMING_CYCLE_ALL);
 					} else { 

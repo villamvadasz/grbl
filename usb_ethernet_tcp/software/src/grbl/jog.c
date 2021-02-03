@@ -43,8 +43,9 @@ uint8 jog_execute(plan_line_data_t *pl_data, parser_block_t *gc_block)
 	mc_line(gc_block->values.xyz,pl_data);
 	if (sys.state == STATE_IDLE) {
 		if (plan_get_current_block() != NULL) { // Check if there is a block to execute.
-			sys.state = STATE_JOG;
+			system_set_sys_state(STATE_JOG);
 			st_prep_buffer();
+			system_log_st_wake_up(3);
 			st_wake_up();  // NOTE: Manual start. No state machine required.
 		}
 	}

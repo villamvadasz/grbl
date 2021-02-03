@@ -257,6 +257,7 @@ void do_limits(void) {
 				
 				sys.step_control = STEP_CONTROL_EXECUTE_SYS_MOTION; // Set to execute homing motion and clear existing flags.
 				st_prep_buffer(); // Prep and fill segment buffer from newly planned block.
+				system_log_st_wake_up(4);
 				st_wake_up(); // Initiate motion
 				limit_go_home_state = LIMIT_GO_HOME_2;
 				break;

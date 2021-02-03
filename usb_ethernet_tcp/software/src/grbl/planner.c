@@ -149,6 +149,7 @@ static void planner_recalculate(void) {
 	if (block_index == block_buffer_planned) { // Only two plannable blocks in buffer. Reverse pass complete.
 		// Check if the first block is the tail. If so, notify stepper to update its current parameters.
 		if (block_index == block_buffer_tail) {
+			system_log_st_update_plan_block_parameters(1);
 			st_update_plan_block_parameters();
 		}
 	} else { // Three or more plan-able blocks
@@ -159,6 +160,7 @@ static void planner_recalculate(void) {
 
 			// Check if next block is the tail block(=planned block). If so, update current stepper parameters.
 			if (block_index == block_buffer_tail) {
+				system_log_st_update_plan_block_parameters(2);
 				st_update_plan_block_parameters();
 			}
 
@@ -504,6 +506,7 @@ uint8 plan_get_block_buffer_count(void) {
 // Called after a steppers have come to a complete stop for a feed hold and the cycle is stopped.
 void plan_cycle_reinitialize(void) {
 	// Re-plan from a complete stop. Reset planner entry speeds and buffer planned pointer.
+	system_log_st_update_plan_block_parameters(4);
 	st_update_plan_block_parameters();
 	block_buffer_planned = block_buffer_tail;
 	planner_recalculate();

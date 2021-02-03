@@ -93,7 +93,9 @@ void init_grbl(void) {
 	coolant_init();
 	limits_init();
 	probe_init();
+	system_log_sm_plan_reset(5);
 	plan_reset(); // Clear block buffer and planner variables
+	system_log_st_reset(3);
 	st_reset(); // Clear stepper subsystem variables.
 
 	// Sync cleared gcode and planner positions to current system position.

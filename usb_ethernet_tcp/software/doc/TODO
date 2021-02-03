@@ -1,3 +1,9 @@
+Home-olasnal ha sosem er kapcsolora akkor nincs opcio az abortra. Jo lenne valami ami kilep belole ido leott.
+
+Probeolasnal van valami hang amikor fehuzza a Z tengelyt. Ha kezzel csinalom ugyan azt a parancsot akkor nincs. Szoval valami bentmarad a bufferben. Meg kell nezni.
+	Idozitesi problema lehet mert ha kezzel kuldom akkor nem csinaly ilyet
+	Inkabb az lehet, hogy vissza kell mennie Idle-ba. Ha kezzel csinalom akkor jo.
+
 Volt egy maras amikor menet kozben az egyik G kodra hibat dobott. Sajna nincs log. Felejtos a dolog analizisre. Viszont tippre a kommunikacio valahol meg nem tokeletes.
 
 Eltort egy fej, mert menet kozben leallt a maras. UGS bezar, ujranyit. Nem tudtam kapcsolodni. Tapreszet. Majd kapcsolodott. Aztan sztm hulye voltam es home-ot nyomtam. Alarmot is torolhettem, maskepp nem indulna el. Erre eltorete a fejet. Sztm nem jegyzi meg a gep poziciojat es emiatt a hianyzo home-olas miatt elbaszodott. Vagy a tul gyors tapki miatt nem tudta elmenteni. Eepromba valo mentes gyorsitasa es folyamatosan legyen.
@@ -79,6 +85,10 @@ Emergency Stop megnyomasa le kell allitsa a PWM-et meg az engedelyezojelet is.
 
 
 Megoldva:
+Emergency Abortot megnyomtam de nem allitotta le a motorokat!!
+Hiba kijavitva. Viszont furi, hogy a gepben nem volt HW-esen megoldva.
+
+
 $# Felbontani kisebb kiirasokra. Volt hogy az OK nem jott at. Mondjuk fura miert. Hibas volt a kuldes, mert socket error is jlenetheti azt, hogy tele volt a buffer.
 
 

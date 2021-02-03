@@ -125,16 +125,16 @@ typedef struct _stepper_t{
 stepper_t st;
 
 // Step segment ring buffer indices
-volatile uint8 segment_buffer_tail;
-uint8 segment_buffer_head;
-uint8 segment_next_head;
+volatile uint8 segment_buffer_tail = 0;
+uint8 segment_buffer_head = 0;
+uint8 segment_next_head = 0;
 
 // Step and direction port invert masks.
-static uint8 step_port_invert_mask;
-static uint8 dir_port_invert_mask;
+static uint8 step_port_invert_mask = 0;
+static uint8 dir_port_invert_mask = 0;
 
 // Used to avoid ISR nesting of the "Stepper Driver Interrupt". Should never occur though.
-static volatile uint8 busy;
+static volatile uint8 busy = 0;
 
 static uint8 isStepperRunning = 0;
 
@@ -347,7 +347,7 @@ void st_go_idle(void) {
 // with probing and homing cycles that require true real-time positions.
 void TIMER1_COMPA_vect(void)
 {		
-	if (busy) {
+	if (busy) {//Do not needed on PIC32. Not possible.
 		return;
 	} // The busy-flag is used to avoid reentering this interrupt
    
@@ -468,6 +468,7 @@ void TIMER1_COMPA_vect(void)
 
 		} else {
 			// Segment buffer empty. Shutdown.
+			system_log_st_go_idle(0);
 			st_go_idle();
 			// Ensure pwm is set properly upon completion of rate-controlled motion.
 			if (st.exec_block->is_pwm_rate_adjusted) { 
@@ -644,6 +645,7 @@ void st_generate_step_dir_invert_masks(void) {
 // Reset and clear stepper subsystem variables
 void st_reset(void) {
 	// Initialize stepper driver idle state.
+	system_log_st_go_idle(1);
 	st_go_idle();
 
 	// Initialize stepper algorithm variables.
@@ -926,7 +928,7 @@ void st_prep_buffer(void) {
 				}
 			}
 
-			bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM); // Force update whenever updating block.
+			sys.step_control |= STEP_CONTROL_UPDATE_SPINDLE_PWM; // Force update whenever updating block.
 		}
 
 		// Initialize new segment
@@ -1061,7 +1063,7 @@ void st_prep_buffer(void) {
 				sys.spindle_speed = 0.0;
 				prep.current_spindle_rpm = 0.0f;
 			}
-			bit_false(sys.step_control,STEP_CONTROL_UPDATE_SPINDLE_PWM);
+			sys.step_control &= ~(STEP_CONTROL_UPDATE_SPINDLE_PWM);
 		}
 		prep_segment->spindle_pwm = prep.current_spindle_rpm; // Reload segment PWM value
 
@@ -1085,7 +1087,7 @@ void st_prep_buffer(void) {
 			if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD) {
 				// Less than one step to decelerate to zero speed, but already very close. AMASS
 				// requires full steps to execute. So, just bail.
-				bit_true(sys.step_control,STEP_CONTROL_END_MOTION);
+				sys.step_control |= STEP_CONTROL_END_MOTION;
 				return; // Segment not generated, but current step data still retained.
 			}
 		}
@@ -1164,12 +1166,12 @@ void st_prep_buffer(void) {
 				// Reset prep parameters for resuming and then bail. Allow the stepper ISR to complete
 				// the segment queue, where realtime protocol will set new state upon receiving the
 				// cycle stop flag from the ISR. Prep_segment is blocked until then.
-				bit_true(sys.step_control,STEP_CONTROL_END_MOTION);
+				sys.step_control |= STEP_CONTROL_END_MOTION;
 				return; // Bail!
 			} else { // End of planner block
 				// The planner block is complete. All steps are set to be executed in the segment buffer.
 				if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION) {
-					bit_true(sys.step_control,STEP_CONTROL_END_MOTION);
+					sys.step_control |= STEP_CONTROL_END_MOTION;
 					return;
 				}
 				pl_block = NULL; // Set pointer to indicate check and load next planner block.

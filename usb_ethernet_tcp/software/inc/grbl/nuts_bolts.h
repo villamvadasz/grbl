@@ -50,7 +50,7 @@
 #define PROBE_BIT       0  // Uno Analog Pin 5
 #define PROBE_MASK      (1<<PROBE_BIT)
 
-#define INVERT_CONTROL_PIN_ABORT
+//#define INVERT_CONTROL_PIN_ABORT //Do not enable only if you know what are you doing.
 #define INVERT_CONTROL_PIN_FEED_HOLD
 #define INVERT_CONTROL_PIN_CYCLE_START
 #define INVERT_CONTROL_PIN_SAFETY_DOOR
@@ -76,17 +76,11 @@
 #define DELAY_MODE_DWELL       0
 #define DELAY_MODE_SYS_SUSPEND 1
 
-// Useful macros
-#define clear_vector(a) memset(a, 0, sizeof(a))
-#define clear_vector_float(a) memset(a, 0.0, sizeof(float)*N_AXIS)
-// #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+//#define max(a,b) (((a) > (b)) ? (a) : (b))
+//#define min(a,b) (((a) < (b)) ? (a) : (b))
 
 // Bit field and masking macros
 #define bit(n) (1 << n)
-#define bit_true(x,mask) (x) |= (mask)
-#define bit_false(x,mask) (x) &= ~(mask)
 #define bit_istrue(x,mask) ((x & mask) != 0)
 #define bit_isfalse(x,mask) ((x & mask) == 0)
 
