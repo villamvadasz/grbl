@@ -93,23 +93,15 @@ void CONTROL_INT_vect(void) {
 
 //uC PIN is 1 ==> Emergency abort button is pressed in, so machine must stop everything
 //uC PIN is 0 ==> Emergency abort button is released, it is allowed to move
-//uC PIN is 1 ==> Function returns 1
+//uC PIN is 1 ==> Function returns 1 => Machine must stop
 //uC PIN is 0 ==> Function returns 0
 uint8 system_control_get_state_ABORT(void) {
 	volatile uint8 pin = 0;
 	#ifdef CONTROL_ABORT_PIN
 		if (CONTROL_ABORT_PIN) {
-			#ifdef INVERT_CONTROL_PIN_ABORT
-				pin = 0;
-			#else
-				pin = 1;
-			#endif
+			pin = 1;
 		} else {
-			#ifdef INVERT_CONTROL_PIN_ABORT
-				pin = 1;
-			#else
-				pin = 0;
-			#endif
+			pin = 0;
 		}
 	#else
 		pin = 1;

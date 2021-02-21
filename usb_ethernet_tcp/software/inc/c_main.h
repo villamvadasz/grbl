@@ -49,10 +49,10 @@
 			#define SYS_FREQ 			(80000000L)
 			#define PB_DIV         		2
 		#endif
-	
-		#define GetSystemClock()		SYS_FREQ			// Hz
-		#define GetInstructionClock()	(GetSystemClock()/1)	// 
-		#define GetPeripheralClock()	(GetSystemClock()/PB_DIV)	// Divisor is dependent on the value of FPBDIV set(configuration bits).
-	
+
+		#define GetSystemClock()		SYS_FREQ
+		#define GetInstructionClock()	(GetSystemClock()/1)
+		#define GetPeripheralClock()	(GetSystemClock()/PB_DIV)
+
 	#endif
 #endif

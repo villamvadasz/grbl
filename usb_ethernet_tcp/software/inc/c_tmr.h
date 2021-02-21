@@ -26,14 +26,14 @@
 		#ifndef PB_DIV
 			#error PB_DIV not defined
 		#endif
-		
+
 		#define PR1_CONFIG	(SYS_FREQ/PB_DIV/PRESCALE1/1000)
 		#define PR2_CONFIG	(SYS_FREQ/PB_DIV/PRESCALE2/10000)
+		//#define PR4_CONFIG	(SYS_FREQ/PB_DIV/100000)
 	#endif
 
-
-	#define TMR1_FUNCTIONS()	isr_main_1ms();
-	#define TMR2_FUNCTIONS()	isr_main_100us();
+	#define TMR1_FUNCTIONS()		isr_main_1ms();
+	#define TMR2_FUNCTIONS()		isr_main_100us();
 	#define TMR3_FUNCTIONS()		;
 	#define TMR4_FUNCTIONS()		;
 

@@ -553,7 +553,7 @@ sint16 protocol_execute_line(char *line) {
 					if (system_check_safety_door_ajar()) { // Block if safety door is ajar.
 						return(STATUS_CHECK_DOOR); 
 					}
-					if (get_stepper_enable_emergency_stop_active() == STEPPER_ENABLE_ON_STATE) {// Check if motors are enabled
+					if (get_stepper_enable_emergency_stop_active() == STEPPER_ENABLE_MACHINE_STOP_STATE) {// Check if motors are enabled
 						return(STATUS_IDLE_ERROR);
 					}
 					system_set_sys_state(STATE_HOMING); // Set system state variable

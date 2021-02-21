@@ -90,6 +90,7 @@ const uint32 default_grbl_running_spindle_running_minutes = 0;
 const unsigned char default_SerializedMACAddress[6] = {MY_DEFAULT_MAC_BYTE1, MY_DEFAULT_MAC_BYTE2, MY_DEFAULT_MAC_BYTE3, MY_DEFAULT_MAC_BYTE4, MY_DEFAULT_MAC_BYTE5, MY_DEFAULT_MAC_BYTE6};
 const float default_grbl_Tool_Length_1 = 0.0f;
 const float default_grbl_Tool_Length_2 = 0.0f;
+
 //Strict order of items. Must mach to Enum!
 EepManager_ItemTable eepManager_ItemTable[EepManager_Items_LastItem] = {
 	{EepManager_Items_GRBL_0, 				sizeof(eep_settings_version),					&eep_settings_version,					(void *)&default_eep_settings_version,					EEP_USE_CRC,	EEP_HAVE_BACKUP},

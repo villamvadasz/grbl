@@ -50,7 +50,6 @@
 #define PROBE_BIT       0  // Uno Analog Pin 5
 #define PROBE_MASK      (1<<PROBE_BIT)
 
-//#define INVERT_CONTROL_PIN_ABORT //Do not enable only if you know what are you doing.
 #define INVERT_CONTROL_PIN_FEED_HOLD
 #define INVERT_CONTROL_PIN_CYCLE_START
 #define INVERT_CONTROL_PIN_SAFETY_DOOR

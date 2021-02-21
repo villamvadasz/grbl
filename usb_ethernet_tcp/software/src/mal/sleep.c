@@ -2,7 +2,6 @@
 #include "c_sleep.h"
 
 #include "mal.h"
-#include "task.h"
 #include "k_stdtype.h"
 #include "tmr.h"
 
@@ -19,6 +18,7 @@ uint8 sleepGetMainLoopRun_result = 1;
 uint8 sleepEdgeDetector = 0;
 uint8 sleepPointOfNoReturn = 0;
 uint8 sleepPointOfNoReturnRegisteredRequest = 0;
+uint8 sleep_executeSleep = 0;
 
 volatile uint8 do_isr_sleep_1ms = 0;
 
@@ -36,6 +36,9 @@ void deinit_sleep(void) {
 }
 
 void do_sleep(void) {
+	if (sleep_executeSleep) {
+		executeSleep();
+	}
 	if (do_isr_sleep_1ms) {
 		do_isr_sleep_1ms = 0;
 		{
@@ -142,7 +145,7 @@ void sleep_Request(sint32 time) {
 		sleepRequestLock = 1;
 		sleepTime = time;
 		#ifndef SLEEPREQUEST_DISABLE_TASK_EXECUTE
-			addSingleShootTask(executeSleep, "executeSleep");
+			sleep_executeSleep = 1;
 		#endif
 	}
 }

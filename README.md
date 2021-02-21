@@ -82,6 +82,17 @@ eeprom_analyser:
 ## Configure project
 Please see the excel table, which is used to generate the configuration for GRBL.
 
+# Safety Concept
+The emergency stop or abort is sensitiv on booth edges (rising and falling). This way, any change on the line will cause an abort. Not only pressing the button, but releasing it too. In case somehow the signal would be inverted, the emergency stop or abort would still work.
+
+The input of the abort is not invertable in SW. It is assumed that:
+//uC PIN is 1 ==> Emergency abort button is pressed in, so machine must stop everything
+//uC PIN is 0 ==> Emergency abort button is released, it is allowed to move
+
+Stepper enable signal gets disabled after 50ms. This window can be used to slow down the machine (not implemented yet). After 50ms the signal will be set to disable the motors.
+
+Stepper motor enable works only if the function properly calculates some multiplications. This way it must be called with the proper parameter. If by mistake the code is jumped on, there is less likly to enable the stepper motors, since the calculation will fail.
+
 # Note
 In some files the Copyright might be deleted by accident. Sorry... But mostly you can assume that either it was the original GRBL author or Microchip.
 

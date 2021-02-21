@@ -5,13 +5,9 @@
 
 #include "k_stdtype.h"
 #include "sleep.h"
-#include "task.h"
 #include "grbl.h"
 
-void appSingleShoot1(void);
-
 void init_app(void) {
-	addSingleShootTask(appSingleShoot1, "appSingleShoot1");
 }
 
 void do_app(void) {
@@ -19,9 +15,6 @@ void do_app(void) {
 	if (appSingleShoot) {
 		appSingleShoot = 0;
 	}
-}
-
-void appSingleShoot1(void) {
 }
 
 void isr_app_1ms(void) {

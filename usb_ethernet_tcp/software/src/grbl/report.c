@@ -296,11 +296,11 @@ void do_grbl_report(void) {
 						report_mac_address();
 					}
 					{
-						if (get_stepper_enable_emergency_stop_active() == STEPPER_ENABLE_ON_STATE) {
-							printPgmString("get_stepper_enable_emergency_stop_active STEPPER_ENABLE_ON_STATE");
+						if (get_stepper_enable_emergency_stop_active() == STEPPER_ENABLE_MACHINE_STOP_STATE) {
+							printPgmString("get_stepper_enable_emergency_stop_active STEPPER_ENABLE_MACHINE_STOP_STATE");
 							printPgmString("\r\n");
-						} else if (get_stepper_enable_emergency_stop_active() == STEPPER_ENABLE_OFF_STATE) {
-							printPgmString("get_stepper_enable_emergency_stop_active STEPPER_ENABLE_OFF_STATE");
+						} else if (get_stepper_enable_emergency_stop_active() == STEPPER_ENABLE_MACHINE_MOVE_STATE) {
+							printPgmString("get_stepper_enable_emergency_stop_active STEPPER_ENABLE_MACHINE_MOVE_STATE");
 							printPgmString("\r\n");
 						} else {
 							printPgmString("get_stepper_enable_emergency_stop_active OTHER");
