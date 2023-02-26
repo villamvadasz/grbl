@@ -9,6 +9,5 @@
     //#define tris_usb_bus_sense  TRISBbits.TRISB5    // Input
     #define USB_BUS_SENSE       1 
 
-    #define DEMO_BOARD PIC32_USB_STARTER_KIT
 	
 #endif

@@ -2,12 +2,12 @@
 
 #define STACKMEASURE_FILL_PATTERN 0xAA5555AA
 
-extern unsigned int _heap      __attribute__((section(".data")));        // Start of Heap storage
-extern unsigned int _splim     __attribute__((section(".data")));        // Stack pointer limit?
-extern unsigned int _stack     __attribute__((section(".data")));        // Start of Stack. 
-//extern unsigned int _heap;        // Start of Heap storage
-//extern unsigned int _splim;        // Stack pointer limit?
-//extern unsigned int _stack;        // Start of Stack. 
+extern unsigned int _heap	  __attribute__((section(".data")));		// Start of Heap storage
+extern unsigned int _splim	 __attribute__((section(".data")));		// Stack pointer limit?
+extern unsigned int _stack	 __attribute__((section(".data")));		// Start of Stack. 
+//extern unsigned int _heap;		// Start of Heap storage
+//extern unsigned int _splim;		// Stack pointer limit?
+//extern unsigned int _stack;		// Start of Stack. 
 
 unsigned int stackmeasure_current_pos = 0;
 unsigned int stackmeasure_from = ((unsigned int)&_splim);

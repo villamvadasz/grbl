@@ -407,7 +407,7 @@ void UDPTask(void)
 						UDPSocketInfo[ss].remote.remoteNode.IPAddr.Val = ipResolvedDNSIP.Val;
 						UDPSocketInfo[ss].smState = UDP_GATEWAY_SEND_ARP;
 						UDPSocketInfo[ss].retryCount = 0;
-						UDPSocketInfo[ss].retryInterval = (TICK_SECOND/4);
+						UDPSocketInfo[ss].retryInterval = 250;
 					}
 					else
 					{

@@ -86,7 +86,7 @@
 	extern void grbl_report_dump_eeprom(void);
 
 	// Prints system status messages.
-	extern void report_status_message(uint8 status_code);
+	extern void report_status_message(uint8 status_code, int32_t line_number);
 
 	// Prints system alarm messages.
 	extern void report_alarm_message(uint8 alarm_code);

@@ -10,6 +10,5 @@ extern void do_ethernet(void);
 extern void isr_ethernet_1ms(void);
 
 extern void ethernet_set_mac_address(unsigned char *str);
-extern unsigned char hexStringToChar(unsigned char *str);
 
 #endif

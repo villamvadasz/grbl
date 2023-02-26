@@ -25,6 +25,9 @@
 		TYPE_OLIMEX_IIC_PLAY = 0x0024,
 		TYPE_OLIMEX_PLC = 0x0025,
 		TYPE_OLIMEX_WIFI = 0x0026,
+		TYPE_OLIMEX_WIFI_THINGSPEAK = 0x0027,
+		TYPE_OLIMEX_WS2812B_TESTING = 0x0028,
+		TYPE_OLIMEX_MOD_RTC2 = 0x0029,
 	} SoftwareType;
 
 	typedef struct _SoftwareIdentification {
@@ -40,5 +43,6 @@
 	extern const char VERSION_DATE[];
 	extern const char VERSION_TIME[];
 	extern const char VERSION_ID_FIX[];
+	extern const char VERSION_MAKEFILE_NAME[];
 
 #endif

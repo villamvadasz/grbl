@@ -21,7 +21,7 @@
 	extern void sleepExecuteSleep(void);
 
 	//Low Level Functions
-	extern void idle_Request(void);
+	extern void idle_request(void);
 
 	//sint32 time : -1 Wait for interrupt, no periodical wake up (interrupt)
 	//sint32 time : 0 Endless polling with WDT (polling)

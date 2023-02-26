@@ -9,9 +9,7 @@
 		unsigned int magicWord;
 	} ExceptionLog;
 
-	#pragma GCC diagnostic error "-w"
-		extern volatile ExceptionLog exceptionLog[16] __attribute__ ((persistent, address(0xA0000200)));
-	#pragma GCC diagnostic pop
+	extern volatile ExceptionLog exceptionLog[16] __attribute__ ((persistent, address(0xA0000200)));
 
 	extern void exceptions_clearException(void);
 	extern uint32 exceptions_getException(void);

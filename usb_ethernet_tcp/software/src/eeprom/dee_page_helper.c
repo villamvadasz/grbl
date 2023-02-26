@@ -81,10 +81,6 @@ uint8 GetPageStatus(uint8 page, uint8 field) {
 			status = currentStatus.status.page_current;
 			break;
 		}
-		case STATUS_AVAILABLE: {
-			status = currentStatus.status.page_available;
-			break;
-		}
 		case STATUS_EXPIRED: {
 			status = currentStatus.status.page_expired;
 			break;
@@ -132,10 +128,6 @@ uint32 SetPageStatus(uint8 page, uint8 field0, uint8 field1, uint8 field2, uint8
 			switch (actualField) {
 				case STATUS_ACTIVE :  {
 					currentStatus.status.page_active = PAGE_ACTIVE;
-					break;
-				}
-				case STATUS_AVAILABLE :  {
-					currentStatus.status.page_available = PAGE_NOT_AVAILABLE;
 					break;
 				}
 				case STATUS_CURRENT :  {

@@ -51,6 +51,8 @@ grbl_line_sm_states lineStateMachine = sm_processing_chars;
 uint8 requestSynchMotion = 0;
 Timer protocol_dwellTime;
 uint8 gc_execute_line_result = 0;
+int32_t gc_execute_line_number = 0;
+int32_t jog_line_number = 0;
 sint16 protocol_execute_line_status = 0;
 float protocol_set_requestDwell_dwellTime = 0.0f;
 
@@ -60,13 +62,13 @@ unsigned long missedRxChar_Grbl_Protocol = 0;
 
 static uint8 process_single_char_command(uint8 data);
 static uint8 process_multi_char_command(uint8 data, char *line);
-static sint16 protocol_execute_line(char *line); // Executes an internal system command, defined as a string starting with a '$'
+static sint16 protocol_execute_line(char *line, int32_t *number); // Executes an internal system command, defined as a string starting with a '$'
 int getChar_grbl_protocol(void);
 void putChar_grbl_protocol(unsigned char data);
 	
 void init_protocol_main_loop(void) {
 	ringBuffer_initBuffer(&myRingBuffer_grbl_protocol_rx, grbl_protocol_rx, sizeof(grbl_protocol_rx) / sizeof(*grbl_protocol_rx));
-	initTimer(&protocol_dwellTime);
+	init_timer(&protocol_dwellTime);
 	lineStateMachine = sm_processing_chars;
 }
 
@@ -113,7 +115,7 @@ void do_protocol_main_loop(void) {
 				//Here we have to wait that the buffer becomes not full
 			} else {
 				// Parse and execute g-code block.
-				gc_execute_line_result = gc_execute_line(line_buffer);
+				gc_execute_line_result = gc_execute_line(line_buffer, &gc_execute_line_number);
 				lineStateMachine = sm_after_command_executer;
 			}
 			break;
@@ -131,12 +133,12 @@ void do_protocol_main_loop(void) {
 				//Here we have to wait that the buffer becomes not full
 			} else {
 				// Parse and execute jog block.
-				protocol_execute_line_status = protocol_execute_line(line_buffer);
+				protocol_execute_line_status = protocol_execute_line(line_buffer, &jog_line_number);
 				if (isMc_homing_cycleRunning()) {
 					lineStateMachine = sm_line_wait_home_end;
 				} else {
 					if (protocol_execute_line_status != STATUS_ASYNCH_OK) {
-						report_status_message(protocol_execute_line_status);
+						report_status_message(protocol_execute_line_status, jog_line_number);
 					}
 					lineStateMachine = sm_processing_chars;
 				}
@@ -146,7 +148,7 @@ void do_protocol_main_loop(void) {
 		case sm_line_wait_home_end : {
 			if (isMc_homing_cycleRunning()) {
 			} else {
-				report_status_message(protocol_execute_line_status);
+				report_status_message(protocol_execute_line_status, 0);
 				system_set_sys_state(STATE_IDLE); // Set to IDLE when complete.
 				system_log_st_go_idle(3);
 				st_go_idle(); // Set steppers to the settings idle state before returning.
@@ -173,7 +175,7 @@ void do_protocol_main_loop(void) {
 			} else if (isToolChangeRunning() != 0) {
 				//wait until delay is done
 			} else {
-				report_status_message(gc_execute_line_result);
+				report_status_message(gc_execute_line_result, gc_execute_line_number);
 				lineStateMachine = sm_processing_chars;
 			}
 			break;
@@ -214,19 +216,19 @@ void protocol_clear_requestSynchMotion(void) {
 	requestSynchMotion = 0;
 }
 
-void protocol_set_requestDwell(float seconds) {
-	protocol_set_requestDwell_dwellTime = seconds;
+void protocol_set_requestDwell(float milliseconds) {
+	protocol_set_requestDwell_dwellTime = milliseconds;
 }
 
 void protocol_update_requestDwell(void) {
-	uint32 newValue = (protocol_set_requestDwell_dwellTime * 1000.0);
+	uint32 newValue = (protocol_set_requestDwell_dwellTime);
 	protocol_set_requestDwell_dwellTime = 0.0f;
-	writeTimer(&protocol_dwellTime, newValue);
+	write_timer(&protocol_dwellTime, newValue);
 }
 
 uint8 protocol_get_requestDwell(void) {
 	uint8 result = 0;
-	if ((readTimer(&protocol_dwellTime) != 0) || (protocol_set_requestDwell_dwellTime != 0.0f)) {
+	if ((read_timer(&protocol_dwellTime) != 0) || (protocol_set_requestDwell_dwellTime != 0.0f)) {
 		result = 1;
 	}
 	return result;
@@ -385,7 +387,7 @@ static uint8 process_multi_char_command(uint8 data, char *line) {
 			// Direct and execute one line of formatted input, and report status of execution.
 			if (line_flags & LINE_FLAG_OVERFLOW) {
 				// Report line overflow error.
-				report_status_message(STATUS_OVERFLOW);
+				report_status_message(STATUS_OVERFLOW, 0);
 				// Reset tracking data for next line.
 				memset(line, 0, LINE_BUFFER_SIZE);
 			}
@@ -393,7 +395,7 @@ static uint8 process_multi_char_command(uint8 data, char *line) {
 			
 			if (line[0] == 0) {
 				// Empty or comment line. For syncing purposes.
-				report_status_message(STATUS_OK);
+				report_status_message(STATUS_OK, 0);
 				// Reset tracking data for next line.
 				memset(line, 0, LINE_BUFFER_SIZE);
 			} else if ( (strlen("BOOTLOADER") <= strlen_line) && (strcmp(line, "BOOTLOADER") == 0) ) {
@@ -402,16 +404,25 @@ static uint8 process_multi_char_command(uint8 data, char *line) {
 			} else if ( (strlen("DUMPEEPROM") <= strlen_line) && (strcmp(line, "DUMPEEPROM") == 0) ) {
 				grbl_report_dump_eeprom();
 				memset(line, 0, LINE_BUFFER_SIZE);
+			} else if ( (strlen("GETEEPROM:aaaaaaaa") <= strlen_line) && (strncmp(line, "GETEEPROM:", 10) == 0) ) {
+				grbl_eeprom_get_eeprom((unsigned char *)&line[10]);
+				report_status_message(STATUS_OK, 0);
+				memset(line, 0, LINE_BUFFER_SIZE);
+			} else if ( (strlen("SETEEPROM:aaaaaaaa:dddddddd") <= strlen_line) && (strncmp(line, "SETEEPROM:", 10) == 0) ) {
+				grbl_eeprom_set_eeprom((unsigned char *)&line[10]);
+				report_status_message(STATUS_OK, 0);
+				memset(line, 0, LINE_BUFFER_SIZE);
 			} else if ( (strlen("MAC:xx-xx-xx-xx-xx-xx") <= strlen_line) && (strncmp(line, "MAC:", 4) == 0) ) {
 				ethernet_set_mac_address((unsigned char *)&line[4]);
 				grbl_eeprom_trigger();
+				report_status_message(STATUS_OK, 0);
 				memset(line, 0, LINE_BUFFER_SIZE);
 			} else if (line[0] == '$') {
 				// Grbl '$' system command
 				result = 1;
 			} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
 				// Everything else is gcode. Block if in alarm or jog mode.
-				report_status_message(STATUS_SYSTEM_GC_LOCK);
+				report_status_message(STATUS_SYSTEM_GC_LOCK, 0);
 				// Reset tracking data for next line.
 				memset(line, 0, LINE_BUFFER_SIZE);
 			} else if (line[0] == '\n') {
@@ -459,7 +470,7 @@ static uint8 process_multi_char_command(uint8 data, char *line) {
 // the lines that are processed afterward, not necessarily real-time during a cycle,
 // since there are motions already stored in the buffer. However, this 'lag' should not
 // be an issue, since these commands are not typically used during a cycle.
-sint16 protocol_execute_line(char *line) {
+sint16 protocol_execute_line(char *line, int32_t *number) {
 	uint8 char_counter = 1;
 	float parameter = 0.0f;
 	float value = 0.0f;
@@ -476,7 +487,7 @@ sint16 protocol_execute_line(char *line) {
 			if (line[2] != '=') {
 				return(STATUS_INVALID_STATEMENT);
 			}
-			return(gc_execute_line(line)); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
+			return(gc_execute_line(line, number)); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
 			break;
 		}
 		case '$': case 'G': case 'C': case 'X': case 'D': {

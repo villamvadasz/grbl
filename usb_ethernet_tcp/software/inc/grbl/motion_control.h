@@ -62,6 +62,8 @@ extern void mc_parking_motion(float *parking_target, plan_line_data_t *pl_data);
 
 extern void mc_stop(void);
 
-extern void mc_dwell(float seconds);
+extern void mc_dwell(float time);
+extern void mc_dwell_s(float seconds);
+extern void mc_dwell_ms(float seconds);
 
 #endif

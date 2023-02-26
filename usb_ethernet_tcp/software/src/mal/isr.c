@@ -26,6 +26,8 @@
 	#define ISR_IPL_TMR1 IPL5AUTO
 #elif (ISR_IPLV_TMR1 == 6)
 	#define ISR_IPL_TMR1 IPL6AUTO
+#elif (ISR_IPLV_TMR1 == 7)
+	#define ISR_IPL_TMR1 IPL7AUTO
 #else
 	#error Wrong IPL configured
 #endif
@@ -210,7 +212,21 @@
 	#define _IFSx_U1_U1EIF_POSITION _IFS1_U1EIF_POSITION
 	#define _IFSx_U1_U1RXIF_POSITION _IFS1_U1RXIF_POSITION
 #else
+#ifdef __32MX795F512H__
+	#define IFSx_U1 IFS1
+	#define IECx_U1 IEC1
+	#define IFSx_U1CLR	IFS1CLR
+	#define _IFSx_U1_U1EIF_MASK _IFS0_U1EIF_MASK
+	#define _IECx_U1_U1EIE_MASK _IEC0_U1EIE_MASK
+	#define _IFSx_U1_U1RXIF_MASK _IFS0_U1RXIF_MASK
+	#define _IECx_U1_U1RXIE_MASK _IEC0_U1RXIE_MASK
+	#define _IFSx_U1_U1TXIF_MASK _IFS0_U1TXIF_MASK
+	#define _IECx_U1_U1TXIE_MASK _IEC0_U1TXIE_MASK
+	#define _IFSx_U1_U1EIF_POSITION _IFS0_U1EIF_POSITION
+	#define _IFSx_U1_U1RXIF_POSITION _IFS0_U1RXIF_POSITION
+#else
 	#error TODO Implement
+#endif
 #endif
 #endif
 #endif
@@ -267,7 +283,21 @@
 	#define _IFSx_U2_U2EIF_POSITION _IFS1_U2EIF_POSITION
 	#define _IFSx_U2_U2RXIF_POSITION _IFS1_U2RXIF_POSITION
 #else
+#ifdef __32MX795F512H__
+	#define IFSx_U2 IFS1
+	#define IECx_U2 IEC1
+	#define IFSx_U2CLR	IFS1CLR
+	#define _IFSx_U2_U2EIF_MASK _IFS1_U2EIF_MASK
+	#define _IECx_U2_U2EIE_MASK _IEC1_U2EIE_MASK
+	#define _IFSx_U2_U2RXIF_MASK _IFS1_U2RXIF_MASK
+	#define _IECx_U2_U2RXIE_MASK _IEC1_U2RXIE_MASK
+	#define _IFSx_U2_U2TXIF_MASK _IFS1_U2TXIF_MASK
+	#define _IECx_U2_U2TXIE_MASK _IEC1_U2TXIE_MASK
+	#define _IFSx_U2_U2EIF_POSITION _IFS1_U2EIF_POSITION
+	#define _IFSx_U2_U2RXIF_POSITION _IFS1_U2RXIF_POSITION
+#else
 	#error TODO Implement
+#endif
 #endif
 #endif
 #endif
@@ -332,8 +362,15 @@ void __ISR(_EXTERNAL_3_VECTOR, IPL3SOFT)__EINT3Interrupt(void) {
 	#endif
 }
 
+void __ISR(_EXTERNAL_4_VECTOR, IPL3SOFT)__EINT4nterrupt(void) {
+	#ifdef ISR_USE_EINT4_WIFI
+		isr_eint_wifi();
+	#endif
+}
+
 void __ISR(_DMA_0_VECTOR, IPL5SOFT) DmaHandler0(void) {
 	#ifdef ISR_USE_DMA0
+		extern void isr_dma0(void);
 		isr_dma0();
 	#endif
 } 
@@ -463,6 +500,7 @@ void __ISR(_CORE_TIMER_VECTOR, IPL2SOFT) CoreTimerHandler(void) {
 	clear_isr(IFS0CLR, _IFS0_CTIF_POSITION);
 }
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
 void __ISR(_I2C_1_VECTOR, ISR_IPL_I2C1_MASTER) IntI2C1Handler(void) {
 	unsigned char i2c_interrupt_type = 0;
 	#ifdef __32MX440F256H__
@@ -532,18 +570,33 @@ void __ISR(_I2C_1_VECTOR, ISR_IPL_I2C1_MASTER) IntI2C1Handler(void) {
 
 void __ISR(_I2C_2_VECTOR, ISR_IPL_I2C2_MASTER) IntI2C2Handler(void) {
 	unsigned char i2c_interrupt_type = 0;
-	if (IFS1bits.I2C2BIF) {
-		i2c_interrupt_type |= 1;
-		clear_isr(IFS1CLR, _IFS1_I2C2BIF_POSITION);
-	}
-	if (IFS1bits.I2C2SIF) {
-		i2c_interrupt_type |= 2;
-		clear_isr(IFS1CLR, _IFS1_I2C2SIF_POSITION);
-	}
-	if (IFS1bits.I2C2MIF) {
-		i2c_interrupt_type |= 4;
-		clear_isr(IFS1CLR, _IFS1_I2C2MIF_POSITION);
-	}
+	#ifdef __32MX795F512H__
+		if (IFS1bits.I2C2ABIF) {
+			i2c_interrupt_type |= 1;
+			clear_isr(IFS1CLR, _IFS1_I2C2ABIF_POSITION);
+		}
+		if (IFS1bits.I2C2ASIF) {
+			i2c_interrupt_type |= 2;
+			clear_isr(IFS1CLR, _IFS1_I2C2ASIF_POSITION);
+		}
+		if (IFS1bits.I2C2AMIF) {
+			i2c_interrupt_type |= 4;
+			clear_isr(IFS1CLR, _IFS1_I2C2AMIF_POSITION);
+		}
+	#else
+		if (IFS1bits.I2C2BIF) {
+			i2c_interrupt_type |= 1;
+			clear_isr(IFS1CLR, _IFS1_I2C2BIF_POSITION);
+		}
+		if (IFS1bits.I2C2SIF) {
+			i2c_interrupt_type |= 2;
+			clear_isr(IFS1CLR, _IFS1_I2C2SIF_POSITION);
+		}
+		if (IFS1bits.I2C2MIF) {
+			i2c_interrupt_type |= 4;
+			clear_isr(IFS1CLR, _IFS1_I2C2MIF_POSITION);
+		}
+	#endif
 	#ifdef ISR_USE_I2C2_SLAVE
 		isr_iic_slave(i2c_interrupt_type);
 	#endif
@@ -659,8 +712,8 @@ void init_isr(void) {
 }
 
 void deinit_isr(void) {
-    unsigned int status = 0;
+	unsigned int status = 0;
 
-    asm volatile("di    %0" : "=r"(status));
+	asm volatile("di    %0" : "=r"(status));
 
 }

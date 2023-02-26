@@ -114,4 +114,6 @@ extern int lround_my (float x);
 	#error TODO implement
 #endif
 
+extern float nuts_bolts_tooth_load_rpm_to_feed(float mm_rev, float RPM, float number_tooth);
+
 #endif

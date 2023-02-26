@@ -61,25 +61,27 @@ void do_eep_manager(void) {
 	if (do_eep_manager_1ms) {
 		do_eep_manager_1ms = 0;
 		{
-			static sint32 item = -1;
-			if (item == -1) {
-				uint32 x = 0;
-				for (x = 0; x < (sizeof(eep_manager_write_all_trigger) / sizeof(*eep_manager_write_all_trigger)); x++) {
-					if (eep_manager_write_all_trigger[x] != EEP_MANAGER_NO_TRIGGER) {
-						item = x;
-						break;
+			if (is_eeprom_write_protected() == 0) {
+				static sint32 item = -1;
+				if (item == -1) {
+					uint32 x = 0;
+					for (x = 0; x < (sizeof(eep_manager_write_all_trigger) / sizeof(*eep_manager_write_all_trigger)); x++) {
+						if (eep_manager_write_all_trigger[x] != EEP_MANAGER_NO_TRIGGER) {
+							item = x;
+							break;
+						}
 					}
 				}
-			}
-			if (item != -1) {
-				if ((item < EepManager_Items_LastItem) && (eepManager_ItemTable[item].variablePtr != NULL)) {
-					if (eepManagerWriteVar_Asynch(item, eepManager_ItemTable[item].size, eepManager_ItemTable[item].variablePtr) != 0) {
+				if (item != -1) {
+					if ((item < EepManager_Items_LastItem) && (eepManager_ItemTable[item].variablePtr != NULL)) {
+						if (eepManagerWriteVar_Asynch(item, eepManager_ItemTable[item].size, eepManager_ItemTable[item].variablePtr) != 0) {
+							eep_manager_write_all_trigger[item] = EEP_MANAGER_NO_TRIGGER;
+							item = -1;
+						}
+					} else {
 						eep_manager_write_all_trigger[item] = EEP_MANAGER_NO_TRIGGER;
 						item = -1;
 					}
-				} else {
-					eep_manager_write_all_trigger[item] = EEP_MANAGER_NO_TRIGGER;
-					item = -1;
 				}
 			}
 		}
@@ -206,7 +208,7 @@ void eepManagerEmpty(void) {
 	}
 	write_eeprom_char(EEPMANAGER_ADDR_VERSION_ADDR, EEPROM_VERSION);
 	
-	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT,     eep_manager_persistent_config & 0xFF);
+	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT,	 eep_manager_persistent_config & 0xFF);
 	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT + 1, (eep_manager_persistent_config >> 8) & 0xFF);
 	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT + 2, (eep_manager_persistent_config >> 16) & 0xFF);
 	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT + 3, (eep_manager_persistent_config >> 24) & 0xFF);
@@ -218,7 +220,7 @@ void eepManagerUpdate(void) {
 
 	write_eeprom_char(EEPMANAGER_ADDR_VERSION_ADDR, EEPROM_VERSION);
 	
-	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT,     eep_manager_persistent_config & 0xFF);
+	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT,	 eep_manager_persistent_config & 0xFF);
 	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT + 1, (eep_manager_persistent_config >> 8) & 0xFF);
 	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT + 2, (eep_manager_persistent_config >> 16) & 0xFF);
 	write_eeprom_char(EEPMANAGER_ADDR_PERSISTENT + 3, (eep_manager_persistent_config >> 24) & 0xFF);
@@ -371,6 +373,8 @@ uint8 eepManagerWriteVar_Asynch(EepManager_Item item, uint32 size, const void * 
 			}
 			break;
 		}
+		
+		//Layout: DATA,CRC,BACKUP,CRC
 		case 3 : {
 			uint8 dataTemp = read_eeprom_char(addr + eepManagerWriteVar_AsynchSm_i);
 			uint8 defaultDataTemp = ((unsigned char * )data)[eepManagerWriteVar_AsynchSm_i];

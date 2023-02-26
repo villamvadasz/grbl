@@ -23,6 +23,8 @@
 
 #include "nuts_bolts.h"
 
+#define SYSTEM_LOG_ITEMS 32
+
 // Override bit maps. Realtime bitflags to control feed, rapid, spindle, and coolant overrides.
 // Spindle/coolant and feed/rapids are separated into two controlling flag variables.
 #define EXEC_FEED_OVR_RESET         bit(0)
@@ -131,6 +133,14 @@ typedef enum _grbl_system_log {
 	sm_sys_suspend,
 } grbl_system_log;
 
+typedef struct _grbl_system_logger {
+	grbl_system_log system_log;
+	unsigned int system_log_caller;
+	unsigned int system_log_time;
+} grbl_system_logger_st;
+
+extern grbl_system_logger_st grbl_system_logger[SYSTEM_LOG_ITEMS];
+
 // NOTE: These position variables may need to be declared as volatiles, if problems arise.
 extern int32_t sys_position[N_AXIS];      // Real-time machine (aka home) position vector in steps.
 extern int32_t sys_probe_position[N_AXIS]; // Last probe position in machine coordinates and steps.
@@ -171,13 +181,12 @@ extern void system_clear_exec_accessory_overrides(void);
 extern void system_set_sys_state(unsigned int new_sys_state);
 extern void system_set_sys_suspend(unsigned int new_sys_state);
 
-#define SYSTEM_LOG_ITEMS 32
 extern grbl_system_log system_log[SYSTEM_LOG_ITEMS];
 extern unsigned int system_log_caller[SYSTEM_LOG_ITEMS];
 extern void system_log_unlock(void);
 extern void system_log_sm_abort_input(void);
-extern void system_log_internal_stepper_enable(void);
-extern void system_log_internal_stepper_disable(void);
+extern void system_log_internal_stepper_enable(unsigned int caller);
+extern void system_log_internal_stepper_disable(unsigned int caller);
 extern void system_log_home(void);
 extern void system_log_limit_x(void);
 extern void system_log_limit_y(void);

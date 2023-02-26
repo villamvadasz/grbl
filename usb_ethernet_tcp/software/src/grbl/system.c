@@ -33,8 +33,7 @@ typedef enum _grbl_system_sm_states {
 
 grbl_system_sm_states grbl_system_sm = sm_init;
 
-grbl_system_log system_log[SYSTEM_LOG_ITEMS];
-unsigned int system_log_caller[SYSTEM_LOG_ITEMS];
+grbl_system_logger_st grbl_system_logger[SYSTEM_LOG_ITEMS];
 
 system_t sys;
 int32_t sys_position[N_AXIS];						// Real-time machine (aka home) position vector in steps.
@@ -53,9 +52,9 @@ static void protocol_exec_rt_suspend_preapare(void);
 static void protocol_exec_rt_suspend_async(void);
 
 void system_init(void) {
-	memset(system_log, 0x00, sizeof(system_log));
+	memset(grbl_system_logger, 0x00, sizeof(grbl_system_logger));
 	
-	initTimer(&system_suspendTime);
+	init_timer(&system_suspendTime);
 	system_log_sm_init_log(0);
 	grbl_system_sm = sm_init;
 
@@ -164,7 +163,7 @@ void do_system(void) {
 			break;
 		}
 		case sm_suspend_delay : {
-			if (readTimer(&system_suspendTime) == 0) {
+			if (read_timer(&system_suspendTime) == 0) {
 				system_log_sm_suspend_log(1);
 				grbl_system_sm = sm_suspend;
 			}
@@ -244,12 +243,12 @@ void system_clear_exec_accessory_overrides(void) {
 }
 
 void system_set_requestSuspendTime(uint16 value) {
-	writeTimer(&system_suspendTime, value) ;
+	write_timer(&system_suspendTime, value) ;
 }
 
 uint8 system_get_requestSuspendTime(void) {
 	uint8 result = 0;
-	if (readTimer(&system_suspendTime) != 0) {
+	if (read_timer(&system_suspendTime) != 0) {
 		result = 1;
 	}
 	return result;
@@ -749,11 +748,13 @@ void system_log_add_event(grbl_system_log ev, unsigned int caller) {
 	unsigned int x = 0;
 	unsigned int cnt = (sizeof(system_log) / sizeof(*system_log));
 	for (x = 0; x < (cnt - 1) ; x++) {//1 element less!
-		system_log[(cnt - 1) - x] = system_log[(cnt - 1) - x - 1];
-		system_log_caller[(cnt - 1) - x] = system_log_caller[(cnt - 1) - x - 1];
+		grbl_system_logger[(cnt - 1) - x].system_log = 			grbl_system_logger[(cnt - 1) - x - 1].system_log;
+		grbl_system_logger[(cnt - 1) - x].system_log_caller = 	grbl_system_logger[(cnt - 1) - x - 1].system_log_caller;
+		grbl_system_logger[(cnt - 1) - x].system_log_time = 	grbl_system_logger[(cnt - 1) - x - 1].system_log_time;
 	}
-	system_log[0] = ev;
-	system_log_caller[0] = caller;
+	grbl_system_logger[0].system_log = ev;
+	grbl_system_logger[0].system_log_caller = caller;
+	grbl_system_logger[0].system_log_time = getGlobalTime();
 }
 
 void system_set_sys_state(unsigned int new_sys_state) {
@@ -774,12 +775,12 @@ void system_log_sm_abort_input(void) {
 	system_log_add_event(sm_abort_input, 0);
 }
 
-void system_log_internal_stepper_enable(void) {
-	system_log_add_event(sm_internal_stepper_enable, 0);
+void system_log_internal_stepper_enable(unsigned int caller) {
+	system_log_add_event(sm_internal_stepper_enable, caller);
 }
 
-void system_log_internal_stepper_disable(void) {
-	system_log_add_event(sm_internal_stepper_disable, 0);
+void system_log_internal_stepper_disable(unsigned int caller) {
+	system_log_add_event(sm_internal_stepper_disable, caller);
 }
 
 void system_log_home(void) {

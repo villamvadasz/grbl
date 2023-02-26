@@ -6,6 +6,7 @@
 #include "sleep.h"
 #include "tmr.h"
 #include "stackmeasure.h"
+#include "tmr.h"
 #include "bootloader_interface.h"
 
 #include "c_app.h"
@@ -23,17 +24,23 @@
 #include "pwm.h"
 #include "ethernet.h"
 
-#define SW_YEAR 0x2020
-#define SW_MONTH 0x03
-#define SW_DAY 0x07
+#ifndef MAKEFILE_NAME
+	#error MAKEFILE_NAME not defined.
+#endif
+
+#define SW_YEAR 0x2021
+#define SW_MONTH 0x05
+#define SW_DAY 0x05
 #define SW_TYPE TYPE_GRBL
-#define SW_VERSION 0x0102
+#define SW_VERSION 0x0103
 
 SoftwareIdentification softwareIdentification = {SW_YEAR, SW_MONTH, SW_DAY, SW_VERSION, SW_TYPE};
 unsigned char VERSION_ID[] = "cnc_1_0_0";
 const char VERSION_DATE[]  __attribute__ ((address(0x9D008100))) = __DATE__;
 const char VERSION_TIME[]  __attribute__ ((address(0x9D008120))) = __TIME__;
 const char VERSION_ID_FIX[]  __attribute__ ((address(0x9D008140))) = "cnc_1_0_0";
+const char VERSION_MAKEFILE_NAME[]  __attribute__ ((address(0x9D008160))) = MAKEFILE_NAME;
+const char FILE_CRC[]  __attribute__ ((address(0x9D008180))) = "0000CRC0";//Only the first 4 bytes are CRC, the text after it is just to help find it in the file.
 
 volatile unsigned char do_loopCnt = 0;
 unsigned long loopCntTemp = 0;
@@ -41,7 +48,12 @@ unsigned long loopCnt = 0;
 unsigned int tick_count = 0;
 
 unsigned long loopCntHistory[60];
+unsigned long loopCntHistoryLast = 0;
 unsigned int loopCntHistoryCnt = 0;
+
+__attribute__(( weak )) void init_stackmeasure(void) {} 
+__attribute__(( weak )) void do_stackmeasure(void) {} 
+
 
 __attribute__(( weak )) void init_ethernet(void) {} 
 __attribute__(( weak )) void do_ethernet(void) {} 
@@ -55,10 +67,18 @@ int main (void) {
 	init_mal();
 
 	init_stackmeasure();
+
 	init_ad();
 
 	init_pwm();
+
+	#ifdef DEE_TESTING_ENABLED
+		init_tmr(); //this should be the first beceaus it clears registered timers.
+		init_isr();
+		test_dee();
+	#endif
 	init_dee();
+
 	init_eep_manager();
 	init_task();
 
@@ -72,12 +92,13 @@ int main (void) {
 	do_loopCnt = 0;
 
 	bootloader_interface_clearRequest();
-	
+
 	while (1) {
 		if (do_loopCnt) {
 			do_loopCnt = 0;
 			loopCnt = loopCntTemp; //Risk is here that interrupt corrupts the value, but it is taken
 			loopCntHistory[loopCntHistoryCnt] = loopCnt;
+			loopCntHistoryLast = loopCnt;
 			loopCntHistoryCnt++;
 			loopCntHistoryCnt %= ((sizeof(loopCntHistory)) / (sizeof(*loopCntHistory)));
 			loopCntTemp = 0;
@@ -100,9 +121,6 @@ int main (void) {
 		do_grbl();
 		do_dee();
 
-		//do_spi();
-		//do_fatfs();
-		//do_sd_spi();
 		//idle_Request();
 		loopCntTemp++;
 	}

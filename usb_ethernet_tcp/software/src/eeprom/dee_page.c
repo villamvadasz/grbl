@@ -16,8 +16,8 @@ typedef struct _Dee_Type {
 } Dee_Type;
 
 typedef union _Dee_Page {
-	uint32 pages[DEE_PAGE_PAGE_SIZE][NUMBER_OF_INSTRUCTIONS_IN_PAGE];
-	uint32 raw[NUMBER_OF_INSTRUCTIONS_IN_PAGE * DEE_PAGE_PAGE_SIZE];
+	uint32 pages[DEE_FLASH_PAGE_CNT][NUMBER_OF_INSTRUCTIONS_IN_PAGE];
+	uint32 raw[NUMBER_OF_INSTRUCTIONS_IN_PAGE * DEE_FLASH_PAGE_CNT];
 	Dee_Type type;
 } Dee_Page;
 
@@ -59,7 +59,7 @@ void dee_page_update_debug_status(void) {
 uint32 dee_page_mass_erase_page(uint32 page) {
 	uint32 result = 0;
 	uint32 i = 0;
-	for (i = 0; i < DEE_PAGE_PAGE_SIZE; i ++ ) {
+	for (i = 0; i < DEE_FLASH_PAGE_CNT; i ++ ) {
 		result = NVMErasePage((void*)dee_page[page].pages[i]);
 		if (result) {
 			break;
@@ -72,7 +72,7 @@ uint32 dee_page_erase_page(uint32 page, uint32 eraseCounter) {
 	uint32 result = 0;
 	uint32 i = 0;
 	uint8 wasClearPagesOk = 1;
-	for (i = 0; i < DEE_PAGE_PAGE_SIZE; i ++ ) {
+	for (i = 0; i < DEE_FLASH_PAGE_CNT; i ++ ) {
 		result = NVMErasePage((void*)dee_page[page].pages[i]);
 		if (result) {
 			wasClearPagesOk = 0;
@@ -185,3 +185,20 @@ uint32 dee_page_write_element(uint8 page, uint32 element, uint32 data, uint32 cr
 	}
 	return retCode;
 }
+
+#ifdef DEE_TESTING_ENABLED
+	uint8 test_erase_pages(void) {
+		uint8 result = 1;
+		//Just like after a flash when eeprom is erased
+		uint32 page = 0;
+		for(page = 0; page < DEE_PAGE_CNT; page++) {
+			uint32 i = 0;
+			for (i = 0; i < DEE_FLASH_PAGE_CNT; i ++ ) {
+				if (NVMErasePage((void*)dee_page[page].pages[i])) {
+					result = 0;
+				}
+			}
+		}
+		return result;
+	}
+#endif

@@ -32,6 +32,9 @@
 #ifndef VARIABLE_SPINDLE_OC
     float pwm_dummy_value = 0.0f;
 #endif
+#ifdef SPINDLE_FAKE_SPINDLE_RUNNING
+	uint8 spindle_control_fake_spindle_run = 0;
+#endif
 
 static uint8 spindle_compute_pwm_value(float rpm);
 
@@ -94,6 +97,13 @@ uint8 spindle_get_state(void) {
 			}
 		#endif
 	#endif
+	
+	#ifdef SPINDLE_FAKE_SPINDLE_RUNNING
+		if (spindle_control_fake_spindle_run) {
+			result = SPINDLE_STATE_CW;
+		}
+	#endif
+	
 	return result;	
 }
 
@@ -103,11 +113,33 @@ uint8 spindle_get_state(void) {
 void spindle_set_state(uint8 state, float rpm) {
 	uint8 localEnableDisable = 0;
 	uint8 pwm_value = 0;
-	#ifdef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
-	if ((state == SPINDLE_DISABLE) || (rpm == 0.0f)) { // Halt or set spindle direction and rpm.
-	#else
-	if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
+	uint8 internal_spindle_var = 0;
+
+	#ifdef SPINDLE_FAKE_SPINDLE_RUNNING
+		//Fake that spindle is running so that eeprom is not touched.
+		//Good for engraving with not running spindle.
+		spindle_control_fake_spindle_run = 0;
+		if ((rpm > 0.5f) && (rpm < 1.5f)) {
+			rpm = 0.0f;
+			spindle_control_fake_spindle_run = 1;
+		}
 	#endif
+
+	#ifdef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
+		if ((state == SPINDLE_DISABLE) || (rpm == 0.0f)) { // Halt or set spindle direction and rpm.
+			internal_spindle_var = 1;
+		} else {
+			internal_spindle_var = 0;
+		}
+	#else
+		if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
+			internal_spindle_var = 1;
+		} else {
+			internal_spindle_var = 0;
+		}
+	#endif
+	
+	if (internal_spindle_var) {
 		pwm_value = spindle_compute_pwm_value(0.0f);
 		sys.spindle_speed = 0.0;
 		localEnableDisable = 0;
@@ -161,6 +193,7 @@ void spindle_set_state(uint8 state, float rpm) {
 static uint8 spindle_compute_pwm_value(float rpm) {
 	uint8 result = 0;
 	float pwm_value = 0.0f;
+	
 	rpm *= (0.010f * sys.spindle_speed_ovr); // Scale by spindle speed override value.
 	// Calculate PWM register value based on rpm max/min settings and programmed rpm.
 	if ((settings.rpm_min >= settings.rpm_max) || (rpm >= settings.rpm_max)) {

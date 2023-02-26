@@ -4,8 +4,8 @@
  * Processor:		PIC32
  * Hardware:		N/A
  * Assembler:		N/A
- * Linker:		    N/A
- * Company:		    Microchip Technology Inc.
+ * Linker:			N/A
+ * Company:			Microchip Technology Inc.
  *
  * Software License Agreement:
  * The software supplied herewith by Microchip Technology Incorporated
@@ -32,30 +32,30 @@
 #include <peripheral/int.h>
 
 /*********************************************************************
- * Function:        void INTEnableSystemMultiVectoredInt(void)
+ * Function:		void INTEnableSystemMultiVectoredInt(void)
  *
- * PreCondition:    EBASE and IntCtl.VS set up
+ * PreCondition:	EBASE and IntCtl.VS set up
  *
- * Input:           None
+ * Input:		   None
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    System interrupts are turned on
+ * Side Effects:	System interrupts are turned on
  *
- * Overview:        Enables system wide multi-vectored interrupts
+ * Overview:		Enables system wide multi-vectored interrupts
  ********************************************************************/
 void __attribute__ ((nomips16)) INTEnableSystemMultiVectoredInt(void)
 {
-    unsigned int val;
+	unsigned int val;
 
-    // set the CP0 cause IV bit high
-    asm volatile("mfc0   %0,$13" : "=r"(val));
-    val |= 0x00800000;
-    asm volatile("mtc0   %0,$13" : "+r"(val));
+	// set the CP0 cause IV bit high
+	asm volatile("mfc0   %0,$13" : "=r"(val));
+	val |= 0x00800000;
+	asm volatile("mtc0   %0,$13" : "+r"(val));
 
-    INTCONSET = _INTCON_MVEC_MASK;
+	INTCONSET = _INTCON_MVEC_MASK;
 
-    // set the CP0 status IE bit high to turn on interrupts
-    INTEnableInterrupts();
+	// set the CP0 status IE bit high to turn on interrupts
+	INTEnableInterrupts();
 
 }

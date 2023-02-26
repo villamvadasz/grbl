@@ -4,13 +4,13 @@
 #include "TCPIP.h"
 #include "c_eep_manager.h"
 #include "eep_manager.h"
+#include "mal.h"
 
 APP_CONFIG AppConfig;
 BYTE SerializedMACAddress[6] = {MY_DEFAULT_MAC_BYTE1, MY_DEFAULT_MAC_BYTE2, MY_DEFAULT_MAC_BYTE3, MY_DEFAULT_MAC_BYTE4, MY_DEFAULT_MAC_BYTE5, MY_DEFAULT_MAC_BYTE6};
 
 extern void isr_ethernet_tick_1ms(void);
 static void InitAppConfig(void);
-unsigned char hexStringToChar(unsigned char *str);
 
 void init_ethernet(void) {
 	init_enc28j60();
@@ -47,24 +47,6 @@ void ethernet_set_mac_address(unsigned char *str) {
 		SerializedMACAddress[5] = hexStringToChar(&str[0 + 3 + 3 + 3 + 3 + 3]);
 		eep_manager_WriteItem_Trigger(EepManager_Items_MAC_Address);
 	}
-}
-
-unsigned char hexStringToChar(unsigned char *str) {
-	unsigned char result = 0;
-	if (str != NULL) {
-		unsigned int x = 0;
-		for (x = 0; x < 2; x++) {
-			result <<= 4;
-			if ((str[x] >= '0') && (str[x] <= '9')) {
-				result += str[x] - '0' + 0x00;
-			} else if ((str[x] >= 'A') && (str[x] <= 'F')) {
-				result += str[x] - 'A' + 0x0A;
-			} else if ((str[x] >= 'a') && (str[x] <= 'f')) {
-				result += str[x] - 'a' + 0x0A;
-			}
-		}
-	}
-	return result;
 }
 
 static void InitAppConfig(void)

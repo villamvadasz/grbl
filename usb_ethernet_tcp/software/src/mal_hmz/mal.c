@@ -38,7 +38,7 @@
 
 		// DEVCFG2
 		#pragma config FPLLIDIV = DIV_3         // System PLL Input Divider (3x Divider)
-		#pragma config FPLLRNG =  RANGE_8_16_MHZ
+		#pragma config FPLLRNG =  RANGE_5_10_MHZ
 		#pragma config FPLLICLK = PLL_POSC      // System PLL Input Clock Selection (POSC is input to the System PLL)
 		#pragma config FPLLMULT = MUL_100
 		#pragma config FPLLODIV = DIV_2         // System PLL Output Clock Divider (2x Divider)
@@ -231,4 +231,40 @@ void DmaResume(int susp) {
 	{
 		DMACONCLR = _DMACON_SUSPEND_MASK;		// resume DMA activity
 	}
+}
+
+unsigned char hexStringToChar(unsigned char *str) {
+	unsigned char result = 0;
+	if (str != NULL) {
+		unsigned int x = 0;
+		for (x = 0; x < 2; x++) {
+			result <<= 4;
+			if ((str[x] >= '0') && (str[x] <= '9')) {
+				result += str[x] - '0' + 0x00;
+			} else if ((str[x] >= 'A') && (str[x] <= 'F')) {
+				result += str[x] - 'A' + 0x0A;
+			} else if ((str[x] >= 'a') && (str[x] <= 'f')) {
+				result += str[x] - 'a' + 0x0A;
+			}
+		}
+	}
+	return result;
+}
+
+unsigned int hexStringToInt(unsigned char *str) {
+	unsigned int result = 0;
+	if (str != NULL) {
+		unsigned int x = 0;
+		for (x = 0; x < 8; x++) {
+			result <<= 4;
+			if ((str[x] >= '0') && (str[x] <= '9')) {
+				result += str[x] - '0' + 0x00;
+			} else if ((str[x] >= 'A') && (str[x] <= 'F')) {
+				result += str[x] - 'A' + 0x0A;
+			} else if ((str[x] >= 'a') && (str[x] <= 'f')) {
+				result += str[x] - 'a' + 0x0A;
+			}
+		}
+	}
+	return result;
 }

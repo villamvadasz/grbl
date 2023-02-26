@@ -38,6 +38,7 @@
 #ifndef HARDWARE_PROFILE_H
 #define HARDWARE_PROFILE_H
 
+#include "c_bootloader.h"
 
 //   Part number defining Macro
 #if   (((__PIC32_FEATURE_SET__ >= 100) && (__PIC32_FEATURE_SET__ <= 299)))
@@ -47,47 +48,6 @@
 #else
     #error("Controller not supported")
 #endif
-
-
-#if defined(__PIC32MX1XX_2XX__)
-    // Maximum System frequency of 40MHz for PIC32MX1xx and PIC32MX2xx devices.
-    #define SYS_FREQ (40000000L)
-#elif defined(__PIC32MX3XX_7XX__)
-   // Maximum System frequency of 80MHz for PIC32MX3xx, PIC32MX4xx, 
-    // PIC32MX5xx, PIC32MX6xx and PIC32MX7xx devices.
-    #define SYS_FREQ (80000000L)
-	#define PB_DIV         		2
-#endif
-
-
-// Common macros 
-// Clock frequency values
-// These directly influence timed events using the Tick module.  They also are used for UART and SPI baud rate generation.
-#define GetSystemClock()		SYS_FREQ			// Hz
-#define GetInstructionClock()	(GetSystemClock()/1)	// 
-#define GetPeripheralClock()	(GetSystemClock()/PB_DIV)	// Divisor is dependent on the value of FPBDIV set(configuration bits).
-
-
-
-// Demo board hardware profiles
-#if defined(DEMO_BOARD_EXPLORER_16)
-	#include "HardwareProfile_PIC32MX_PIM_Explorer_16.h"
-#elif defined(DEMO_BOARD_USB_STARTER_KIT)
-	#include "HardwareProfile_PIC32MX_USB_StarterKit.h"
-#elif defined(DEMO_BOARD_ETH_STARTER_KIT)
-	#include "HardwareProfile_PIC32MX_ETH_StarterKit.h"	
-#elif defined(DEMO_BOARD_OLIMEX)
-	#include "HardwareProfile_PIC32MX_Olimex.h"	
-#else 
-		/* Note ****: User has to define board type depending on the development board. 
-	To do this, in the MPLAB IDE navigate to menu Project->Build Options->Project.
-	Select "MPLAB PIC32 C Compiler" tab. Select categories as "General" from the dropdown list box.
-	Click ADD button and define the DEMO_BOARD under "Preprocessor Macros".*/
-	
-	#error ("Demo board is either not defined or not defined properly. \
-			 Supported values for this macro are BOARD_EXPLORER_16/ BOARD_USB_STARTER_KIT.");
-#endif
-
 
 
 // Transport layer specific hardware profiles
@@ -102,7 +62,7 @@
 		#error("Either the MAC is not defined or the MAC is not supported")
 	#endif						
 #elif defined(TRANSPORT_LAYER_SD_CARD)	
-	#include "HardwareProfile_PIC32MX_SD_PICtail.h"
+	#include "HardwareProfile_PIC32MX_SD_OlimexPIC32.h"
 #elif defined(TRANSPORT_LAYER_USB_HOST)
 	
 	// ******************* MDD File System Required Definitions ********************

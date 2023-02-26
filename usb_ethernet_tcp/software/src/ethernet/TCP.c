@@ -2472,11 +2472,11 @@ void TCPTick(void)
 						MyTCBStub.smState = TCP_GATEWAY_SEND_ARP;
 						MyTCBStub.remoteHash.Val = (MyTCB.remote.niRemoteMACIP.IPAddr.w[1]+MyTCB.remote.niRemoteMACIP.IPAddr.w[0] + MyTCB.remotePort.Val) ^ MyTCB.localPort.Val;
 						MyTCB.retryCount = 0;
-						MyTCB.retryInterval = (TICK_SECOND/4);
+						MyTCB.retryInterval = 250;
 					}
 					else
 					{
-						MyTCBStub.eventTime = TickGet() + 10*TICK_SECOND;
+						MyTCBStub.eventTime = 10*1000;
 						MyTCBStub.smState = TCP_GET_DNS_MODULE;
 					}
 				}

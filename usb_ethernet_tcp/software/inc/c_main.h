@@ -2,7 +2,8 @@
 #define _C_MAIN_H_
 
 	#ifdef __32MZ2048ECG144__
-		#define XTAL_20MHZ
+		#define XTAL_12MHZ
+		//#define XTAL_20MHZ
 		#define SYS_FREQ_200MHZ
 		#ifdef SYS_FREQ_200MHZ
 			#define SYS_FREQ 			(200000000L)
@@ -35,6 +36,7 @@
 	
 		//#define SYS_FREQ_10MHZ
 		//#define SYS_FREQ_20MHZ
+		//#define SYS_FREQ_40MHZ
 		#define SYS_FREQ_80MHZ
 	
 		#ifdef SYS_FREQ_10MHZ
@@ -43,6 +45,10 @@
 		#endif
 		#ifdef SYS_FREQ_20MHZ
 			#define SYS_FREQ 			(20000000L)
+			#define PB_DIV         		2
+		#endif
+		#ifdef SYS_FREQ_40MHZ
+			#define SYS_FREQ 			(40000000L)
 			#define PB_DIV         		2
 		#endif
 		#ifdef SYS_FREQ_80MHZ

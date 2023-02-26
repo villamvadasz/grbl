@@ -260,8 +260,8 @@ MEMORY
   config_BFC6FFF8             : ORIGIN = 0xBFC6FFF8, LENGTH = 0x4
   config_BFC6FFFC             : ORIGIN = 0xBFC6FFFC, LENGTH = 0x4
   boot2lastpage               : ORIGIN = 0xBFC70000, LENGTH = 0x4000
-  kseg1_shared_mem     (w!x)  : ORIGIN = 0x80000000, LENGTH = 0x1000
-  kseg0_data_mem       (w!x)  : ORIGIN = 0x80001000, LENGTH = 0x7F000
+  kseg0_data_mem       (w!x)  : ORIGIN = 0x80000000, LENGTH = 0x7F000
+  kseg0_shared_mem     (w!x)  : ORIGIN = 0x8007F000, LENGTH = 0x1000
   sfrs                        : ORIGIN = 0xBF800000, LENGTH = 0x100000
   configsfrs_BFC0FF40         : ORIGIN = 0xBFC0FF40, LENGTH = 0x40
   configsfrs_BFC0FFC0         : ORIGIN = 0xBFC0FFC0, LENGTH = 0x40

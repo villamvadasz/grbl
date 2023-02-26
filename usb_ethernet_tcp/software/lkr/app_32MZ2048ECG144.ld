@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------
- * MPLAB XC Compiler -  PIC32MZ2048ECG144 linker script
+ * MPLAB XC Compiler -  PIC32MZEF Application linker script
  * Build date : Jul 16 2019
  * 
  * Copyright (c) 2019, Microchip Technology Inc. and its subsidiaries ("Microchip")
@@ -35,7 +35,7 @@
  * 
  */
 
-/* Default linker script, for normal executables */
+/* Custom linker script, for applications programmed through a bootloader */
 
 /*  NOTE: This single-file linker script replaces the two-file system used
  *  for older PIC32 devices. 
@@ -65,8 +65,9 @@ PROVIDE(_min_stack_size = 0x400) ;
  * OPTIONAL() line below and add the pic32mx/lib/proc/<device>.S file
  * to your project.
  *************************************************************************/
+#if defined(__XC32_VERSION__) && (__XC32_VERSION__ < 2100)
 OPTIONAL("processor.o")
-
+#endif
 
 /*************************************************************************
  * Vector-offset initialization
@@ -80,7 +81,7 @@ OPTIONAL("vector_offset_init.o")
  *   xc32-gcc src.c -Wl,--defsym=_ebase_address=0x9D001000
  *************************************************************************/
 PROVIDE(_vector_spacing = 0x0001);
-PROVIDE(_ebase_address = 0x9D000000);
+PROVIDE(_ebase_address = 0x9D001000);
 
 /*************************************************************************
  * Memory Address Equates
@@ -91,9 +92,7 @@ PROVIDE(_ebase_address = 0x9D000000);
  * _CACHE_ERR_EXCPT_ADDR          -- Cache-error Exception Vector
  * _GEN_EXCPT_ADDR                -- General Exception Vector
  *************************************************************************/
-_RESET_ADDR                    = 0xBFC00000;
-_BEV_EXCPT_ADDR                = 0xBFC00380;
-_DBG_EXCPT_ADDR                = 0xBFC00480;
+_RESET_ADDR                    = 0x9D000000;
 _SIMPLE_TLB_REFILL_EXCPT_ADDR  = _ebase_address + 0;
 _CACHE_ERR_EXCPT_ADDR          = _ebase_address + 0x100;
 _GEN_EXCPT_ADDR                = _ebase_address + 0x180;
@@ -105,174 +104,21 @@ _GEN_EXCPT_ADDR                = _ebase_address + 0x180;
  * Only sections specifically assigned to these regions can be allocated
  * into these regions.
  *
- * The Debug exception vector is located at 0x9FC00480.
- *
  * The config_<address> sections are used to locate the config words at
  * their absolute addresses.
  *************************************************************************/
 
-
 MEMORY
 {
-  kseg0_program_mem     (rx)  : ORIGIN = 0x9D000000, LENGTH = 0x200000
-  kseg0_boot_mem              : ORIGIN = 0x9FC004B0, LENGTH = 0x0
-  kseg1_boot_mem              : ORIGIN = 0xBFC00000, LENGTH = 0x480
-  kseg1_boot_mem_4B0          : ORIGIN = 0xBFC004B0, LENGTH = 0xFA50
-  config_BFC0FF40             : ORIGIN = 0xBFC0FF40, LENGTH = 0x4
-  config_BFC0FF44             : ORIGIN = 0xBFC0FF44, LENGTH = 0x4
-  config_BFC0FF48             : ORIGIN = 0xBFC0FF48, LENGTH = 0x4
-  config_BFC0FF4C             : ORIGIN = 0xBFC0FF4C, LENGTH = 0x4
-  config_BFC0FF50             : ORIGIN = 0xBFC0FF50, LENGTH = 0x4
-  config_BFC0FF54             : ORIGIN = 0xBFC0FF54, LENGTH = 0x4
-  config_BFC0FF58             : ORIGIN = 0xBFC0FF58, LENGTH = 0x4
-  config_BFC0FF5C             : ORIGIN = 0xBFC0FF5C, LENGTH = 0x4
-  config_BFC0FF60             : ORIGIN = 0xBFC0FF60, LENGTH = 0x4
-  config_BFC0FF64             : ORIGIN = 0xBFC0FF64, LENGTH = 0x4
-  config_BFC0FF68             : ORIGIN = 0xBFC0FF68, LENGTH = 0x4
-  config_BFC0FF6C             : ORIGIN = 0xBFC0FF6C, LENGTH = 0x4
-  config_BFC0FF70             : ORIGIN = 0xBFC0FF70, LENGTH = 0x4
-  config_BFC0FF74             : ORIGIN = 0xBFC0FF74, LENGTH = 0x4
-  config_BFC0FF78             : ORIGIN = 0xBFC0FF78, LENGTH = 0x4
-  config_BFC0FF7C             : ORIGIN = 0xBFC0FF7C, LENGTH = 0x4
-  config_BFC0FFC0             : ORIGIN = 0xBFC0FFC0, LENGTH = 0x4
-  config_BFC0FFC4             : ORIGIN = 0xBFC0FFC4, LENGTH = 0x4
-  config_BFC0FFC8             : ORIGIN = 0xBFC0FFC8, LENGTH = 0x4
-  config_BFC0FFCC             : ORIGIN = 0xBFC0FFCC, LENGTH = 0x4
-  config_BFC0FFD0             : ORIGIN = 0xBFC0FFD0, LENGTH = 0x4
-  config_BFC0FFD4             : ORIGIN = 0xBFC0FFD4, LENGTH = 0x4
-  config_BFC0FFD8             : ORIGIN = 0xBFC0FFD8, LENGTH = 0x4
-  config_BFC0FFDC             : ORIGIN = 0xBFC0FFDC, LENGTH = 0x4
-  config_BFC0FFE0             : ORIGIN = 0xBFC0FFE0, LENGTH = 0x4
-  config_BFC0FFE4             : ORIGIN = 0xBFC0FFE4, LENGTH = 0x4
-  config_BFC0FFE8             : ORIGIN = 0xBFC0FFE8, LENGTH = 0x4
-  config_BFC0FFEC             : ORIGIN = 0xBFC0FFEC, LENGTH = 0x4
-  config_BFC0FFF0             : ORIGIN = 0xBFC0FFF0, LENGTH = 0x4
-  config_BFC0FFF4             : ORIGIN = 0xBFC0FFF4, LENGTH = 0x4
-  config_BFC0FFF8             : ORIGIN = 0xBFC0FFF8, LENGTH = 0x4
-  config_BFC0FFFC             : ORIGIN = 0xBFC0FFFC, LENGTH = 0x4
-  lowerbootaliaslastpage      : ORIGIN = 0xBFC10000, LENGTH = 0x4000
-  upperbootalias              : ORIGIN = 0xBFC20000, LENGTH = 0xFF00
-  config_BFC2FF40             : ORIGIN = 0xBFC2FF40, LENGTH = 0x4
-  config_BFC2FF44             : ORIGIN = 0xBFC2FF44, LENGTH = 0x4
-  config_BFC2FF48             : ORIGIN = 0xBFC2FF48, LENGTH = 0x4
-  config_BFC2FF4C             : ORIGIN = 0xBFC2FF4C, LENGTH = 0x4
-  config_BFC2FF50             : ORIGIN = 0xBFC2FF50, LENGTH = 0x4
-  config_BFC2FF54             : ORIGIN = 0xBFC2FF54, LENGTH = 0x4
-  config_BFC2FF58             : ORIGIN = 0xBFC2FF58, LENGTH = 0x4
-  config_BFC2FF5C             : ORIGIN = 0xBFC2FF5C, LENGTH = 0x4
-  config_BFC2FF60             : ORIGIN = 0xBFC2FF60, LENGTH = 0x4
-  config_BFC2FF64             : ORIGIN = 0xBFC2FF64, LENGTH = 0x4
-  config_BFC2FF68             : ORIGIN = 0xBFC2FF68, LENGTH = 0x4
-  config_BFC2FF6C             : ORIGIN = 0xBFC2FF6C, LENGTH = 0x4
-  config_BFC2FF70             : ORIGIN = 0xBFC2FF70, LENGTH = 0x4
-  config_BFC2FF74             : ORIGIN = 0xBFC2FF74, LENGTH = 0x4
-  config_BFC2FF78             : ORIGIN = 0xBFC2FF78, LENGTH = 0x4
-  config_BFC2FF7C             : ORIGIN = 0xBFC2FF7C, LENGTH = 0x4
-  config_BFC2FFC0             : ORIGIN = 0xBFC2FFC0, LENGTH = 0x4
-  config_BFC2FFC4             : ORIGIN = 0xBFC2FFC4, LENGTH = 0x4
-  config_BFC2FFC8             : ORIGIN = 0xBFC2FFC8, LENGTH = 0x4
-  config_BFC2FFCC             : ORIGIN = 0xBFC2FFCC, LENGTH = 0x4
-  config_BFC2FFD0             : ORIGIN = 0xBFC2FFD0, LENGTH = 0x4
-  config_BFC2FFD4             : ORIGIN = 0xBFC2FFD4, LENGTH = 0x4
-  config_BFC2FFD8             : ORIGIN = 0xBFC2FFD8, LENGTH = 0x4
-  config_BFC2FFDC             : ORIGIN = 0xBFC2FFDC, LENGTH = 0x4
-  config_BFC2FFE0             : ORIGIN = 0xBFC2FFE0, LENGTH = 0x4
-  config_BFC2FFE4             : ORIGIN = 0xBFC2FFE4, LENGTH = 0x4
-  config_BFC2FFE8             : ORIGIN = 0xBFC2FFE8, LENGTH = 0x4
-  config_BFC2FFEC             : ORIGIN = 0xBFC2FFEC, LENGTH = 0x4
-  config_BFC2FFF0             : ORIGIN = 0xBFC2FFF0, LENGTH = 0x4
-  config_BFC2FFF4             : ORIGIN = 0xBFC2FFF4, LENGTH = 0x4
-  config_BFC2FFF8             : ORIGIN = 0xBFC2FFF8, LENGTH = 0x4
-  config_BFC2FFFC             : ORIGIN = 0xBFC2FFFC, LENGTH = 0x4
-  upperbootaliaslastpage      : ORIGIN = 0xBFC30000, LENGTH = 0x4000
-  boot1                       : ORIGIN = 0xBFC40000, LENGTH = 0xFF00
-  config_BFC4FF40             : ORIGIN = 0xBFC4FF40, LENGTH = 0x4
-  config_BFC4FF44             : ORIGIN = 0xBFC4FF44, LENGTH = 0x4
-  config_BFC4FF48             : ORIGIN = 0xBFC4FF48, LENGTH = 0x4
-  config_BFC4FF4C             : ORIGIN = 0xBFC4FF4C, LENGTH = 0x4
-  config_BFC4FF50             : ORIGIN = 0xBFC4FF50, LENGTH = 0x4
-  config_BFC4FF54             : ORIGIN = 0xBFC4FF54, LENGTH = 0x4
-  config_BFC4FF58             : ORIGIN = 0xBFC4FF58, LENGTH = 0x4
-  config_BFC4FF5C             : ORIGIN = 0xBFC4FF5C, LENGTH = 0x4
-  config_BFC4FF60             : ORIGIN = 0xBFC4FF60, LENGTH = 0x4
-  config_BFC4FF64             : ORIGIN = 0xBFC4FF64, LENGTH = 0x4
-  config_BFC4FF68             : ORIGIN = 0xBFC4FF68, LENGTH = 0x4
-  config_BFC4FF6C             : ORIGIN = 0xBFC4FF6C, LENGTH = 0x4
-  config_BFC4FF70             : ORIGIN = 0xBFC4FF70, LENGTH = 0x4
-  config_BFC4FF74             : ORIGIN = 0xBFC4FF74, LENGTH = 0x4
-  config_BFC4FF78             : ORIGIN = 0xBFC4FF78, LENGTH = 0x4
-  config_BFC4FF7C             : ORIGIN = 0xBFC4FF7C, LENGTH = 0x4
-  config_BFC4FFC0             : ORIGIN = 0xBFC4FFC0, LENGTH = 0x4
-  config_BFC4FFC4             : ORIGIN = 0xBFC4FFC4, LENGTH = 0x4
-  config_BFC4FFC8             : ORIGIN = 0xBFC4FFC8, LENGTH = 0x4
-  config_BFC4FFCC             : ORIGIN = 0xBFC4FFCC, LENGTH = 0x4
-  config_BFC4FFD0             : ORIGIN = 0xBFC4FFD0, LENGTH = 0x4
-  config_BFC4FFD4             : ORIGIN = 0xBFC4FFD4, LENGTH = 0x4
-  config_BFC4FFD8             : ORIGIN = 0xBFC4FFD8, LENGTH = 0x4
-  config_BFC4FFDC             : ORIGIN = 0xBFC4FFDC, LENGTH = 0x4
-  config_BFC4FFE0             : ORIGIN = 0xBFC4FFE0, LENGTH = 0x4
-  config_BFC4FFE4             : ORIGIN = 0xBFC4FFE4, LENGTH = 0x4
-  config_BFC4FFE8             : ORIGIN = 0xBFC4FFE8, LENGTH = 0x4
-  config_BFC4FFEC             : ORIGIN = 0xBFC4FFEC, LENGTH = 0x4
-  config_BFC4FFF0             : ORIGIN = 0xBFC4FFF0, LENGTH = 0x4
-  config_BFC4FFF4             : ORIGIN = 0xBFC4FFF4, LENGTH = 0x4
-  config_BFC4FFF8             : ORIGIN = 0xBFC4FFF8, LENGTH = 0x4
-  config_BFC4FFFC             : ORIGIN = 0xBFC4FFFC, LENGTH = 0x4
-  boot1lastpage               : ORIGIN = 0xBFC50000, LENGTH = 0x4000
-  config_BFC54000             : ORIGIN = 0xBFC54000, LENGTH = 0x4
-  config_BFC54004             : ORIGIN = 0xBFC54004, LENGTH = 0x4
-  config_BFC54008             : ORIGIN = 0xBFC54008, LENGTH = 0x4
-  config_BFC5400C             : ORIGIN = 0xBFC5400C, LENGTH = 0x4
-  config_BFC54010             : ORIGIN = 0xBFC54010, LENGTH = 0x4
-  config_BFC54020             : ORIGIN = 0xBFC54020, LENGTH = 0x4
-  config_BFC54024             : ORIGIN = 0xBFC54024, LENGTH = 0x4
-  boot2                       : ORIGIN = 0xBFC60000, LENGTH = 0xFF00
-  config_BFC6FF40             : ORIGIN = 0xBFC6FF40, LENGTH = 0x4
-  config_BFC6FF44             : ORIGIN = 0xBFC6FF44, LENGTH = 0x4
-  config_BFC6FF48             : ORIGIN = 0xBFC6FF48, LENGTH = 0x4
-  config_BFC6FF4C             : ORIGIN = 0xBFC6FF4C, LENGTH = 0x4
-  config_BFC6FF50             : ORIGIN = 0xBFC6FF50, LENGTH = 0x4
-  config_BFC6FF54             : ORIGIN = 0xBFC6FF54, LENGTH = 0x4
-  config_BFC6FF58             : ORIGIN = 0xBFC6FF58, LENGTH = 0x4
-  config_BFC6FF5C             : ORIGIN = 0xBFC6FF5C, LENGTH = 0x4
-  config_BFC6FF60             : ORIGIN = 0xBFC6FF60, LENGTH = 0x4
-  config_BFC6FF64             : ORIGIN = 0xBFC6FF64, LENGTH = 0x4
-  config_BFC6FF68             : ORIGIN = 0xBFC6FF68, LENGTH = 0x4
-  config_BFC6FF6C             : ORIGIN = 0xBFC6FF6C, LENGTH = 0x4
-  config_BFC6FF70             : ORIGIN = 0xBFC6FF70, LENGTH = 0x4
-  config_BFC6FF74             : ORIGIN = 0xBFC6FF74, LENGTH = 0x4
-  config_BFC6FF78             : ORIGIN = 0xBFC6FF78, LENGTH = 0x4
-  config_BFC6FF7C             : ORIGIN = 0xBFC6FF7C, LENGTH = 0x4
-  config_BFC6FFC0             : ORIGIN = 0xBFC6FFC0, LENGTH = 0x4
-  config_BFC6FFC4             : ORIGIN = 0xBFC6FFC4, LENGTH = 0x4
-  config_BFC6FFC8             : ORIGIN = 0xBFC6FFC8, LENGTH = 0x4
-  config_BFC6FFCC             : ORIGIN = 0xBFC6FFCC, LENGTH = 0x4
-  config_BFC6FFD0             : ORIGIN = 0xBFC6FFD0, LENGTH = 0x4
-  config_BFC6FFD4             : ORIGIN = 0xBFC6FFD4, LENGTH = 0x4
-  config_BFC6FFD8             : ORIGIN = 0xBFC6FFD8, LENGTH = 0x4
-  config_BFC6FFDC             : ORIGIN = 0xBFC6FFDC, LENGTH = 0x4
-  config_BFC6FFE0             : ORIGIN = 0xBFC6FFE0, LENGTH = 0x4
-  config_BFC6FFE4             : ORIGIN = 0xBFC6FFE4, LENGTH = 0x4
-  config_BFC6FFE8             : ORIGIN = 0xBFC6FFE8, LENGTH = 0x4
-  config_BFC6FFEC             : ORIGIN = 0xBFC6FFEC, LENGTH = 0x4
-  config_BFC6FFF0             : ORIGIN = 0xBFC6FFF0, LENGTH = 0x4
-  config_BFC6FFF4             : ORIGIN = 0xBFC6FFF4, LENGTH = 0x4
-  config_BFC6FFF8             : ORIGIN = 0xBFC6FFF8, LENGTH = 0x4
-  config_BFC6FFFC             : ORIGIN = 0xBFC6FFFC, LENGTH = 0x4
-  boot2lastpage               : ORIGIN = 0xBFC70000, LENGTH = 0x4000
-  kseg1_shared_mem     (w!x)  : ORIGIN = 0x80000000, LENGTH = 0x1000
-  kseg0_data_mem       (w!x)  : ORIGIN = 0x80001000, LENGTH = 0x7F000
+  kseg0_program_mem     (rx)  : ORIGIN = 0x9D001000, LENGTH = 0x200000 - 0x1000
+  kseg1_boot_mem              : ORIGIN = 0x9D000000, LENGTH = 0x480
+  kseg1_boot_mem_4B0          : ORIGIN = 0x9D0004B0, LENGTH = 0x1000 - 0x4B0
+
+  kseg0_data_mem       (w!x)  : ORIGIN = 0x80000000, LENGTH = 0x7F000
+  kseg0_shared_mem     (w!x)  : ORIGIN = 0x8007F000, LENGTH = 0x100
+/*kseg0_data_mem       (w!x)  : ORIGIN = 0x80000000, LENGTH = 0x80000*/
+
   sfrs                        : ORIGIN = 0xBF800000, LENGTH = 0x100000
-  configsfrs_BFC0FF40         : ORIGIN = 0xBFC0FF40, LENGTH = 0x40
-  configsfrs_BFC0FFC0         : ORIGIN = 0xBFC0FFC0, LENGTH = 0x40
-  configsfrs_BFC2FF40         : ORIGIN = 0xBFC2FF40, LENGTH = 0x40
-  configsfrs_BFC2FFC0         : ORIGIN = 0xBFC2FFC0, LENGTH = 0x40
-  configsfrs_BFC4FF40         : ORIGIN = 0xBFC4FF40, LENGTH = 0x40
-  configsfrs_BFC4FFC0         : ORIGIN = 0xBFC4FFC0, LENGTH = 0x40
-  configsfrs_BFC54000         : ORIGIN = 0xBFC54000, LENGTH = 0x14
-  configsfrs_BFC54020         : ORIGIN = 0xBFC54020, LENGTH = 0x8
-  configsfrs_BFC6FF40         : ORIGIN = 0xBFC6FF40, LENGTH = 0x40
-  configsfrs_BFC6FFC0         : ORIGIN = 0xBFC6FFC0, LENGTH = 0x40
   kseg2_ebi_data_mem          : ORIGIN = 0xC0000000, LENGTH = 0x4000000
   kseg2_sqi_data_mem          : ORIGIN = 0xD0000000, LENGTH = 0x4000000
   kseg3_ebi_data_mem          : ORIGIN = 0xE0000000, LENGTH = 0x4000000
@@ -285,424 +131,13 @@ MEMORY
  *************************************************************************/
 SECTIONS
 {
-  .config_BFC0FF40 : {
-    KEEP(*(.config_BFC0FF40))
-  } > config_BFC0FF40
-  .config_BFC0FF44 : {
-    KEEP(*(.config_BFC0FF44))
-  } > config_BFC0FF44
-  .config_BFC0FF48 : {
-    KEEP(*(.config_BFC0FF48))
-  } > config_BFC0FF48
-  .config_BFC0FF4C : {
-    KEEP(*(.config_BFC0FF4C))
-  } > config_BFC0FF4C
-  .config_BFC0FF50 : {
-    KEEP(*(.config_BFC0FF50))
-  } > config_BFC0FF50
-  .config_BFC0FF54 : {
-    KEEP(*(.config_BFC0FF54))
-  } > config_BFC0FF54
-  .config_BFC0FF58 : {
-    KEEP(*(.config_BFC0FF58))
-  } > config_BFC0FF58
-  .config_BFC0FF5C : {
-    KEEP(*(.config_BFC0FF5C))
-  } > config_BFC0FF5C
-  .config_BFC0FF60 : {
-    KEEP(*(.config_BFC0FF60))
-  } > config_BFC0FF60
-  .config_BFC0FF64 : {
-    KEEP(*(.config_BFC0FF64))
-  } > config_BFC0FF64
-  .config_BFC0FF68 : {
-    KEEP(*(.config_BFC0FF68))
-  } > config_BFC0FF68
-  .config_BFC0FF6C : {
-    KEEP(*(.config_BFC0FF6C))
-  } > config_BFC0FF6C
-  .config_BFC0FF70 : {
-    KEEP(*(.config_BFC0FF70))
-  } > config_BFC0FF70
-  .config_BFC0FF74 : {
-    KEEP(*(.config_BFC0FF74))
-  } > config_BFC0FF74
-  .config_BFC0FF78 : {
-    KEEP(*(.config_BFC0FF78))
-  } > config_BFC0FF78
-  .config_BFC0FF7C : {
-    KEEP(*(.config_BFC0FF7C))
-  } > config_BFC0FF7C
-  .config_BFC0FFC0 : {
-    KEEP(*(.config_BFC0FFC0))
-  } > config_BFC0FFC0
-  .config_BFC0FFC4 : {
-    KEEP(*(.config_BFC0FFC4))
-  } > config_BFC0FFC4
-  .config_BFC0FFC8 : {
-    KEEP(*(.config_BFC0FFC8))
-  } > config_BFC0FFC8
-  .config_BFC0FFCC : {
-    KEEP(*(.config_BFC0FFCC))
-  } > config_BFC0FFCC
-  .config_BFC0FFD0 : {
-    KEEP(*(.config_BFC0FFD0))
-  } > config_BFC0FFD0
-  .config_BFC0FFD4 : {
-    KEEP(*(.config_BFC0FFD4))
-  } > config_BFC0FFD4
-  .config_BFC0FFD8 : {
-    KEEP(*(.config_BFC0FFD8))
-  } > config_BFC0FFD8
-  .config_BFC0FFDC : {
-    KEEP(*(.config_BFC0FFDC))
-  } > config_BFC0FFDC
-  .config_BFC0FFE0 : {
-    KEEP(*(.config_BFC0FFE0))
-  } > config_BFC0FFE0
-  .config_BFC0FFE4 : {
-    KEEP(*(.config_BFC0FFE4))
-  } > config_BFC0FFE4
-  .config_BFC0FFE8 : {
-    KEEP(*(.config_BFC0FFE8))
-  } > config_BFC0FFE8
-  .config_BFC0FFEC : {
-    KEEP(*(.config_BFC0FFEC))
-  } > config_BFC0FFEC
-  .config_BFC0FFF0 : {
-    KEEP(*(.config_BFC0FFF0))
-  } > config_BFC0FFF0
-  .config_BFC0FFF4 : {
-    KEEP(*(.config_BFC0FFF4))
-  } > config_BFC0FFF4
-  .config_BFC0FFF8 : {
-    KEEP(*(.config_BFC0FFF8))
-  } > config_BFC0FFF8
-  .config_BFC0FFFC : {
-    KEEP(*(.config_BFC0FFFC))
-  } > config_BFC0FFFC
-  .config_BFC2FF40 : {
-    KEEP(*(.config_BFC2FF40))
-  } > config_BFC2FF40
-  .config_BFC2FF44 : {
-    KEEP(*(.config_BFC2FF44))
-  } > config_BFC2FF44
-  .config_BFC2FF48 : {
-    KEEP(*(.config_BFC2FF48))
-  } > config_BFC2FF48
-  .config_BFC2FF4C : {
-    KEEP(*(.config_BFC2FF4C))
-  } > config_BFC2FF4C
-  .config_BFC2FF50 : {
-    KEEP(*(.config_BFC2FF50))
-  } > config_BFC2FF50
-  .config_BFC2FF54 : {
-    KEEP(*(.config_BFC2FF54))
-  } > config_BFC2FF54
-  .config_BFC2FF58 : {
-    KEEP(*(.config_BFC2FF58))
-  } > config_BFC2FF58
-  .config_BFC2FF5C : {
-    KEEP(*(.config_BFC2FF5C))
-  } > config_BFC2FF5C
-  .config_BFC2FF60 : {
-    KEEP(*(.config_BFC2FF60))
-  } > config_BFC2FF60
-  .config_BFC2FF64 : {
-    KEEP(*(.config_BFC2FF64))
-  } > config_BFC2FF64
-  .config_BFC2FF68 : {
-    KEEP(*(.config_BFC2FF68))
-  } > config_BFC2FF68
-  .config_BFC2FF6C : {
-    KEEP(*(.config_BFC2FF6C))
-  } > config_BFC2FF6C
-  .config_BFC2FF70 : {
-    KEEP(*(.config_BFC2FF70))
-  } > config_BFC2FF70
-  .config_BFC2FF74 : {
-    KEEP(*(.config_BFC2FF74))
-  } > config_BFC2FF74
-  .config_BFC2FF78 : {
-    KEEP(*(.config_BFC2FF78))
-  } > config_BFC2FF78
-  .config_BFC2FF7C : {
-    KEEP(*(.config_BFC2FF7C))
-  } > config_BFC2FF7C
-  .config_BFC2FFC0 : {
-    KEEP(*(.config_BFC2FFC0))
-  } > config_BFC2FFC0
-  .config_BFC2FFC4 : {
-    KEEP(*(.config_BFC2FFC4))
-  } > config_BFC2FFC4
-  .config_BFC2FFC8 : {
-    KEEP(*(.config_BFC2FFC8))
-  } > config_BFC2FFC8
-  .config_BFC2FFCC : {
-    KEEP(*(.config_BFC2FFCC))
-  } > config_BFC2FFCC
-  .config_BFC2FFD0 : {
-    KEEP(*(.config_BFC2FFD0))
-  } > config_BFC2FFD0
-  .config_BFC2FFD4 : {
-    KEEP(*(.config_BFC2FFD4))
-  } > config_BFC2FFD4
-  .config_BFC2FFD8 : {
-    KEEP(*(.config_BFC2FFD8))
-  } > config_BFC2FFD8
-  .config_BFC2FFDC : {
-    KEEP(*(.config_BFC2FFDC))
-  } > config_BFC2FFDC
-  .config_BFC2FFE0 : {
-    KEEP(*(.config_BFC2FFE0))
-  } > config_BFC2FFE0
-  .config_BFC2FFE4 : {
-    KEEP(*(.config_BFC2FFE4))
-  } > config_BFC2FFE4
-  .config_BFC2FFE8 : {
-    KEEP(*(.config_BFC2FFE8))
-  } > config_BFC2FFE8
-  .config_BFC2FFEC : {
-    KEEP(*(.config_BFC2FFEC))
-  } > config_BFC2FFEC
-  .config_BFC2FFF0 : {
-    KEEP(*(.config_BFC2FFF0))
-  } > config_BFC2FFF0
-  .config_BFC2FFF4 : {
-    KEEP(*(.config_BFC2FFF4))
-  } > config_BFC2FFF4
-  .config_BFC2FFF8 : {
-    KEEP(*(.config_BFC2FFF8))
-  } > config_BFC2FFF8
-  .config_BFC2FFFC : {
-    KEEP(*(.config_BFC2FFFC))
-  } > config_BFC2FFFC
-  .config_BFC4FF40 : {
-    KEEP(*(.config_BFC4FF40))
-  } > config_BFC4FF40
-  .config_BFC4FF44 : {
-    KEEP(*(.config_BFC4FF44))
-  } > config_BFC4FF44
-  .config_BFC4FF48 : {
-    KEEP(*(.config_BFC4FF48))
-  } > config_BFC4FF48
-  .config_BFC4FF4C : {
-    KEEP(*(.config_BFC4FF4C))
-  } > config_BFC4FF4C
-  .config_BFC4FF50 : {
-    KEEP(*(.config_BFC4FF50))
-  } > config_BFC4FF50
-  .config_BFC4FF54 : {
-    KEEP(*(.config_BFC4FF54))
-  } > config_BFC4FF54
-  .config_BFC4FF58 : {
-    KEEP(*(.config_BFC4FF58))
-  } > config_BFC4FF58
-  .config_BFC4FF5C : {
-    KEEP(*(.config_BFC4FF5C))
-  } > config_BFC4FF5C
-  .config_BFC4FF60 : {
-    KEEP(*(.config_BFC4FF60))
-  } > config_BFC4FF60
-  .config_BFC4FF64 : {
-    KEEP(*(.config_BFC4FF64))
-  } > config_BFC4FF64
-  .config_BFC4FF68 : {
-    KEEP(*(.config_BFC4FF68))
-  } > config_BFC4FF68
-  .config_BFC4FF6C : {
-    KEEP(*(.config_BFC4FF6C))
-  } > config_BFC4FF6C
-  .config_BFC4FF70 : {
-    KEEP(*(.config_BFC4FF70))
-  } > config_BFC4FF70
-  .config_BFC4FF74 : {
-    KEEP(*(.config_BFC4FF74))
-  } > config_BFC4FF74
-  .config_BFC4FF78 : {
-    KEEP(*(.config_BFC4FF78))
-  } > config_BFC4FF78
-  .config_BFC4FF7C : {
-    KEEP(*(.config_BFC4FF7C))
-  } > config_BFC4FF7C
-  .config_BFC4FFC0 : {
-    KEEP(*(.config_BFC4FFC0))
-  } > config_BFC4FFC0
-  .config_BFC4FFC4 : {
-    KEEP(*(.config_BFC4FFC4))
-  } > config_BFC4FFC4
-  .config_BFC4FFC8 : {
-    KEEP(*(.config_BFC4FFC8))
-  } > config_BFC4FFC8
-  .config_BFC4FFCC : {
-    KEEP(*(.config_BFC4FFCC))
-  } > config_BFC4FFCC
-  .config_BFC4FFD0 : {
-    KEEP(*(.config_BFC4FFD0))
-  } > config_BFC4FFD0
-  .config_BFC4FFD4 : {
-    KEEP(*(.config_BFC4FFD4))
-  } > config_BFC4FFD4
-  .config_BFC4FFD8 : {
-    KEEP(*(.config_BFC4FFD8))
-  } > config_BFC4FFD8
-  .config_BFC4FFDC : {
-    KEEP(*(.config_BFC4FFDC))
-  } > config_BFC4FFDC
-  .config_BFC4FFE0 : {
-    KEEP(*(.config_BFC4FFE0))
-  } > config_BFC4FFE0
-  .config_BFC4FFE4 : {
-    KEEP(*(.config_BFC4FFE4))
-  } > config_BFC4FFE4
-  .config_BFC4FFE8 : {
-    KEEP(*(.config_BFC4FFE8))
-  } > config_BFC4FFE8
-  .config_BFC4FFEC : {
-    KEEP(*(.config_BFC4FFEC))
-  } > config_BFC4FFEC
-  .config_BFC4FFF0 : {
-    KEEP(*(.config_BFC4FFF0))
-  } > config_BFC4FFF0
-  .config_BFC4FFF4 : {
-    KEEP(*(.config_BFC4FFF4))
-  } > config_BFC4FFF4
-  .config_BFC4FFF8 : {
-    KEEP(*(.config_BFC4FFF8))
-  } > config_BFC4FFF8
-  .config_BFC4FFFC : {
-    KEEP(*(.config_BFC4FFFC))
-  } > config_BFC4FFFC
-  .config_BFC54000 : {
-    KEEP(*(.config_BFC54000))
-  } > config_BFC54000
-  .config_BFC54004 : {
-    KEEP(*(.config_BFC54004))
-  } > config_BFC54004
-  .config_BFC54008 : {
-    KEEP(*(.config_BFC54008))
-  } > config_BFC54008
-  .config_BFC5400C : {
-    KEEP(*(.config_BFC5400C))
-  } > config_BFC5400C
-  .config_BFC54010 : {
-    KEEP(*(.config_BFC54010))
-  } > config_BFC54010
-  .config_BFC54020 : {
-    KEEP(*(.config_BFC54020))
-  } > config_BFC54020
-  .config_BFC54024 : {
-    KEEP(*(.config_BFC54024))
-  } > config_BFC54024
-  .config_BFC6FF40 : {
-    KEEP(*(.config_BFC6FF40))
-  } > config_BFC6FF40
-  .config_BFC6FF44 : {
-    KEEP(*(.config_BFC6FF44))
-  } > config_BFC6FF44
-  .config_BFC6FF48 : {
-    KEEP(*(.config_BFC6FF48))
-  } > config_BFC6FF48
-  .config_BFC6FF4C : {
-    KEEP(*(.config_BFC6FF4C))
-  } > config_BFC6FF4C
-  .config_BFC6FF50 : {
-    KEEP(*(.config_BFC6FF50))
-  } > config_BFC6FF50
-  .config_BFC6FF54 : {
-    KEEP(*(.config_BFC6FF54))
-  } > config_BFC6FF54
-  .config_BFC6FF58 : {
-    KEEP(*(.config_BFC6FF58))
-  } > config_BFC6FF58
-  .config_BFC6FF5C : {
-    KEEP(*(.config_BFC6FF5C))
-  } > config_BFC6FF5C
-  .config_BFC6FF60 : {
-    KEEP(*(.config_BFC6FF60))
-  } > config_BFC6FF60
-  .config_BFC6FF64 : {
-    KEEP(*(.config_BFC6FF64))
-  } > config_BFC6FF64
-  .config_BFC6FF68 : {
-    KEEP(*(.config_BFC6FF68))
-  } > config_BFC6FF68
-  .config_BFC6FF6C : {
-    KEEP(*(.config_BFC6FF6C))
-  } > config_BFC6FF6C
-  .config_BFC6FF70 : {
-    KEEP(*(.config_BFC6FF70))
-  } > config_BFC6FF70
-  .config_BFC6FF74 : {
-    KEEP(*(.config_BFC6FF74))
-  } > config_BFC6FF74
-  .config_BFC6FF78 : {
-    KEEP(*(.config_BFC6FF78))
-  } > config_BFC6FF78
-  .config_BFC6FF7C : {
-    KEEP(*(.config_BFC6FF7C))
-  } > config_BFC6FF7C
-  .config_BFC6FFC0 : {
-    KEEP(*(.config_BFC6FFC0))
-  } > config_BFC6FFC0
-  .config_BFC6FFC4 : {
-    KEEP(*(.config_BFC6FFC4))
-  } > config_BFC6FFC4
-  .config_BFC6FFC8 : {
-    KEEP(*(.config_BFC6FFC8))
-  } > config_BFC6FFC8
-  .config_BFC6FFCC : {
-    KEEP(*(.config_BFC6FFCC))
-  } > config_BFC6FFCC
-  .config_BFC6FFD0 : {
-    KEEP(*(.config_BFC6FFD0))
-  } > config_BFC6FFD0
-  .config_BFC6FFD4 : {
-    KEEP(*(.config_BFC6FFD4))
-  } > config_BFC6FFD4
-  .config_BFC6FFD8 : {
-    KEEP(*(.config_BFC6FFD8))
-  } > config_BFC6FFD8
-  .config_BFC6FFDC : {
-    KEEP(*(.config_BFC6FFDC))
-  } > config_BFC6FFDC
-  .config_BFC6FFE0 : {
-    KEEP(*(.config_BFC6FFE0))
-  } > config_BFC6FFE0
-  .config_BFC6FFE4 : {
-    KEEP(*(.config_BFC6FFE4))
-  } > config_BFC6FFE4
-  .config_BFC6FFE8 : {
-    KEEP(*(.config_BFC6FFE8))
-  } > config_BFC6FFE8
-  .config_BFC6FFEC : {
-    KEEP(*(.config_BFC6FFEC))
-  } > config_BFC6FFEC
-  .config_BFC6FFF0 : {
-    KEEP(*(.config_BFC6FFF0))
-  } > config_BFC6FFF0
-  .config_BFC6FFF4 : {
-    KEEP(*(.config_BFC6FFF4))
-  } > config_BFC6FFF4
-  .config_BFC6FFF8 : {
-    KEEP(*(.config_BFC6FFF8))
-  } > config_BFC6FFF8
-  .config_BFC6FFFC : {
-    KEEP(*(.config_BFC6FFFC))
-  } > config_BFC6FFFC
-}
-SECTIONS
-{
   /* Boot Sections */
   .reset _RESET_ADDR :
   {
     KEEP(*(.reset))
     KEEP(*(.reset.startup))
   } > kseg1_boot_mem
-  .bev_excpt _BEV_EXCPT_ADDR :
-  {
-    KEEP(*(.bev_handler))
-  } > kseg1_boot_mem
+
   .cache_init :
   {
     *(.cache_init)
@@ -713,10 +148,12 @@ SECTIONS
   {
     KEEP(*(.simple_tlb_refill_vector))
   } > kseg0_program_mem
+
   .cache_err_excpt _CACHE_ERR_EXCPT_ADDR :
   {
     KEEP(*(.cache_err_vector))
   } > kseg0_program_mem
+
   .app_excpt _GEN_EXCPT_ADDR :
   {
     KEEP(*(.gen_handler))
@@ -1505,15 +942,6 @@ SECTIONS
     KEEP(*(.vector_default))
   } > kseg0_program_mem
 
-  /*  The startup code is in the .reset.startup section.
-   *  Keep this here for backwards compatibility with older
-   *  C32 v1.xx releases.
-   */
-  .startup ORIGIN(kseg0_boot_mem) :
-  {
-    KEEP(*(.startup))
-  } > kseg0_boot_mem
-
   /* Code Sections - Note that input sections *(.text) and *(.text.*)
    * are not mapped here. The best-fit allocator locates them,
    * so that .text may flow around absolute sections as needed.
@@ -1638,12 +1066,6 @@ SECTIONS
     *(.gcc_except_table .gcc_except_table.*)
   } >kseg0_program_mem
     . = ALIGN(4) ;
-  .dbg_data (NOLOAD) :
-  {
-    . += (DEFINED (_DEBUGGER) ? 0x200 : 0x0);
-    /* Additional data memory required for DSPr2 registers */
-    . += (DEFINED (_DEBUGGER) ? 0x80 : 0x0);
-  } >kseg0_data_mem
   .jcr   :
   {
     KEEP (*(.jcr))
@@ -1811,6 +1233,8 @@ SECTIONS
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
   /DISCARD/ : { *(.note.GNU-stack) }
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.discard) }
+  /DISCARD/ : { *(._debug_exception) }
+  /DISCARD/ : { *(.config_*) }
 }
 
 /*************************************************************************
@@ -1991,45 +1415,6 @@ __pic32_tlb_7_entrylo0 = ((__pic32_init_ebi_kseg3_physical_base_addr + 0x2000000
 /*  ENTRYLO1 = RI<31> XI<30> 0<29:26> PFN<25:6> C<5:3> D<2> V<1> G<0> */
 __pic32_tlb_7_entrylo1 = __pic32_tlb_7_entrylo0 | 0x00040000 ;
 
-/*
- *  The default pic32_init_tlb_ebi_sqi.o module, which is
- *  called by the default C startup code (crt0_<isa>.o),
- *  uses the table created in the .tlb_init_values output
- *  section to initialize the Translation Lookaside buffer (TLB)
- *  of the Memory Management Unit (MMU).
- */
-SECTIONS
-{
-  .tlb_init_values :
-  {
-    . = ALIGN(4) ;
-    __pic32_tlb_init_values_begin = ABSOLUTE(.);
-    LONG(__pic32_tlb_0_entryhi) ;
-    LONG(__pic32_tlb_0_entrylo0) ;
-    LONG(__pic32_tlb_0_entrylo1) ;
-    LONG(__pic32_tlb_1_entryhi) ;
-    LONG(__pic32_tlb_1_entrylo0) ;
-    LONG(__pic32_tlb_1_entrylo1) ;
-    LONG(__pic32_tlb_2_entryhi) ;
-    LONG(__pic32_tlb_2_entrylo0) ;
-    LONG(__pic32_tlb_2_entrylo1) ;
-    LONG(__pic32_tlb_3_entryhi) ;
-    LONG(__pic32_tlb_3_entrylo0) ;
-    LONG(__pic32_tlb_3_entrylo1) ;
-    LONG(__pic32_tlb_4_entryhi) ;
-    LONG(__pic32_tlb_4_entrylo0) ;
-    LONG(__pic32_tlb_4_entrylo1) ;
-    LONG(__pic32_tlb_5_entryhi) ;
-    LONG(__pic32_tlb_5_entrylo0) ;
-    LONG(__pic32_tlb_5_entrylo1) ;
-    LONG(__pic32_tlb_6_entryhi) ;
-    LONG(__pic32_tlb_6_entrylo0) ;
-    LONG(__pic32_tlb_6_entrylo1) ;
-    LONG(__pic32_tlb_7_entryhi) ;
-    LONG(__pic32_tlb_7_entrylo0) ;
-    LONG(__pic32_tlb_7_entrylo1) ;
-    __pic32_tlb_init_values_end = ABSOLUTE(.);
-    __pic32_tlb_init_values_count = 8 ;
-  } > kseg1_boot_mem_4B0
-}
+
+
 

@@ -30,6 +30,7 @@
 	//#define ISR_FNC_SPI2()	isr_spi()
 
 	//#define ISR_USE_EINT3_WIFI
+	//#define ISR_USE_EINT4_WIFI
 
 	//#define ISR_USE_DMA0
 	//#define ISR_USE_DMA1

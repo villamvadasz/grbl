@@ -223,3 +223,16 @@ uint8 isDelayRunning(void) {
 		return result;
 	}
 #endif
+
+float nuts_bolts_tooth_load_rpm_to_feed(float mm_rev, float RPM, float number_tooth) {
+	float result = 0.0f;
+	if ((mm_rev >= 0.0f) && (RPM >= 0.0f) && (number_tooth >= 1.0f)) {
+		RPM *= (0.010f * sys.spindle_speed_ovr);
+		result = mm_rev;
+		result *= RPM;
+		result *= number_tooth;
+	} else {
+		result = 100.0f;//default answer for wrong data to keep SW running.
+	}
+	return result;//mm/min
+}

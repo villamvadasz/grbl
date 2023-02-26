@@ -56,6 +56,7 @@
 #include "GenericTypeDefs.h"
 #include "Compiler.h"
 #include "HardwareProfile.h"
+#include "c_bootloader.h"
 
 // RESERVED FEATURE -- do not change from current value of 1u as this is not 
 // fully implemented yet.

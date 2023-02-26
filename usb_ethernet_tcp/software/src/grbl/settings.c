@@ -328,7 +328,7 @@ uint8 settings_store_global_setting(uint8 parameter, float value) {
 // Initialize the config subsystem
 void settings_init(void) {
 	if(!read_global_settings()) {
-		report_status_message(STATUS_SETTING_READ_FAIL);
+		report_status_message(STATUS_SETTING_READ_FAIL, 0);
 		settings_restore(SETTINGS_RESTORE_ALL); // Force restore all EEPROM data.
 		report_grbl_settings();
 	}

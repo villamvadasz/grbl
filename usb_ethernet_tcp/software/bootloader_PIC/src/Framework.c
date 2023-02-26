@@ -122,7 +122,9 @@ UINT GetTransmitFrame(UINT8* Buff);
 void WriteHexRecord2Flash(UINT8* HexRecord, UINT totalRecLen);
 BOOL BaudRateChangeRequested(void);
 UINT16 CalculateCrc(UINT8 *data, UINT32 len);
-UINT16 CalculateCrc_WithoutEeprom(UINT8 *data, UINT32 len);
+#ifdef BOOTLOADER_WITH_DEE
+	UINT16 CalculateCrc_WithoutEeprom(UINT8 *data, UINT32 len);
+#endif
 BOOL ValidAppPresent(void);
 
 #ifdef __cplusplus
@@ -236,11 +238,13 @@ void HandleCommand(void)
 			pFlash = (void*)APP_FLASH_BASE_ADDRESS;									
 			for( i = 0; i < ((APP_FLASH_END_ADDRESS - APP_FLASH_BASE_ADDRESS + 1)/FLASH_PAGE_SIZE); i++ )
 			{
-				currentAddress = (unsigned int)pFlash + (i*FLASH_PAGE_SIZE);
-				if ((currentAddress >= EEPROM_FLASH_BASE_ADDRESS) && (currentAddress <= EEPROM_FLASH_END_ADDRESS))
-				{
-				}
-				else
+				#ifdef BOOTLOADER_WITH_DEE
+					currentAddress = (unsigned int)pFlash + (i*FLASH_PAGE_SIZE);
+					if ((currentAddress >= EEPROM_FLASH_BASE_ADDRESS) && (currentAddress <= EEPROM_FLASH_END_ADDRESS))
+					{
+					}
+					else
+				#endif
 				{
 					Result = NVMemErasePage( pFlash + (i*FLASH_PAGE_SIZE) );
 					// Assert on NV error. This must be caught during debug phase.
@@ -248,7 +252,6 @@ void HandleCommand(void)
 						eraseErrorCounter++;
 					}
 				}
-			
 			}				   
 			#ifdef BOOT_FLASH_BASE_ADDRESS
 				pFlash = (void*)BOOT_FLASH_BASE_ADDRESS;
@@ -278,7 +281,11 @@ void HandleCommand(void)
 			 // Get address from the packet.
 			memcpy(&Address.v[0], &RxBuff.Data[1], sizeof(Address.Val));
 			memcpy(&Length.v[0], &RxBuff.Data[5], sizeof(Length.Val));
-			crc.Val = CalculateCrc_WithoutEeprom((UINT8 *)Address.Val, Length.Val);
+			#ifdef BOOTLOADER_WITH_DEE
+				crc.Val = CalculateCrc_WithoutEeprom((UINT8 *)Address.Val, Length.Val);
+			#else
+				crc.Val = CalculateCrc((UINT8 *)Address.Val, Length.Val);
+			#endif
 			memcpy(&TxBuff.Data[1], &crc.v[0], 2);	
 			
 			//Set the transmit frame length.
@@ -549,14 +556,15 @@ void WriteHexRecord2Flash(UINT8* HexRecord, UINT totalHexRecLen)
 							)
 						#endif
 						{
-							if ((ProgAddress >= (void *)EEPROM_FLASH_BASE_ADDRESS) && (ProgAddress <= (void *)EEPROM_FLASH_END_ADDRESS))
-							{
-							}
-							else
+							#ifdef BOOTLOADER_WITH_DEE
+								if ((ProgAddress >= (void *)EEPROM_FLASH_BASE_ADDRESS) && (ProgAddress <= (void *)EEPROM_FLASH_END_ADDRESS))
+								{
+								}
+								else
+							#endif
 							{ // skip eeprom address
 								if(HexRecordSt.RecDataLen < 4)
 								{
-									
 									// Sometimes record data length will not be in multiples of 4. Appending 0xFF will make sure that..
 									// we don't write junk data in such cases.
 									WrData = 0xFFFFFFFF;
@@ -573,7 +581,6 @@ void WriteHexRecord2Flash(UINT8* HexRecord, UINT totalHexRecLen)
 									writeErrorCounter++;
 								}
 							}
-
 						}	
 						
 						// Increment the address.
@@ -664,6 +671,7 @@ UINT16 CalculateCrc(UINT8 *data, UINT32 len)
 	return (crc & 0xFFFF);
 }
 
+#ifdef BOOTLOADER_WITH_DEE
 /********************************************************************
 * Function: 	CalculateCrc()
 *
@@ -706,6 +714,7 @@ UINT16 CalculateCrc_WithoutEeprom(UINT8 *data, UINT32 len)
 
 	return (crc & 0xFFFF);
 }
+#endif
 
 /********************************************************************
 * Function: 	ExitFirmwareUpgradeMode()

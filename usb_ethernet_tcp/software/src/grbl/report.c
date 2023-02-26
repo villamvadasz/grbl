@@ -41,11 +41,16 @@ unsigned int grbl_report_sys_log_0 = 0;
 unsigned int grbl_report_sys_log_1 = 0;
 unsigned int grbl_report_eeprom_dump = 0;
 volatile unsigned int do_grbl_report_50ms = 0;
+unsigned char buffer_missed_char_logger[32] = {0};
+unsigned int buffer_missed_char_logger_cnt = 0;
 
 void report_mac_address(void);
 
 __attribute__(( weak )) unsigned int get_enc28j60_spi_corruption1_cnt(void) { return 0; } 
 __attribute__(( weak )) unsigned int get_enc28j60_spi_corruption2_cnt(void) { return 0; } 
+
+unsigned long __attribute__((weak)) missedTxCharEthernet = 0;
+unsigned long __attribute__((weak)) missedRxCharEthernet = 0;
 
 // Internal report utilities to reduce flash with repetitive tasks turned into functions.
 void report_util_setting_prefix(uint8 n) { putChar_grbl('$'); print_uint8_base10(n); putChar_grbl('='); }
@@ -154,6 +159,9 @@ void do_grbl_report(void) {
 				}
 				case 2 : {
 					printPgmString("eeprom dump finished!\r\n");
+
+					report_status_message(STATUS_OK, 0);
+
 					grbl_report_eeprom_dump_state++;
 					break;
 				}
@@ -181,7 +189,10 @@ void do_grbl_report(void) {
 					print_uint16_base16(softwareIdentification.softwareType);
 					printPgmString("\r\n");
 
-					
+					printPgmString("VERSION_MAKEFILE_NAME: ");
+					printPgmString(VERSION_MAKEFILE_NAME);
+					printPgmString("\r\n");
+
 					printPgmString("VERSION_DATE: ");
 					printPgmString(VERSION_DATE);
 					printPgmString("\r\n");
@@ -194,6 +205,11 @@ void do_grbl_report(void) {
 					printPgmString(VERSION_ID_FIX);
 					printPgmString("\r\n");
 					
+					grbl_report_sys_log_0_state++;
+					break;
+					
+				}
+				case 1 : {
 					printPgmString("Running Minutes: ");
 					print_uint32_base10(grbl_running_running_minutes);
 					printPgmString("\r\n");
@@ -211,9 +227,8 @@ void do_grbl_report(void) {
 					printPgmString("\r\n");
 					grbl_report_sys_log_0_state++;
 					break;
-					
 				}
-				case 1 : {
+				case 2 : {
 					{
 						printPgmString("Probe HW: ");
 						#ifdef PROBE_TRIS
@@ -310,7 +325,7 @@ void do_grbl_report(void) {
 					grbl_report_sys_log_0_state++;
 					break;
 				}
-				case 2 : {
+				case 3 : {
 					unsigned int rcon_value = 0;
 					ResetReason reset_reason_value = 0;
 					reset_reason_value = mal_get_reset_reason(&rcon_value);
@@ -364,7 +379,7 @@ void do_grbl_report(void) {
 					grbl_report_sys_log_0_state++;
 					break;
 				}
-				case 3 : {
+				case 4 : {
 					unsigned int rcon_value = 0;
 					mal_get_reset_reason(&rcon_value);
 					printPgmString("reset reason raw: ");
@@ -373,18 +388,20 @@ void do_grbl_report(void) {
 					grbl_report_sys_log_0_state++;
 					break;
 				}
-				case 4 : {
+				case 5 : {
 					printPgmString("system_log:\r\n");
 					xterm = 0;
 					grbl_report_sys_log_0_state++;
 					break;
 				}
-				case 5 : {
+				case 6 : {
 					unsigned int cnt = (sizeof(system_log) / sizeof(*system_log));
 					if (xterm >= cnt) {
 						grbl_report_sys_log_0_state++;
 					} else {
-						switch (system_log[(cnt - 1) - xterm]) {
+						print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_time);
+						printPgmString(" ");
+						switch (grbl_system_logger[(cnt - 1) - xterm].system_log) {
 							case sm_empty : {
 								//printPgmString("sm_empty");
 								//printPgmString("\r\n");
@@ -401,12 +418,14 @@ void do_grbl_report(void) {
 								break;
 							}
 							case sm_internal_stepper_enable : {
-								printPgmString("sm_internal_stepper_enable");
+								printPgmString("sm_internal_stepper_enable ");
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_internal_stepper_disable : {
-								printPgmString("sm_internal_stepper_disable");
+								printPgmString("sm_internal_stepper_disable ");
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
@@ -437,109 +456,109 @@ void do_grbl_report(void) {
 							}
 							case sm_home_spindle_on : {
 								printPgmString("sm_home_spindle_on ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_home_spindle_off : {
 								printPgmString("sm_home_spindle_off ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_probe_start : {
 								printPgmString("sm_probe_start ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_probe_touch : {
 								printPgmString("sm_probe_touch ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_st_reset : {
 								printPgmString("sm_st_reset ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_plan_reset : {
 								printPgmString("sm_plan_reset ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_st_go_idle : {
 								printPgmString("sm_st_go_idle ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_st_wake_up : {
 								printPgmString("sm_st_wake_up ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_g28 : {
 								printPgmString("sm_g28 ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_st_update_plan_block_parameters : {
 								printPgmString("sm_st_update_plan_block_parameters ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_EXEC_MOTION_CANCEL : {
 								printPgmString("sm_EXEC_MOTION_CANCEL ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_init_log : {
 								printPgmString("sm_init_log ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_idle_log : {
 								printPgmString("sm_idle_log ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_suspend_log : {
 								printPgmString("sm_suspend_log ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_suspend_delay_log : {
 								printPgmString("sm_suspend_delay_log ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_sys_state : {
 								printPgmString("sm_sys_state ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							case sm_sys_suspend : {
 								printPgmString("sm_sys_suspend ");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
 							default : {
 								printPgmString("system_log UNKOWN");
-								print_uint32_base16(system_log_caller[(cnt - 1) - xterm]);
+								print_uint32_base16(grbl_system_logger[(cnt - 1) - xterm].system_log_caller);
 								printPgmString("\r\n");
 								break;
 							}
@@ -548,7 +567,7 @@ void do_grbl_report(void) {
 					xterm++;
 					break;
 				}
-				case 6 : {
+				case 7 : {
 					printPgmString("Exceptions: 0x");
 					print_uint32_base16(exceptions_getException());
 					printPgmString("\r\n");
@@ -556,7 +575,7 @@ void do_grbl_report(void) {
 					grbl_report_sys_log_0_state++;
 					break;
 				}
-				case 7 : {
+				case 8 : {
 					printPgmString("_excep_addr: ");
 					print_uint32_base16(exceptionLog[xterm]._excep_addr );
 					printPgmString(" _excep_code: ");
@@ -571,18 +590,44 @@ void do_grbl_report(void) {
 					}
 					break;
 				}
-				case 8 : {
+				case 9 : {
 					unsigned int tempVal1 = get_enc28j60_spi_corruption1_cnt();
 					unsigned int tempVal2 = get_enc28j60_spi_corruption2_cnt();
 					printPgmString(" enc28j60_spi_corruption1_cnt: ");
-					print_uint32_base16(tempVal1 );
+					print_uint32_base16(tempVal1);
 					printPgmString("\r\n");
 					printPgmString(" enc28j60_spi_corruption2_cnt: ");
-					print_uint32_base16(tempVal2 );
+					print_uint32_base16(tempVal2);
 					printPgmString("\r\n");
-					report_status_message(STATUS_OK);
-
 					grbl_report_sys_log_0_state++;
+					break;
+				}
+				case 10 : {
+					unsigned int tempVal1 = missedTxCharEthernet;
+					unsigned int tempVal2 = missedRxCharEthernet;
+					printPgmString("missedTxCharEthernet: ");
+					print_uint32_base16(tempVal1);
+					printPgmString("\r\n");
+					printPgmString("missedRxCharEthernet: ");
+					print_uint32_base16(tempVal2);
+					printPgmString("\r\n");
+					grbl_report_sys_log_0_state++;
+					break;
+				}
+				case 11 : {
+					unsigned int x = 0;
+					if (buffer_missed_char_logger_cnt != 0) {
+						printPgmString("buffer_missed_char_logger: ");
+						for (x = 0; x < buffer_missed_char_logger_cnt; x++) {
+							unsigned int tempVal1 = buffer_missed_char_logger[x];
+							print_uint32_base16(tempVal1);
+							printPgmString(" ");
+						}
+						printPgmString("\r\n");
+					}
+					grbl_report_sys_log_0_state++;
+					report_status_message(STATUS_OK, 0);
+
 					break;
 				}
 				default : {
@@ -670,6 +715,8 @@ void do_grbl_report(void) {
 						}
 						printPgmString("\r\n");
 					}
+
+					report_status_message(STATUS_OK, 0);
 					
 					grbl_report_sys_log_1_state++;
 					break;
@@ -702,16 +749,24 @@ void grbl_report_dump_eeprom(void) {
 // operation. Errors events can originate from the g-code parser, settings module, or asynchronously
 // from a critical error, such as a triggered hard limit. Interface should always monitor for these
 // responses.
-void report_status_message(uint8 status_code)
-{
-  switch(status_code) {
-    case STATUS_OK: // STATUS_OK
-      printPgmString(("ok\r\n")); break;
-    default:
-      printPgmString(("error:"));
-      print_uint8_base10(status_code);
-      report_util_line_feed();
-  }
+void report_status_message(uint8 status_code, int32_t line_number) {
+	switch(status_code) {
+		case STATUS_OK: { // STATUS_OK
+			printPgmString(("ok\r\n"));
+			#ifdef DEFAULTS_PIC32_MX_CNC_1_0_0_DEBUG
+				printPgmString(("line number: "));
+				print_uint32_base10(line_number);
+				report_util_line_feed();
+			#endif
+			break;
+		}
+		default: {
+			printPgmString(("error:"));
+			print_uint8_base10(status_code);
+			report_util_line_feed();
+			break;
+		}
+	}
 }
 
 // Prints alarm messages.
@@ -849,7 +904,7 @@ void report_ngc_parameters()
   uint8 coord_select;
   for (coord_select = 0; coord_select <= SETTING_INDEX_NCOORD; coord_select++) {
     if (!(settings_read_coord_data(coord_select,coord_data))) {
-      report_status_message(STATUS_SETTING_READ_FAIL);
+      report_status_message(STATUS_SETTING_READ_FAIL, 0);
       return;
     }
     printPgmString(("[G"));
@@ -986,7 +1041,7 @@ void report_build_info(void)
   putChar_grbl(',');
   print_uint8_base10(BLOCK_BUFFER_SIZE-1);
   putChar_grbl(',');
-  print_uint32_base10(RX_BUFFER_SIZE);
+  print_uint32_base10(GRBL_RX_BUFFER_SIZE);
 
   report_util_feedback_line_feed();
 }
@@ -999,6 +1054,10 @@ void report_echo_line_received(char *line)
   printPgmString(("[echo: ")); printString(line);
   report_util_feedback_line_feed();
 }
+
+__attribute__(( weak )) unsigned int getStackFillnessMax(void) {return 0;} 
+__attribute__(( weak )) unsigned int getStackSize(void) {return 0;} 
+
 
 // Prints build info line
 void report_stack_usage(void)
@@ -1215,4 +1274,11 @@ void report_realtime_status(void) {
 
 	putChar_grbl('>');
 	report_util_line_feed();
+}
+
+void debug_missed_char_logger(unsigned char ch) {
+	if (buffer_missed_char_logger_cnt < (sizeof(buffer_missed_char_logger) / sizeof(*buffer_missed_char_logger))) {
+		buffer_missed_char_logger[buffer_missed_char_logger_cnt] = ch;
+		buffer_missed_char_logger_cnt++;
+	}
 }

@@ -5,9 +5,9 @@
 
 #pragma GCC diagnostic error "-w"
 #ifdef __32MZ2048ECG144__
-	volatile unsigned int bootloader_request_A __attribute__ ((persistent, address(0x80000000)));
-	volatile unsigned int bootloader_request_B __attribute__ ((persistent, address(0x80000010)));
-	volatile unsigned int bootloader_was_reset_called __attribute__ ((persistent, address(0x80000020)));
+	volatile unsigned int bootloader_request_A __attribute__ ((persistent, address(0x8007F000)));
+	volatile unsigned int bootloader_request_B __attribute__ ((persistent, address(0x8007F010)));
+	volatile unsigned int bootloader_was_reset_called __attribute__ ((persistent, address(0x8007F020)));
 #else
 	volatile unsigned int bootloader_request_A __attribute__ ((persistent, address(0xA0000000)));
 	volatile unsigned int bootloader_request_B __attribute__ ((persistent, address(0xA0000010)));

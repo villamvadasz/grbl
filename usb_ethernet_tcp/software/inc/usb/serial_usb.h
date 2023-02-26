@@ -7,5 +7,6 @@
 	extern int isCharInBuffer_usb(void);
 	extern int getChar_usb(void);
 	extern void putChar_usb(unsigned char data);
+	extern void putString_usb(char *str);
 
 #endif

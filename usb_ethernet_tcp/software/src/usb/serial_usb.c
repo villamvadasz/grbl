@@ -101,3 +101,12 @@ void putChar_usb(unsigned char data) {
 	}
 }
 
+void putString_usb(char *str) {
+	if (str != NULL) {
+		unsigned int x = 0;
+		unsigned int len = strlen(str);
+		for (x = 0; x < len; x++) {
+			putChar_usb(str[x]);
+		}
+	}
+}

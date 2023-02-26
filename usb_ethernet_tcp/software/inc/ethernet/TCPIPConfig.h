@@ -50,7 +50,11 @@
  ********************************************************************/
 #ifndef TCPIPCONFIG_STUB_H
 #define TCPIPCONFIG_STUB_H
-
-	#include "TCPIP_ENC28_PIC32_OLIMEX.h"
+	
+	#ifdef TCP_IP_USE_THING
+		#include "TCPIP_ENC28_PIC32_OLIMEX_THING.h"
+	#else
+		#include "TCPIP_ENC28_PIC32_OLIMEX.h"
+	#endif
 
 #endif

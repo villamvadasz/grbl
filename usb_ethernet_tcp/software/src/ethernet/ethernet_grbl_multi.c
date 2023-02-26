@@ -54,7 +54,6 @@ void init_serial_grbl_ethernet_multi(void) {
 void do_serial_grbl_ethernet_multi(void) {
 	if (do_serial_grbl_ethernet_multi_100ms) {
 		do_serial_grbl_ethernet_multi_100ms = 0;
-		//putChar_grbl_ethernet_multi('X');//Remove this.
 	}
 	if (do_serial_grbl_ethernet_multi_1ms) {
 		do_serial_grbl_ethernet_multi_1ms = 0;
@@ -107,7 +106,7 @@ void do_serial_grbl_ethernet_multi(void) {
 					// with normal operation.
 				}
 				case BSD_OPERATION: {
-					int isocket = 0;
+					int isocket = 0; 
 					for (isocket = 0; isocket < MAX_CLIENT; isocket++) {
 						unsigned int newConnection = 0;
 						// Accept any pending connection requests, assuming we have a place to store the socket descriptor
@@ -123,14 +122,6 @@ void do_serial_grbl_ethernet_multi(void) {
 
 						if (newConnection) {
 							newConnection = 0;
-							{
-								/*unsigned char sendText[] = "Ez egz hoszzu syoveg amit en kuldok ki. Ket reszben kell hogy kikuldje. DEADBEAF CAFECAFE HAHO\r\n";
-								//unsigned int n = 0;
-								//for (n = 0; n < strlen(sendText); n++) {
-								//	putChar_grbl_ethernet_multi(sendText[n]);
-								//}*/
-								//putChar_grbl_ethernet_multi('B');
-							}
 						}
 						{
 							ethernet_grbl_multi_loadbufferRx(isocket);
@@ -175,24 +166,15 @@ void ethernet_grbl_multi_loadbufferRx(int isocket) {
 			unsigned char data = 0;
 			uint32 iloop = length;
 			uint32 jloop = 0;
-		
 			while (iloop) {
-				extern void putChar_grbl_ethernet_multi(unsigned char data);
 				data = ReceivedDataBuffer_grbl_ethernet_multi[jloop];
-				
-				//if (data == 0x18) {
-				//	putChar_grbl_ethernet_multi('R');
-				//	putChar_grbl_ethernet_multi('E');
-				//	putChar_grbl_ethernet_multi('S');
-				//	putChar_grbl_ethernet_multi('E');
-				//	putChar_grbl_ethernet_multi('T');
-				//	putChar_grbl_ethernet_multi('\r');
-				//	putChar_grbl_ethernet_multi('\n');
-				//}
-				//putChar_grbl_ethernet_multi(data);
 				if (ringBuffer_addItem(&myRingBuffer_eth_rx, data) != -1) {
 				} else {
-					 missedRxCharEthernet++;
+					missedRxCharEthernet++;
+					{
+						extern void debug_missed_char_logger(unsigned char ch);
+						debug_missed_char_logger(data);
+					}
 				}
 				iloop--;
 				jloop++;
@@ -274,5 +256,9 @@ void putChar_grbl_ethernet_multi(unsigned char data) {
 	if (ringBuffer_addItem(&myRingBuffer_eth_tx, data) != -1) {
 	} else {
 		missedTxCharEthernet++;
+		{
+			extern void debug_missed_char_logger(unsigned char ch);
+			debug_missed_char_logger(data);
+		}
 	}
 }

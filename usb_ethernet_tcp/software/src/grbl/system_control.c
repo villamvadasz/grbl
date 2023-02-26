@@ -104,7 +104,11 @@ uint8 system_control_get_state_ABORT(void) {
 			pin = 0;
 		}
 	#else
-		pin = 1;
+		#ifdef DEFAULTS_PIC32_MX_CNC_1_0_0_DEBUG
+			pin = 0;
+		#else
+			pin = 1;
+		#endif
 	#endif
 	return(pin);
 }

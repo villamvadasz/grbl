@@ -3,6 +3,7 @@
 
 #include "k_stdtype.h"
 #include "eep_manager.h"
+#include "eeprom.h"
 
 #include "tmr.h"
 
@@ -10,9 +11,9 @@
 
 #pragma GCC diagnostic error "-w"
 #ifdef __32MZ2048ECG144__
-	#define GRBL_EEPROM_SYS_POSITION_ADDRESS_1 0x80000400
-	#define GRBL_EEPROM_SYS_POSITION_ADDRESS_2 0x80000410
-	#define GRBL_EEPROM_SYS_POSITION_ADDRESS_3 0x80000420
+	#define GRBL_EEPROM_SYS_POSITION_ADDRESS_1 0x8007F400
+	#define GRBL_EEPROM_SYS_POSITION_ADDRESS_2 0x8007F410
+	#define GRBL_EEPROM_SYS_POSITION_ADDRESS_3 0x8007F420
 #else
 	#define GRBL_EEPROM_SYS_POSITION_ADDRESS_1 0xA0000400
 	#define GRBL_EEPROM_SYS_POSITION_ADDRESS_2 0xA0000410
@@ -34,13 +35,14 @@ uint8 backup_eep_error_single_shoot = 1;
 
 uint8 gc_main_eeprom_trigger = 0;
 Timer gcodePositionSave;
+//#error Test this new feature
+Timer check_is_delay;
 volatile unsigned char grbl_eeprom_trigger_prev = 1;
 volatile unsigned char grbl_eeprom_trigger_current = 0;
 
-unsigned char grbl_eeprom_checkIs(void);
-
 void init_grbl_eeprom(void) {
-	initTimer(&gcodePositionSave);
+	init_timer(&gcodePositionSave);
+	init_timer(&check_is_delay);
 
 	if (grbl_master_eep_error == 0) {
 		//master is ok no need to check backup
@@ -84,7 +86,7 @@ void do_grbl_eeprom(void) {
 						}
 						if ((grbl_eeprom_trigger_prev == 1) && (grbl_eeprom_trigger_current == 0)) {
 							gc_main_eeprom_trigger = 1;
-							writeTimer(&gcodePositionSave, GCODE_POSITION_SAVE_TIME);
+							write_timer(&gcodePositionSave, GCODE_POSITION_SAVE_TIME);
 						}
 						grbl_eeprom_trigger_prev = grbl_eeprom_trigger_current;
 						break;
@@ -93,7 +95,7 @@ void do_grbl_eeprom(void) {
 						if (grbl_eeprom_checkIs()) {
 							gc_main_eeprom_trigger = 0;
 						} else {
-							if (readTimer(&gcodePositionSave) == 0) {
+							if (read_timer(&gcodePositionSave) == 0) {
 								gc_main_eeprom_trigger = 2;
 							}
 						}
@@ -124,24 +126,28 @@ void do_grbl_eeprom(void) {
 			{
 				static uint16 doTriggerWriteAllCnt = 0;
 				if (grbl_eeprom_triggerWriteAll) {
-					doTriggerWriteAllCnt++;
-					if (doTriggerWriteAllCnt >= 100) {
-						doTriggerWriteAllCnt = 0;
-						grbl_eeprom_triggerWriteAll = 0;
-						eep_manager_WriteAll_Trigger();
+					if (grbl_eeprom_checkIs() == 0) {
+						doTriggerWriteAllCnt++;
+						if (doTriggerWriteAllCnt >= 100) {
+							doTriggerWriteAllCnt = 0;
+							grbl_eeprom_triggerWriteAll = 0;
+							eep_manager_WriteAll_Trigger();
+						}
 					}
 				}
 			}
 			{
 				static uint16 doTriggerWriteSettingsCnt = 0;
-				if (grbl_eeprom_triggerWriteSettings) {
-					doTriggerWriteSettingsCnt++;
-					if (doTriggerWriteSettingsCnt >= 1000) {
-						doTriggerWriteSettingsCnt = 0;
-						grbl_eeprom_triggerWriteSettings = 0;
-						memcpy(&eep_settings_backup, &eep_settings, sizeof(eep_settings_backup));
-						eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_Settings);
-						eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_Settings_Backup);
+				if (grbl_eeprom_checkIs() == 0) {
+					if (grbl_eeprom_triggerWriteSettings) {
+						doTriggerWriteSettingsCnt++;
+						if (doTriggerWriteSettingsCnt >= 1000) {
+							doTriggerWriteSettingsCnt = 0;
+							grbl_eeprom_triggerWriteSettings = 0;
+							memcpy(&eep_settings_backup, &eep_settings, sizeof(eep_settings_backup));
+							eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_Settings);
+							eep_manager_WriteItem_Trigger(EepManager_Items_GRBL_Settings_Backup);
+						}
 					}
 				}
 			}
@@ -190,10 +196,22 @@ unsigned char grbl_eeprom_checkIs(void) {
 		(isArcGeneratingRunning() != 0) ||
 		(isLimits_go_homeRunning() != 0) ||
 		(isMc_homing_cycleRunning() != 0) ||
-		(isDelayRunning() != 0)
+		(isDelayRunning() != 0) || 
+		(spindle_get_state() != SPINDLE_STATE_DISABLE)
 	) {
 		result = 1;
 	}
+
+	if (result) {
+		write_timer(&check_is_delay, 5000);
+	}
+	
+	if (read_timer(&check_is_delay) != 0) {
+		if (result == 0) {
+			result = 1;
+		}
+	}
+	
 	return result;
 }
 
@@ -232,4 +250,30 @@ void grbl_eeprom_restorePositionFromNoInit(void) {
 
 	plan_sync_position();
 	gc_sync_position();
+}
+void grbl_eeprom_get_eeprom(unsigned char *str) {
+	//aaaaaaaa
+	//0123456789
+	unsigned int address = hexStringToInt(&str[0]);
+	unsigned int data = 0;
+	data = read_eeprom_char(address);
+	printPgmString("Address: ");
+	print_uint32_base16(address);
+	printPgmString(" Data: ");
+	print_uint32_base16(data);
+	printPgmString("\r\n");
+}
+
+void grbl_eeprom_set_eeprom(unsigned char *str) {
+	//aaaaaaaa:dddddddd
+	//0123456789
+	unsigned int address = hexStringToInt(&str[0]);
+	unsigned int data = hexStringToInt(&str[9]);
+	unsigned char dchar = data;
+	write_eeprom_char(address, dchar);
+	printPgmString("Address: ");
+	print_uint32_base16(address);
+	printPgmString(" Data: ");
+	print_uint32_base16(data);
+	printPgmString("\r\n");
 }

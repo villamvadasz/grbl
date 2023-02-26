@@ -53,6 +53,29 @@ APP_CONFIG AppConfig;
 
 UINT8 txData[200];
 UINT8 rxData[FRAMEWORK_BUFF_SIZE];
+BYTE SerializedMACAddress[6] = {MY_DEFAULT_MAC_BYTE1, MY_DEFAULT_MAC_BYTE2, MY_DEFAULT_MAC_BYTE3, MY_DEFAULT_MAC_BYTE4, MY_DEFAULT_MAC_BYTE5, MY_DEFAULT_MAC_BYTE6};
+
+
+static void InitAppConfig(void)
+{
+	// Start out zeroing all AppConfig bytes to ensure all fields are 
+	// deterministic for checksum generation
+	memset((void*)&AppConfig, 0x00, sizeof(AppConfig));
+	
+	AppConfig.Flags.bIsDHCPEnabled = TRUE;
+	AppConfig.Flags.bInConfigMode = TRUE;
+	memcpypgm2ram((void*)&AppConfig.MyMACAddr, (ROM void*)SerializedMACAddress, sizeof(AppConfig.MyMACAddr));
+	AppConfig.MyIPAddr.Val = MY_DEFAULT_IP_ADDR_BYTE1 | MY_DEFAULT_IP_ADDR_BYTE2<<8ul | MY_DEFAULT_IP_ADDR_BYTE3<<16ul | MY_DEFAULT_IP_ADDR_BYTE4<<24ul;
+	AppConfig.DefaultIPAddr.Val = AppConfig.MyIPAddr.Val;
+	AppConfig.MyMask.Val = MY_DEFAULT_MASK_BYTE1 | MY_DEFAULT_MASK_BYTE2<<8ul | MY_DEFAULT_MASK_BYTE3<<16ul | MY_DEFAULT_MASK_BYTE4<<24ul;
+	AppConfig.DefaultMask.Val = AppConfig.MyMask.Val;
+	AppConfig.MyGateway.Val = MY_DEFAULT_GATE_BYTE1 | MY_DEFAULT_GATE_BYTE2<<8ul | MY_DEFAULT_GATE_BYTE3<<16ul | MY_DEFAULT_GATE_BYTE4<<24ul;
+	AppConfig.PrimaryDNSServer.Val = MY_DEFAULT_PRIMARY_DNS_BYTE1 | MY_DEFAULT_PRIMARY_DNS_BYTE2<<8ul  | MY_DEFAULT_PRIMARY_DNS_BYTE3<<16ul  | MY_DEFAULT_PRIMARY_DNS_BYTE4<<24ul;
+	AppConfig.SecondaryDNSServer.Val = MY_DEFAULT_SECONDARY_DNS_BYTE1 | MY_DEFAULT_SECONDARY_DNS_BYTE2<<8ul  | MY_DEFAULT_SECONDARY_DNS_BYTE3<<16ul  | MY_DEFAULT_SECONDARY_DNS_BYTE4<<24ul;
+	
+	// Load the default NetBIOS Host Name
+	memcpypgm2ram(AppConfig.NetBIOSName, (ROM void*)MY_DEFAULT_HOST_NAME, 16);
+}
 
 
 /********************************************************************
@@ -81,6 +104,8 @@ void loadAppConfig(void)
 	AppConfig.MyMask.Val = MY_DEFAULT_MASK_BYTE1 | MY_DEFAULT_MASK_BYTE2<<8ul | MY_DEFAULT_MASK_BYTE3<<16ul | MY_DEFAULT_MASK_BYTE4<<24ul;
 	AppConfig.DefaultMask.Val = AppConfig.MyMask.Val;
 	
+    memcpypgm2ram(AppConfig.NetBIOSName, (ROM void *) MY_DEFAULT_HOST_NAME, 16);
+    FormatNetBIOSName(AppConfig.NetBIOSName);
 	// Initialize the MAC address.
 	AppConfig.MyMACAddr.v[0] = MY_DEFAULT_MAC_BYTE1;
 	AppConfig.MyMACAddr.v[1] = MY_DEFAULT_MAC_BYTE2;
@@ -120,6 +145,8 @@ void ethernetInit(UINT pbClk)
 	// Enable multi-vectored interrupts
 	INTEnableSystemMultiVectoredInt();
 	
+	InitAppConfig();
+
 	loadAppConfig();
 	
 	// Initialize the tick.
@@ -150,12 +177,14 @@ void ethernetInit(UINT pbClk)
 ********************************************************************/
 void ethernetTasks(void)
 {
-	
+    static uint32_t dwLastIP = 0;
 	INT nBytes = 0;
 	UINT txLen = 0;
 	INT avlBytes = 0;
 	
 	StackTask();
+    // This tasks invokes each of the core stack application tasks
+    StackApplications();
 	// Check if bootloader has something to send out to PC. 
 	txLen = FRAMEWORK_GetTransmitFrame(txData);
 	
@@ -195,9 +224,31 @@ void ethernetTasks(void)
 				FRAMEWORK_BuildRxFrame(rxData, nBytes);	
 		  		
 		  	}					 
-		}
-			
-	}		   	
+		}			
+	}	
+
+    
+    // If the local IP address has changed (ex: due to DHCP lease change)
+    // write the new IP address to the LCD display, UART, and Announce
+    // service
+    if (dwLastIP != AppConfig.MyIPAddr.Val) {
+        dwLastIP = AppConfig.MyIPAddr.Val;
+
+#if defined(STACK_USE_UART)
+        putrsUART((ROM char *) "\r\nNew IP Address: ");
+#endif
+
+        //DisplayIPValue(AppConfig.MyIPAddr);
+
+#if defined(STACK_USE_UART)
+        putrsUART((ROM char *) "\r\n");
+#endif
+
+#if defined(STACK_USE_ANNOUNCE)
+        AnnounceIP();
+#endif
+
+    }
 }
 
 

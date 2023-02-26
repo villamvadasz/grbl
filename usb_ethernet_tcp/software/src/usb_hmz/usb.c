@@ -11,7 +11,7 @@
 Timer usb_delay_timer;
 
 void init_usb(void) {
-    initTimer(&usb_delay_timer);
+    init_timer(&usb_delay_timer);
     SYS_Initialize ( NULL ); 
 }
 

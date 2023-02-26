@@ -63,7 +63,7 @@ void gc_init(void) {
 	
 	// Load default G54 coordinate system.
 	if (!(settings_read_coord_data(gc_state.modal.coord_select,gc_state.coord_system))) {
-		report_status_message(STATUS_SETTING_READ_FAIL);
+		report_status_message(STATUS_SETTING_READ_FAIL, 0);
 	}
 
 	if (grbl_Tool_Length_1 == grbl_Tool_Length_2) {
@@ -76,7 +76,7 @@ void gc_init(void) {
 void gc_soft_init(void) {
 	// Load default G54 coordinate system.
 	if (!(settings_read_coord_data(gc_state.modal.coord_select,gc_state.coord_system))) {
-		report_status_message(STATUS_SETTING_READ_FAIL);
+		report_status_message(STATUS_SETTING_READ_FAIL, 0);
 	}
 }
 
@@ -136,7 +136,7 @@ uint8 gc_check_for_sync_needed(char *line) {
 // characters have been removed. In this function, all units and positions are converted and
 // exported to grbl's internal functions in terms of (mm, mm/min) and absolute machine
 // coordinates, respectively.
-uint8 gc_execute_line(char *line) {
+uint8 gc_execute_line(char *line, int32_t *number) {
 	uint8 word_bit = 0; // Bit-value for assigning tracking variables
 	uint8 char_counter = 0;
 	char letter = 0;
@@ -174,7 +174,10 @@ uint8 gc_execute_line(char *line) {
 		gc_block.modal.motion = MOTION_MODE_LINEAR;
 		gc_block.modal.feed_rate = FEED_RATE_MODE_UNITS_PER_MIN;
 		#ifdef USE_LINE_NUMBERS
-		gc_block.values.n = JOG_LINE_NUMBER; // Initialize default line number reported during jog.
+			gc_block.values.n = JOG_LINE_NUMBER; // Initialize default line number reported during jog.
+			if (number != NULL) {
+				*number = JOG_LINE_NUMBER;
+			}
 		#endif
 	}
 
@@ -282,7 +285,8 @@ uint8 gc_execute_line(char *line) {
 						}
 						break;
 					}
-					case 93: case 94: {
+					//#error Test this new feature G95.
+					case 93: case 94: case 95: {
 						word_bit = MODAL_GROUP_G5;
 						gc_block.modal.feed_rate = 94 - int_value;
 						break;
@@ -558,30 +562,45 @@ uint8 gc_execute_line(char *line) {
 			gc_block.values.f *= MM_PER_INCH;
 		}
 	} else {
-		if (gc_block.modal.feed_rate == FEED_RATE_MODE_INVERSE_TIME) { // = G93
-			// NOTE: G38 can also operate in inverse time, but is undefined as an error. Missing F word check added here.
-			if (axis_command == AXIS_COMMAND_MOTION_MODE) {
-				if ((gc_block.modal.motion != MOTION_MODE_NONE) && (gc_block.modal.motion != MOTION_MODE_SEEK)) {
-					if (bit_isfalse(value_words,bit(WORD_F))) { // [F word missing]
-						FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE); 
+		switch (gc_state.modal.feed_rate) {
+			case FEED_RATE_MODE_UNITS_PER_MIN : { //G94
+				// - In units per mm mode: If F word passed, ensure value is in mm/min, otherwise push last state value.
+				if (gc_state.modal.feed_rate == FEED_RATE_MODE_UNITS_PER_MIN) { // Last state is also G94
+					if (bit_istrue(value_words,bit(WORD_F))) {
+						if (gc_block.modal.units == UNITS_MODE_INCHES) {
+							gc_block.values.f *= MM_PER_INCH;
+						}
+					} else {
+						gc_block.values.f = gc_state.feed_rate; // Push last state feed rate
+					}
+				} // Else, switching to G94 from G93, so don't push last state feed rate. Its undefined or the passed F word value.
+				break;
+			}
+			case FEED_RATE_MODE_INVERSE_TIME : { //G93 // Set condition flag for planner use.
+				// NOTE: G38 can also operate in inverse time, but is undefined as an error. Missing F word check added here.
+				if (axis_command == AXIS_COMMAND_MOTION_MODE) {
+					if ((gc_block.modal.motion != MOTION_MODE_NONE) && (gc_block.modal.motion != MOTION_MODE_SEEK)) {
+						if (bit_isfalse(value_words,bit(WORD_F))) { // [F word missing]
+							FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE); 
+						}
 					}
 				}
-			}
-			// NOTE: It seems redundant to check for an F word to be passed after switching from G94 to G93. We would
-			// accomplish the exact same thing if the feed rate value is always reset to zero and undefined after each
-			// inverse time block, since the commands that use this value already perform undefined checks. This would
-			// also allow other commands, following this switch, to execute and not error out needlessly. This code is
-			// combined with the above feed rate mode and the below set feed rate error-checking.
+				// NOTE: It seems redundant to check for an F word to be passed after switching from G94 to G93. We would
+				// accomplish the exact same thing if the feed rate value is always reset to zero and undefined after each
+				// inverse time block, since the commands that use this value already perform undefined checks. This would
+				// also allow other commands, following this switch, to execute and not error out needlessly. This code is
+				// combined with the above feed rate mode and the below set feed rate error-checking.
 
-			// [3. Set feed rate ]: F is negative (done.)
-			// - In inverse time mode: Always implicitly zero the feed rate value before and after block completion.
-			// NOTE: If in G93 mode or switched into it from G94, just keep F value as initialized zero or passed F word
-			// value in the block. If no F word is passed with a motion command that requires a feed rate, this will error
-			// out in the motion modes error-checking. However, if no F word is passed with NO motion command that requires
-			// a feed rate, we simply move on and the state feed rate value gets updated to zero and remains undefined.
-		} else { // = G94
-			// - In units per mm mode: If F word passed, ensure value is in mm/min, otherwise push last state value.
-			if (gc_state.modal.feed_rate == FEED_RATE_MODE_UNITS_PER_MIN) { // Last state is also G94
+				// [3. Set feed rate ]: F is negative (done.)
+				// - In inverse time mode: Always implicitly zero the feed rate value before and after block completion.
+				// NOTE: If in G93 mode or switched into it from G94, just keep F value as initialized zero or passed F word
+				// value in the block. If no F word is passed with a motion command that requires a feed rate, this will error
+				// out in the motion modes error-checking. However, if no F word is passed with NO motion command that requires
+				// a feed rate, we simply move on and the state feed rate value gets updated to zero and remains undefined.
+				break;
+			}
+			case FEED_RATE_MODE_UNITS_PER_TURN : { //G95
+				// - In units per mm mode: If F word passed, ensure value is in mm/min, otherwise push last state value.
 				if (bit_istrue(value_words,bit(WORD_F))) {
 					if (gc_block.modal.units == UNITS_MODE_INCHES) {
 						gc_block.values.f *= MM_PER_INCH;
@@ -589,7 +608,11 @@ uint8 gc_execute_line(char *line) {
 				} else {
 					gc_block.values.f = gc_state.feed_rate; // Push last state feed rate
 				}
-			} // Else, switching to G94 from G93, so don't push last state feed rate. Its undefined or the passed F word value.
+				break;
+			}
+			default : {
+				break;
+			}
 		}
 	}
 	// value_words &= ~(bit(WORD_F)); // NOTE: Single-meaning value word. Set at end of error-checking.
@@ -1160,14 +1183,30 @@ uint8 gc_execute_line(char *line) {
 	gc_state.line_number = gc_block.values.n;
 	#ifdef USE_LINE_NUMBERS
 		pl_data->line_number = gc_state.line_number; // Record data for planner use.
+			if (number != NULL) {
+				*number = gc_state.line_number;
+			}
 	#endif
 
 	// [1. Comments feedback ]:  NOT SUPPORTED
 
 	// [2. Set feed rate mode ]:
 	gc_state.modal.feed_rate = gc_block.modal.feed_rate;
-	if (gc_state.modal.feed_rate) { // Set condition flag for planner use.
-		pl_data->condition |= PL_COND_FLAG_INVERSE_TIME;
+	switch (gc_state.modal.feed_rate) {
+		case FEED_RATE_MODE_UNITS_PER_MIN : {//no flag must be set
+			break;
+		}
+		case FEED_RATE_MODE_INVERSE_TIME : { // Set condition flag for planner use.
+			pl_data->condition |= PL_COND_FLAG_INVERSE_TIME;
+			break;
+		}
+		case FEED_RATE_MODE_UNITS_PER_TURN : {
+			pl_data->condition_2 |= PL_COND_FLAG_PER_REVOLUTION;
+			break;
+		}
+		default : {
+			break;
+		}
 	}
 
 	// [3. Set feed rate ]:
@@ -1185,7 +1224,7 @@ uint8 gc_execute_line(char *line) {
 					if (gc_block.values.s == 0.0f) {
 						system_log_spindle_off(41);
 					} else {
-						system_log_spindle_on(42);
+						system_log_spindle_on(0x2A);
 					}
 					spindle_set_state(gc_state.modal.spindle, gc_block.values.s);
 				}

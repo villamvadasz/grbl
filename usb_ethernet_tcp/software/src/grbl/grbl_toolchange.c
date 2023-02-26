@@ -25,7 +25,7 @@ volatile uint8 do_grbl_toolchange_1ms = 0;
 Timer grbl_toolchange_failsafe_timeout;
 
 void init_grbl_toolchange(void) {
-	initTimer(&grbl_toolchange_failsafe_timeout);
+	init_timer(&grbl_toolchange_failsafe_timeout);
 }
 
 void do_grbl_toolchange(void) {
@@ -34,7 +34,7 @@ void do_grbl_toolchange(void) {
 		{
 			if (//Failsafe event, state machine running and timer is elapsed
 				(GRBL_Toolchange_SM_State != GRBL_TOOLCHANGE_SM_IDLE) &&
-				(readTimer(&grbl_toolchange_failsafe_timeout) == 0)
+				(read_timer(&grbl_toolchange_failsafe_timeout) == 0)
 			) {
 				GRBL_Toolchange_SM_State = GRBL_TOOLCHANGE_SM_FAILSAFE;
 			}
@@ -45,13 +45,13 @@ void do_grbl_toolchange(void) {
 						grbl_toolchange_isRunning = 0;
 						if (settings.grbl_parameter_automatic_tool_change) {
 							uint32 newValue = GRBL_TIMEOUT_FAILSAFE_TIMEOUT_AUTO;
-							writeTimer(&grbl_toolchange_failsafe_timeout, newValue);
+							write_timer(&grbl_toolchange_failsafe_timeout, newValue);
 							GRBL_Toolchange_SM_State = GRBL_TOOLCHANGE_SM_PREPARE;
 							//Here some kind of toolholder holds the tool, where we have to move to and execute a change
 							//Off cours asyncronously implemented in a state machine
 						} else {
 							uint32 newValue = GRBL_TIMEOUT_FAILSAFE_TIMEOUT_MANUAL;
-							writeTimer(&grbl_toolchange_failsafe_timeout, newValue);
+							write_timer(&grbl_toolchange_failsafe_timeout, newValue);
 							GRBL_Toolchange_SM_State = GRBL_TOOLCHANGE_SM_PREPARE_MANUAL;
 							//Stop spindle, stop move.
 							//User will change the tool and do a Z null

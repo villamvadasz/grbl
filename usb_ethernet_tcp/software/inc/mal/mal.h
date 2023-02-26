@@ -37,4 +37,7 @@
 
 	extern void init_mal(void);
 
+	extern unsigned char hexStringToChar(unsigned char *str);
+	extern unsigned int hexStringToInt(unsigned char *str);
+
 #endif

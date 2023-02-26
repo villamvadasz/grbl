@@ -61,9 +61,9 @@ uint32 calculate_eep_manager_crc32(uint8 *data, uint16 size) {
 
 	crc = 0xFFFFFFFF;
 	for (x = 0; x < size; x++) {
-		byte = data[x];            // Get next byte.
+		byte = data[x];			// Get next byte.
 		crc = crc ^ byte;
-		for (j = 7; j >= 0; j--) {    // Do eight times.
+		for (j = 7; j >= 0; j--) {	// Do eight times.
 			mask = -(crc & 1);
 			crc = (crc >> 1) ^ (0xEDB88320 & mask);
 		}
@@ -77,11 +77,10 @@ uint32 calculate_eep_manager_crc32_special(uint8 *data, uint16 size, uint32 crc)
 	uint32 byte = 0;
 	uint32 mask = 0;
 
-	crc = 0xFFFFFFFF;
 	for (x = 0; x < size; x++) {
-		byte = data[x];            // Get next byte.
+		byte = data[x];			// Get next byte.
 		crc = crc ^ byte;
-		for (j = 7; j >= 0; j--) {    // Do eight times.
+		for (j = 7; j >= 0; j--) {	// Do eight times.
 			mask = -(crc & 1);
 			crc = (crc >> 1) ^ (0xEDB88320 & mask);
 		}

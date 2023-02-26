@@ -105,8 +105,8 @@
                                 //   It requires 0x1F, however.
 
 // Maximum SPI frequency specified in data sheet
-#define ENC_MAX_SPI_FREQ    (20000000ul)    // Hz
-//#define ENC_MAX_SPI_FREQ    (10000000ul)    // Hz
+//#define ENC_MAX_SPI_FREQ    (20000000ul)    // Hz
+#define ENC_MAX_SPI_FREQ    (10000000ul)    // Hz
 //#define ENC_MAX_SPI_FREQ    (5000000ul)    // Hz
 //#define ENC_MAX_SPI_FREQ    (1000000ul)    // Hz
 

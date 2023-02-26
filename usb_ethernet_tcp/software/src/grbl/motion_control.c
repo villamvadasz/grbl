@@ -243,6 +243,9 @@ static void mc_arc_pre(float *target, plan_line_data_t *pl_data, float *position
 		if (pl_data->condition & PL_COND_FLAG_INVERSE_TIME) { 
 			pl_data->feed_rate *= segments_buffer; 
 			pl_data->condition &= ~(PL_COND_FLAG_INVERSE_TIME); // Force as feed absolute mode over arc segments.
+		} else if (pl_data->condition_2 & PL_COND_FLAG_PER_REVOLUTION) {
+			pl_data->feed_rate = nuts_bolts_tooth_load_rpm_to_feed(pl_data->feed_rate, pl_data->spindle_speed, 1.0f);
+			pl_data->condition_2 &= ~(PL_COND_FLAG_PER_REVOLUTION); // Force as feed absolute mode over arc segments.
 		}
 		theta_per_segment = angular_travel / segments_buffer;
 		linear_per_segment = (target[axis_linear] - position[axis_linear])/segments_buffer;
@@ -325,15 +328,26 @@ static uint8 mc_arc_async(float *target, plan_line_data_t *pl_data, float *posit
 	return result;
 }
 
-// Execute dwell in seconds.
-void mc_dwell(float seconds) {
-	if (seconds >= 10.0) {
-		seconds = 10.0;
-	} else if (seconds < 1.0) {
-		seconds = 1.0;
+void mc_dwell(float time) {
+	//mc_dwell_s(time); //former implementation was using [s]
+	mc_dwell_ms(time); //this is better
+}
+
+
+void mc_dwell_ms(float milliseconds) {
+	if (milliseconds >= 10000.0) {
+		milliseconds = 10000.0;
+	} else if (milliseconds < 1.0) {
+		milliseconds = 1.0;
 	}
 	protocol_set_requestSynchMotion();
-	protocol_set_requestDwell(seconds);
+	protocol_set_requestDwell(milliseconds);
+}
+
+// Execute dwell in seconds.
+void mc_dwell_s(float seconds) {
+	float ms_time = seconds * 1000.0;
+	mc_dwell_ms(ms_time);
 }
 
 // Perform homing cycle to locate and set machine zero. Only '$H' executes this command.

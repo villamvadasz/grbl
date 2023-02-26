@@ -219,7 +219,7 @@ void DRV_USBHS_Tasks(SYS_MODULE_OBJ object)
             _DRV_USBHS_CLOCK_CONTROL_GLOBAL_USB_INT_ENABLE(usbID);
 
             /* Start the delay here - 3 sec */
-            writeTimer(&usb_delay_timer, _DRV_USBHS_MODULE_RESET_DURATION);
+            write_timer(&usb_delay_timer, _DRV_USBHS_MODULE_RESET_DURATION);
 
             /* Reset the PHY. This is a workaround
              * for an errata */
@@ -233,7 +233,7 @@ void DRV_USBHS_Tasks(SYS_MODULE_OBJ object)
         case DRV_USBHS_TASK_STATE_WAITING_FOR_DELAY_COMPLETE:
 
             /* Check if the delay is complete */
-            if (readTimer(&usb_delay_timer) == 0)
+            if (read_timer(&usb_delay_timer) == 0)
             {
                 /* This means the delay is complete. Clear the Soft Reset  */
                 PLIB_USBHS_SoftResetDisable(usbID);

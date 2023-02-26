@@ -26,7 +26,7 @@
 
 #include "k_stdtype.h"
 
-#define GRBL_LIMITS_FILTER_ELEMENTS 2
+#define GRBL_LIMITS_FILTER_ELEMENTS 4
 
 typedef enum _limit_go_home_states {
 	LIMIT_GO_HOME_INIT = 0,

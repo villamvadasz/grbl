@@ -1,24 +1,50 @@
 #ifndef _INT_DEE_H_
 #define _INT_DEE_H_
 
-	#define NUMBER_OF_BYTES_IN_PAGE          (4096)
+	#ifdef __32MZ2048ECG144__
+		#define NUMBER_OF_BYTES_IN_PAGE		  (16384)
+	#else
+		#ifdef __32MX440F256H__
+			#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+		#else
+			#ifdef __32MX460F512L__
+				#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+			#else
+				#ifdef __32MX470F512L__
+					#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+				#else
+					#ifdef __32MX470F512H__
+						#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+					#else
+						#ifdef __32MZ2048EFM100__
+							#define NUMBER_OF_BYTES_IN_PAGE		  (16384)
+						#else
+							#ifdef __32MX795F512H__
+								#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+							#else
+								#error TODO define how big the flash is in that controller
+							#endif
+						#endif
+					#endif
+				#endif
+			#endif
+		#endif
+	#endif
+
 	#define NUMBER_OF_INSTRUCTIONS_IN_PAGE  (NUMBER_OF_BYTES_IN_PAGE / 4) // number of 32-bit word instructions per page, 4096 bytes
-	#define DEE_NUMBER_OF_DATA_ELEMENTS (((NUMBER_OF_INSTRUCTIONS_IN_PAGE * DEE_PAGE_PAGE_SIZE) - (sizeof(Dee_Page_Status) / sizeof(uint32))) / 3)
+	#define DEE_NUMBER_OF_DATA_ELEMENTS (((NUMBER_OF_INSTRUCTIONS_IN_PAGE * DEE_FLASH_PAGE_CNT) - (sizeof(Dee_Page_Status) / sizeof(uint32))) / 3)
 
-	#define PAGE_CURRENT                    1 // Indicate the page status
-	#define PAGE_NOT_CURRENT                0 // Indicate the page status
-	#define PAGE_EXPIRED                    0 // Indicate the page status 
-	#define PAGE_NOT_EXPIRED                1 // Indicate the page status
-	#define PAGE_AVAILABLE                  1 // Indicate the page status
-	#define PAGE_NOT_AVAILABLE              0 // Indicate the page status
-	#define PAGE_ACTIVE                     0 // Indicate the page status
-	#define PAGE_NOT_ACTIVE                 1 // Indicate the page status
+	#define PAGE_CURRENT					1 // Indicate the page status
+	#define PAGE_NOT_CURRENT				0 // Indicate the page status
+	#define PAGE_EXPIRED					0 // Indicate the page status 
+	#define PAGE_NOT_EXPIRED				1 // Indicate the page status
+	#define PAGE_ACTIVE					 0 // Indicate the page status
+	#define PAGE_NOT_ACTIVE				 1 // Indicate the page status
 
-	#define STATUS_ACTIVE                   17 // Indicate the page status
-	#define STATUS_AVAILABLE                18 // Indicate the page status
-	#define STATUS_CURRENT                  19 // Indicate the page status
-	#define STATUS_EXPIRED                  20 // Indicate the page status
-	#define STATUS_INC_ERASE                21 // Indicate the page status
+	#define STATUS_ACTIVE				   17 // Indicate the page status
+	#define STATUS_CURRENT				  19 // Indicate the page status
+	#define STATUS_EXPIRED				  20 // Indicate the page status
+	#define STATUS_INC_ERASE				21 // Indicate the page status
 	#define STATUS_ZERO_ERASE				22 
 	#define STATUS_WRONGE_PAGE				23
 	#define STATUS_NOT_DEFINE				9999
@@ -62,16 +88,16 @@
 	#define GetWrongElementNumber() dataEEFlags.wrongElementNumber
 	#define SetWrongElementNumber(x) dataEEFlags.wrongElementNumber = x
 
-	//After MassErase: 1Not Expired, 1Current,     1Available, 1Not Active 1111
-	//Activate Page0 : 1Not Expired, 1Current,     1Available, 0Active     1110
-	//Page0 Full     : 1Not Expired, 0Not Current, 1Available, 1Not Active 1011
-	//Page1 Open     : 1Not Expired, 0Not Current, 1Available, 0Active     1010
+	//After MassErase: 1Not Expired, 1Current,	 	1Not Active 	1111
+	//Activate Page0 : 1Not Expired, 1Current,	 	0Active	 		1110
+	//Page0 Full	 : 1Not Expired, 0Not Current, 	1Not Active 	1011
+	//Page1 Open	 : 1Not Expired, 0Not Current, 	0Active	 		1010
 
 	typedef struct _Dee_Page_Status {
-		uint32 page_expired : 1;    //1 - not expired 0 - expired
-		uint32 page_current : 1;    //1 - current     0 - not current
-		uint32 page_available : 1;  //1 - available   0 - not available
-		uint32 page_active : 1;     //1 - not active  0 - active
+		uint32 page_expired : 1;	//1 - not expired 0 - expired
+		uint32 page_current : 1;	//1 - current	 0 - not current
+		uint32 page_reserved_na : 1;  //1 - NA   0 - not NA
+		uint32 page_active : 1;	 //1 - not active  0 - active
 		uint32 page_erase_count :28;
 	} Dee_Page_Status;
 
@@ -80,24 +106,24 @@
 		uint32 byte;
 	} Dee_Page_Status_Helper;
 
-	//Flags for the error/warning conditions.    
+	//Flags for the error/warning conditions.	
 	typedef union {
 		unsigned int val; // a non-zero value indicate error/warning
 		struct {
-			unsigned addrNotFound:1;       // Return 0x1
-			unsigned expiredPage:1;        // Return 0x2
+			unsigned addrNotFound:1;	   // Return 0x1
+			unsigned expiredPage:1;		// Return 0x2
 			unsigned packBeforePageFull:1; // Not a return condition
-			unsigned packBeforeInit:1;     // Return 0x3
-			unsigned packSkipped:1;        // Return 0x4
-			unsigned IllegalAddress:1;     // Return 0x5
-			unsigned pageCorrupt:1;        // Return 0x6
-			unsigned writeError:1;         // Return 0x7
-			unsigned lowVoltageError:1;    // Return 0x8
+			unsigned packBeforeInit:1;	 // Return 0x3
+			unsigned packSkipped:1;		// Return 0x4
+			unsigned IllegalAddress:1;	 // Return 0x5
+			unsigned pageCorrupt:1;		// Return 0x6
+			unsigned writeError:1;		 // Return 0x7
+			unsigned lowVoltageError:1;	// Return 0x8
 			unsigned noActiveCurrentPage:1;// Return 0x9
-			unsigned wrongPage:1;          // Return 0xA
+			unsigned wrongPage:1;		  // Return 0xA
 			unsigned nullPointerError:1;   // Return 0xB
 			unsigned wrongElementNumber:1;  // Return 0xC
-			unsigned reserved:19;          // Reserved for future use
+			unsigned reserved:19;		  // Reserved for future use
 		};
 	} DATA_EE_FLAGS;
 

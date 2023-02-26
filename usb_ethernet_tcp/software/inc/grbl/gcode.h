@@ -100,6 +100,7 @@
 // Modal Group G5: Feed rate mode
 #define FEED_RATE_MODE_UNITS_PER_MIN  0 // G94 (Default: Must be zero)
 #define FEED_RATE_MODE_INVERSE_TIME   1 // G93 (Do not alter value)
+#define FEED_RATE_MODE_UNITS_PER_TURN   2 // G95 (move per revolution)
 
 // Modal Group G6: Units mode
 #define UNITS_MODE_MM 0 // G21 (Default: Must be zero)
@@ -245,7 +246,7 @@ extern void gc_soft_init(void);
 
 // Execute one block of rs275/ngc/g-code
 extern uint8 gc_check_for_sync_needed(char *line);
-extern uint8 gc_execute_line(char *line);
+extern uint8 gc_execute_line(char *line, int32_t *number);
 
 // Set g-code parser position. Input in steps.
 extern void gc_sync_position(void);

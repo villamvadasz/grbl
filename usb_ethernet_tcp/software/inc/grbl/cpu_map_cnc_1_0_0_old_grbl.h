@@ -159,6 +159,8 @@
 		// re-enable when spindle speed is greater than zero. This option does that.
 		#define SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED // Default disabled. Uncomment to enable.
 
+		//#define SPINDLE_FAKE_SPINDLE_RUNNING
+
 		// Inverts the spindle enable pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
 		// for some pre-built electronic boards.
 		// #define INVERT_SPINDLE_ENABLE_PIN // Default disabled. Uncomment to enable.
@@ -169,8 +171,6 @@
 		// #define INVERT_COOLANT_MIST_PIN // Default disabled. Note: Enable M7 mist coolant in config.h
 
 		#define STEPPERS_ALWAYS_ENABLED
-
-
 
 
 

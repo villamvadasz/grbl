@@ -70,7 +70,7 @@
 //#define STACK_USE_SSL_SERVER			// SSL server socket support (Requires SW300052)
 //#define STACK_USE_SSL_CLIENT			// SSL client socket support (Requires SW300052)
 //#define STACK_USE_AUTO_IP               // Dynamic link-layer IP address automatic configuration protocol
-//#define STACK_USE_DHCP_CLIENT			// Dynamic Host Configuration Protocol client for obtaining IP address and other parameters
+#define STACK_USE_DHCP_CLIENT			// Dynamic Host Configuration Protocol client for obtaining IP address and other parameters
 //#define STACK_USE_DHCP_SERVER			// Single host DHCP server
 //#define STACK_USE_FTP_SERVER			// File Transfer Protocol (old)
 //#define STACK_USE_SMTP_CLIENT			// Simple Mail Transfer Protocol for sending email
@@ -80,7 +80,7 @@
 //#define STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE	// HTTP Client example in GenericTCPClient.c
 //#define STACK_USE_GENERIC_TCP_SERVER_EXAMPLE	// ToUpper server example in GenericTCPServer.c
 //#define STACK_USE_TELNET_SERVER			// Telnet server
-//#define STACK_USE_ANNOUNCE				// Microchip Embedded Ethernet Device Discoverer server/client
+#define STACK_USE_ANNOUNCE				// Microchip Embedded Ethernet Device Discoverer server/client
 //#define STACK_USE_DNS					// Domain Name Service Client for resolving hostname strings to IP addresses
 //#define STACK_USE_DNS_SERVER			// Domain Name Service Server for redirection to the local device
 //#define STACK_USE_NBNS					// NetBIOS Name Service Server for repsonding to NBNS hostname broadcast queries
@@ -148,14 +148,14 @@
  *   To clear EEPROM, hold BUTTON0, reset the board, and continue
  *   holding until the LEDs flash.  Release, and reset again.
  */
-#define MY_DEFAULT_HOST_NAME			"MCHPBOARD"
+#define MY_DEFAULT_HOST_NAME			"BOOTLOADER"
 
 #define MY_DEFAULT_MAC_BYTE1            (0x00)	// Use the default of 00-04-A3-00-00-00
 #define MY_DEFAULT_MAC_BYTE2            (0x04)	// if using an ENCX24J600, MRF24WB0M, or
 #define MY_DEFAULT_MAC_BYTE3            (0xA3)	// PIC32MX6XX/7XX internal Ethernet 
 #define MY_DEFAULT_MAC_BYTE4            (0x00)	// controller and wish to use the 
 #define MY_DEFAULT_MAC_BYTE5            (0x00)	// internal factory programmed MAC
-#define MY_DEFAULT_MAC_BYTE6            (0x00)	// address instead.
+#define MY_DEFAULT_MAC_BYTE6            (0x05)	// address instead.
 
 #define MY_DEFAULT_IP_ADDR_BYTE1        (192ul)
 #define MY_DEFAULT_IP_ADDR_BYTE2        (168ul)

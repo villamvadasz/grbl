@@ -9,13 +9,11 @@
 #define NOINITRAM_CRC_SIZE 4
 #define NOINITRAM_BASE_ADDRESS_2 (NOINITRAM_BASE_ADDRESS_1 + NOINITRAM_CRC_SIZE + NOINITRAM_CRC_SIZE + NOINITRAM_SIZE + 8)
 
-#pragma GCC diagnostic error "-w"
 volatile unsigned int noinitram_crc_1[2] __attribute__ ((persistent, address(NOINITRAM_BASE_ADDRESS_1)));
 volatile unsigned char noinitram_1[NOINITRAM_SIZE] __attribute__ ((persistent, address(NOINITRAM_BASE_ADDRESS_1 + NOINITRAM_CRC_SIZE + NOINITRAM_CRC_SIZE + 8)));
 
 volatile unsigned int noinitram_crc_2[2] __attribute__ ((persistent, address(NOINITRAM_BASE_ADDRESS_2)));
 volatile unsigned char noinitram_2[NOINITRAM_SIZE] __attribute__ ((persistent, address(NOINITRAM_BASE_ADDRESS_2 + NOINITRAM_CRC_SIZE + NOINITRAM_CRC_SIZE + 8)));
-#pragma GCC diagnostic pop
 
 unsigned int noinitram_valid_block = 0;
 
@@ -26,7 +24,7 @@ unsigned char noinitram_IsValid(void) {
 
 	if (noinitram_valid_block == 0) {
 		if (noinitram_crc_1[0] == ~noinitram_crc_1[1]) {
-			unsigned int actual = calculate_eep_manager_crc32((unsigned char *)noinitram_crc_1, NOINITRAM_SIZE);
+			unsigned int actual = calculate_eep_manager_crc32((unsigned char *)noinitram_1, NOINITRAM_SIZE);
 			unsigned int expected = noinitram_crc_1[0];
 			if (actual == expected) {
 				result = 1;
@@ -34,7 +32,7 @@ unsigned char noinitram_IsValid(void) {
 		}
 		if (result == 0) {
 			if (noinitram_crc_2[0] == ~noinitram_crc_2[1]) {
-				unsigned int actual = calculate_eep_manager_crc32((unsigned char *)noinitram_crc_2, NOINITRAM_SIZE);
+				unsigned int actual = calculate_eep_manager_crc32((unsigned char *)noinitram_2, NOINITRAM_SIZE);
 				unsigned int expected = noinitram_crc_2[0];
 				if (actual == expected) {
 					result = 2;

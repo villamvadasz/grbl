@@ -588,50 +588,54 @@ BOOL ARPProcess(void)
 
 	To retrieve the ARP query result, call the ARPIsResolved() function.
   ***************************************************************************/
+volatile unsigned int ARPResolve_null_ptr = 0;
 #ifdef STACK_CLIENT_MODE
 void ARPResolve(IP_ADDR* IPAddr)
 {
     ARP_PACKET packet;
+	if (IPAddr != NULL) {
+		#ifdef STACK_USE_ZEROCONF_LINK_LOCAL
+			#define KS_ARP_IP_MULTICAST_HACK y
+			#ifdef KS_ARP_IP_MULTICAST_HACK
+				if ((IPAddr->v[0] >= 224) &&(IPAddr->v[0] <= 239))
+				{
+					// "Resolve" the IP to MAC address mapping for
+					// IP multicast address range from 224.0.0.0 to 239.255.255.255
 
-#ifdef STACK_USE_ZEROCONF_LINK_LOCAL
-#define KS_ARP_IP_MULTICAST_HACK y
-#ifdef KS_ARP_IP_MULTICAST_HACK
-    if ((IPAddr->v[0] >= 224) &&(IPAddr->v[0] <= 239))
-    {
-		// "Resolve" the IP to MAC address mapping for
-		// IP multicast address range from 224.0.0.0 to 239.255.255.255
+					Cache.MACAddr.v[0] = 0x01;
+					Cache.MACAddr.v[1] = 0x00;
+					Cache.MACAddr.v[2] = 0x5E;
+					Cache.MACAddr.v[3] = 0x7f & IPAddr->v[1];
+					Cache.MACAddr.v[4] = IPAddr->v[2];
+					Cache.MACAddr.v[5] = IPAddr->v[3];
 
-		Cache.MACAddr.v[0] = 0x01;
-		Cache.MACAddr.v[1] = 0x00;
-		Cache.MACAddr.v[2] = 0x5E;
-		Cache.MACAddr.v[3] = 0x7f & IPAddr->v[1];
-		Cache.MACAddr.v[4] = IPAddr->v[2];
-		Cache.MACAddr.v[5] = IPAddr->v[3];
+					Cache.IPAddr.Val = IPAddr->Val;
 
-		Cache.IPAddr.Val = IPAddr->Val;
+					return;
+				}
+			#endif
+		#endif
 
-		return;
+		packet.Operation            = ARP_OPERATION_REQ;
+		packet.TargetMACAddr.v[0]   = 0xff;
+		packet.TargetMACAddr.v[1]   = 0xff;
+		packet.TargetMACAddr.v[2]   = 0xff;
+		packet.TargetMACAddr.v[3]   = 0xff;
+		packet.TargetMACAddr.v[4]   = 0xff;
+		packet.TargetMACAddr.v[5]   = 0xff;
+
+		//putsUART("ARPResolve() \r\n"); 
+
+		// ARP query either the IP address directly (on our subnet), or do an ARP query for our Gateway if off of our subnet
+		packet.TargetIPAddr			= ((AppConfig.MyIPAddr.Val ^ IPAddr->Val) & AppConfig.MyMask.Val) ? AppConfig.MyGateway : *IPAddr;
+		#ifdef STACK_USE_ZEROCONF_LINK_LOCAL
+			packet.SenderIPAddr			= AppConfig.MyIPAddr;
+		#endif
+
+		ARPPut(&packet);
+	} else {
+		ARPResolve_null_ptr++;
 	}
-#endif
-#endif
-
-	packet.Operation            = ARP_OPERATION_REQ;
-	packet.TargetMACAddr.v[0]   = 0xff;
-	packet.TargetMACAddr.v[1]   = 0xff;
-	packet.TargetMACAddr.v[2]   = 0xff;
-	packet.TargetMACAddr.v[3]   = 0xff;
-	packet.TargetMACAddr.v[4]   = 0xff;
-	packet.TargetMACAddr.v[5]   = 0xff;
-
-	//putsUART("ARPResolve() \r\n"); 
-
-    // ARP query either the IP address directly (on our subnet), or do an ARP query for our Gateway if off of our subnet
-	packet.TargetIPAddr			= ((AppConfig.MyIPAddr.Val ^ IPAddr->Val) & AppConfig.MyMask.Val) ? AppConfig.MyGateway : *IPAddr;
-#ifdef STACK_USE_ZEROCONF_LINK_LOCAL
-	packet.SenderIPAddr			= AppConfig.MyIPAddr;
-#endif
-
-    ARPPut(&packet);
 }
 #endif
 

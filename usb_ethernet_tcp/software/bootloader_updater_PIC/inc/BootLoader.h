@@ -50,13 +50,17 @@
 
 	#define BOOT_FLASH_BASE_ADDRESS 	0x9FC00000 
 	#define BOOT_FLASH_END_ADDRESS      0x9FC02000
-	#define EEPROM_FLASH_BASE_ADDRESS 	(0x9d030000)
-	#define EEPROM_FLASH_END_ADDRESS   (0x9d030000 + 0x9000 - 1)
+	#ifdef BOOTLOADER_WITH_DEE
+		#define EEPROM_FLASH_BASE_ADDRESS 	(0x9d030000)
+		#define EEPROM_FLASH_END_ADDRESS   (0x9d030000 + 0x9000 - 1)
+	#endif
 #else
 	#define APP_FLASH_BASE_ADDRESS 	0x9D006000 
 	#define APP_FLASH_END_ADDRESS   PROGRAM_FLASH_END_ADRESS
-	#define EEPROM_FLASH_BASE_ADDRESS 	(0x9d030000)
-	#define EEPROM_FLASH_END_ADDRESS   (0x9d030000 + 0x9000 - 1)
+	#ifdef BOOTLOADER_WITH_DEE
+		#define EEPROM_FLASH_BASE_ADDRESS 	(0x9d030000)
+		#define EEPROM_FLASH_END_ADDRESS   (0x9d030000 + 0x9000 - 1)
+	#endif
 #endif
 /* Address of  the Flash from where the application starts executing */
 /* Rule: Set APP_FLASH_BASE_ADDRESS to _RESET_ADDR value of application linker script*/

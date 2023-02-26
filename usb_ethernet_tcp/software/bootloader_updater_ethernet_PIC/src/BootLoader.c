@@ -81,161 +81,369 @@ volatile ExceptionLog exceptionLog[16] __attribute__ ((persistent, address(0xA00
 
 #ifndef BOOTLOADER_IS_AN_UPDATER_APPLICATION
 	#ifdef __32MX440F256H__
-        #pragma config UPLLEN   = ON        // USB PLL Enabled
-        #pragma config FPLLMUL  = MUL_20        // PLL Multiplier
-        #pragma config UPLLIDIV = DIV_2         // USB PLL Input Divider
-        #pragma config FPLLIDIV = DIV_2         // PLL Input Divider
-        #pragma config FPLLODIV = DIV_1         // PLL Output Divider
-        #pragma config FPBDIV   = DIV_2         // Peripheral Clock divisor
-        #pragma config FWDTEN   = OFF           // Watchdog Timer
-        #pragma config WDTPS    = PS1           // Watchdog Timer Postscale
-        #pragma config FCKSM    = CSDCMD        // Clock Switching & Fail Safe Clock Monitor
-        #pragma config OSCIOFNC = OFF           // CLKO Enable
-        #pragma config POSCMOD  = XT            // Primary Oscillator
-        #pragma config IESO     = OFF           // Internal/External Switch-over
-        #pragma config FSOSCEN  = OFF           // Secondary Oscillator Enable (KLO was off)
-        #pragma config FNOSC    = PRIPLL        // Oscillator Selection
-        #pragma config CP       = OFF           // Code Protect
-        #pragma config BWP      = OFF           // Boot Flash Write Protect
-        #pragma config PWP      = OFF           // Program Flash Write Protect
+		#ifdef XTAL_8MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_10MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = OFF			// Not possible to generate USB clock from 10MHz
+			#pragma config FPLLMUL  = MUL_16
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz. Not possible
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_20MHZ
+			#pragma config POSCMOD  = HS
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config UPLLIDIV = DIV_5			// USB PLL Input Divider. PLL input need 4MHz
+			#pragma config FPLLIDIV = DIV_5			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#if (PB_DIV == 2)
+			#pragma config FPBDIV   = DIV_2
+		#endif	
+		#if (PB_DIV == 4)
+			#pragma config FPBDIV   = DIV_4
+		#endif	
+		#ifdef INT_OSC_8MHZ
+			#ifndef XTAL_8MHZ
+				#error Internal 8MHz need 8MHz configuration (XTAL_8MHZ)
+			#endif
+			#pragma config FNOSC = FRCPLL
+		#else 
+			#pragma config FNOSC = PRIPLL
+		#endif
+		#pragma config FWDTEN   = OFF				// Watchdog Timer
+		#pragma config WDTPS	= PS1				// Watchdog Timer Postscale
+		#pragma config FCKSM	= CSECMD			// Clock Switching & Fail Safe Clock Monitor
+		#pragma config OSCIOFNC = OFF				// CLKO Enable
+		#pragma config IESO	    = OFF				// Internal/External Switch-over
+		#pragma config FSOSCEN  = OFF				// Secondary Oscillator Enable (KLO was off)
+		#pragma config CP	    = OFF				// Code Protect
+		#pragma config BWP	    = OFF				// Boot Flash Write Protect
+		#pragma config PWP	    = OFF				// Program Flash Write Protect
 	#endif
 	#ifdef __32MX470F512H__
-        // DEVCFG3
-        // USERID = No Setting
-        #pragma config FSRSSEL = PRIORITY_7            // Peripheral Module Disable Configuration (Allow only one reconfiguration)
-        #pragma config PMDL1WAY = OFF            // Peripheral Module Disable Configuration (Allow only one reconfiguration)
-        #pragma config IOL1WAY = OFF            // Peripheral Pin Select Configuration (Allow multiple reconfigurations)
-        #pragma config FUSBIDIO = ON            // USB USBID Selection (Controlled by the USB Module)
-        #pragma config FVBUSONIO = ON
+		// DEVCFG3
+		// USERID = No Setting
+		#pragma config FSRSSEL = PRIORITY_7			// Peripheral Module Disable Configuration (Allow only one reconfiguration)
+		#pragma config PMDL1WAY = OFF				// Peripheral Module Disable Configuration (Allow only one reconfiguration)
+		#pragma config IOL1WAY = OFF				// Peripheral Pin Select Configuration (Allow multiple reconfigurations)
+		#pragma config FUSBIDIO = ON				// USB USBID Selection (Controlled by the USB Module)
+		#pragma config FVBUSONIO = ON
 
-        // DEVCFG2
-        #ifdef XTAL_8MHZ
-            #pragma config FPLLIDIV = DIV_2         // System PLL Input Divider (2x Divider) Crystall 8MHz
-            #pragma config UPLLIDIV = DIV_2       // Crystall 8MHz
-            #pragma config FPLLMUL = MUL_20        // System PLL Multiplier (PLL Multiply by xx)
-            #pragma config FPLLODIV = DIV_1
-            #pragma config UPLLEN = ON
-            #pragma config POSCMOD = XT             // Primary Oscillator Configuration (External clock mode)
-        #endif
-        #ifdef XTAL_10MHZ
-            #pragma config FPLLIDIV = DIV_2         // System PLL Input Divider (3x Divider) Crystall 10MHz
-            #pragma config UPLLIDIV = DIV_5         // Crystall 10MHz
-            #pragma config FPLLMUL = MUL_16        // System PLL Multiplier (PLL Multiply by xx)
-            #pragma config FPLLODIV = DIV_1
-            #pragma config UPLLEN = ON
-            #pragma config POSCMOD = HS             // Primary Oscillator Configuration (External clock mode)
-        #endif
-        #ifdef XTAL_20MHZ
-            #pragma config FPLLIDIV = DIV_5         // System PLL Input Divider (3x Divider) Crystall 20MHz
-            #pragma config UPLLIDIV = DIV_5         // Crystall 20MHz
-            #pragma config FPLLMUL = MUL_20        // System PLL Multiplier (PLL Multiply by xx)
-            #pragma config FPLLODIV = DIV_1
-            #pragma config UPLLEN = ON
-            #pragma config POSCMOD = HS             // Primary Oscillator Configuration (External clock mode)
-        #endif
-        #ifdef INT_OSC_8MHZ
-            #pragma config FNOSC = FRCPLL             // Oscillator Selection Bits (System PLL)
-        #else 
-            #pragma config FNOSC = PRIPLL             // Oscillator Selection Bits (System PLL)
-        #endif
+		// DEVCFG2
+		#ifdef XTAL_8MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_10MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = OFF			// Not possible to generate USB clock from 10MHz
+			#pragma config FPLLMUL  = MUL_16
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz. Not possible
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_20MHZ
+			#pragma config POSCMOD  = HS
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config UPLLIDIV = DIV_5			// USB PLL Input Divider. PLL input need 4MHz
+			#pragma config FPLLIDIV = DIV_5			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#if (PB_DIV == 2)
+			#pragma config FPBDIV   = DIV_2
+		#endif	
+		#if (PB_DIV == 4)
+			#pragma config FPBDIV   = DIV_4
+		#endif	
+		#ifdef INT_OSC_8MHZ
+			#ifndef XTAL_8MHZ
+				#error Internal 8MHz need 8MHz configuration (XTAL_8MHZ)
+			#endif
+			#pragma config FNOSC = FRCPLL
+		#else 
+			#pragma config FNOSC = PRIPLL
+		#endif
 
-        // DEVCFG1
-        #pragma config FSOSCEN = OFF            // Secondary Oscillator Enable (Disable SOSC)
-        #pragma config IESO = OFF                // Internal/External Switch Over (Enabled)
-        #pragma config OSCIOFNC = OFF           // CLKO Output Signal Active on the OSCO Pin (Disabled)
-        #pragma config FPBDIV = DIV_2
-        #pragma config FCKSM = CSDCMD           // Clock Switching and Monitor Selection (Clock Switch Enabled, FSCM Enabled)
-        #pragma config WDTPS = PS1048576        // Watchdog Timer Postscaler (1:1048576)
-        #pragma config WINDIS = OFF
-        #pragma config FWDTEN = OFF
-        #pragma config FWDTWINSZ = WINSZ_25
+		// DEVCFG1
+		#pragma config FSOSCEN  = OFF				// Secondary Oscillator Enable (Disable SOSC)
+		#pragma config IESO     = OFF				// Internal/External Switch Over (Enabled)
+		#pragma config OSCIOFNC = OFF				// CLKO Output Signal Active on the OSCO Pin (Disabled)
+		#pragma config FCKSM    = CSECMD			// Clock Switching and Monitor Selection (Clock Switch Enabled, FSCM Enabled)
+		#pragma config WDTPS    = PS1048576			// Watchdog Timer Postscaler (1:1048576)
+		#pragma config WINDIS   = OFF
+		#pragma config FWDTEN   = OFF
+		#pragma config FWDTWINSZ = WINSZ_25
 
-        // DEVCFG0
-        #pragma config DEBUG = OFF
-        #pragma config JTAGEN = OFF
-        #pragma config ICESEL = ICS_PGx2
-        #pragma config PWP = OFF
-        #pragma config BWP = OFF
-        #pragma config CP = OFF
-    #endif
+		// DEVCFG0
+		#pragma config DEBUG = OFF
+		#pragma config JTAGEN = OFF
+		#pragma config ICESEL = ICS_PGx2
+		#pragma config PWP = OFF
+		#pragma config BWP = OFF
+		#pragma config CP = OFF
+	#endif
 	#ifdef __32MX460F512L__
-        #pragma config UPLLEN   = ON        // USB PLL Enabled
-        #pragma config FPLLMUL  = MUL_20        // PLL Multiplier
-        #pragma config UPLLIDIV = DIV_2         // USB PLL Input Divider
-        #pragma config FPLLIDIV = DIV_2         // PLL Input Divider
-        #pragma config FPLLODIV = DIV_1         // PLL Output Divider
-        #pragma config FPBDIV   = DIV_2         // Peripheral Clock divisor
-        #pragma config FWDTEN   = OFF           // Watchdog Timer
-        #pragma config WDTPS    = PS1           // Watchdog Timer Postscale
-        #pragma config FCKSM    = CSDCMD        // Clock Switching & Fail Safe Clock Monitor
-        #pragma config OSCIOFNC = OFF           // CLKO Enable
-        #pragma config POSCMOD  = HS            // Primary Oscillator
-        #pragma config IESO     = OFF           // Internal/External Switch-over
-        #pragma config FSOSCEN  = OFF           // Secondary Oscillator Enable (KLO was off)
-        #pragma config FNOSC    = PRIPLL        // Oscillator Selection
-        #pragma config CP       = OFF           // Code Protect
-        #pragma config BWP      = OFF           // Boot Flash Write Protect
-        #pragma config PWP      = OFF           // Program Flash Write Protect
+		#ifdef XTAL_8MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_10MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = OFF			// Not possible to generate USB clock from 10MHz
+			#pragma config FPLLMUL  = MUL_16
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz. Not possible
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_20MHZ
+			#pragma config POSCMOD  = HS
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config UPLLIDIV = DIV_5			// USB PLL Input Divider. PLL input need 4MHz
+			#pragma config FPLLIDIV = DIV_5			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#if (PB_DIV == 2)
+			#pragma config FPBDIV   = DIV_2
+		#endif	
+		#if (PB_DIV == 4)
+			#pragma config FPBDIV   = DIV_4
+		#endif	
+		#ifdef INT_OSC_8MHZ
+			#ifndef XTAL_8MHZ
+				#error Internal 8MHz need 8MHz configuration (XTAL_8MHZ)
+			#endif
+			#pragma config FNOSC = FRCPLL
+		#else 
+			#pragma config FNOSC = PRIPLL
+		#endif
+		#pragma config FWDTEN   = OFF				// Watchdog Timer
+		#pragma config WDTPS	= PS1				// Watchdog Timer Postscale
+		#pragma config FCKSM	= CSECMD			// Clock Switching & Fail Safe Clock Monitor
+		#pragma config OSCIOFNC = OFF				// CLKO Enable
+		#pragma config IESO	    = OFF				// Internal/External Switch-over
+		#pragma config FSOSCEN  = OFF				// Secondary Oscillator Enable (KLO was off)
+		#pragma config CP	    = OFF				// Code Protect
+		#pragma config BWP	    = OFF				// Boot Flash Write Protect
+		#pragma config PWP	    = OFF				// Program Flash Write Protect
 	#endif
 	#ifdef __32MX470F512L__
-        // DEVCFG3
-        // USERID = No Setting
-        #pragma config FSRSSEL = PRIORITY_7            // Peripheral Module Disable Configuration (Allow only one reconfiguration)
-        #pragma config PMDL1WAY = OFF            // Peripheral Module Disable Configuration (Allow only one reconfiguration)
-        #pragma config IOL1WAY = OFF            // Peripheral Pin Select Configuration (Allow multiple reconfigurations)
-        #pragma config FUSBIDIO = ON            // USB USBID Selection (Controlled by the USB Module)
-        #pragma config FVBUSONIO = ON
+		// DEVCFG3
+		// USERID = No Setting
+		#pragma config FSRSSEL = PRIORITY_7			// Peripheral Module Disable Configuration (Allow only one reconfiguration)
+		#pragma config PMDL1WAY = OFF				// Peripheral Module Disable Configuration (Allow only one reconfiguration)
+		#pragma config IOL1WAY = OFF				// Peripheral Pin Select Configuration (Allow multiple reconfigurations)
+		#pragma config FUSBIDIO = ON				// USB USBID Selection (Controlled by the USB Module)
+		#pragma config FVBUSONIO = ON
 
-        // DEVCFG2
-        #ifdef XTAL_8MHZ
-            #pragma config FPLLIDIV = DIV_2         // System PLL Input Divider (2x Divider) Crystall 8MHz
-            #pragma config UPLLIDIV = DIV_2       // Crystall 8MHz
-            #pragma config FPLLMUL = MUL_20        // System PLL Multiplier (PLL Multiply by xx)
-            #pragma config FPLLODIV = DIV_1
-            #pragma config UPLLEN = ON
-            #pragma config POSCMOD = XT             // Primary Oscillator Configuration (External clock mode)
-        #endif
-        #ifdef XTAL_10MHZ
-            #pragma config FPLLIDIV = DIV_2         // System PLL Input Divider (3x Divider) Crystall 10MHz
-            #pragma config UPLLIDIV = DIV_5         // Crystall 10MHz
-            #pragma config FPLLMUL = MUL_16        // System PLL Multiplier (PLL Multiply by xx)
-            #pragma config FPLLODIV = DIV_1
-            #pragma config UPLLEN = ON
-            #pragma config POSCMOD = HS             // Primary Oscillator Configuration (External clock mode)
-        #endif
-        #ifdef XTAL_20MHZ
-            #pragma config FPLLIDIV = DIV_5         // System PLL Input Divider (3x Divider) Crystall 20MHz
-            #pragma config UPLLIDIV = DIV_5         // Crystall 20MHz
-            #pragma config FPLLMUL = MUL_20        // System PLL Multiplier (PLL Multiply by xx)
-            #pragma config FPLLODIV = DIV_1
-            #pragma config UPLLEN = ON
-            #pragma config POSCMOD = HS             // Primary Oscillator Configuration (External clock mode)
-        #endif
-        #ifdef INT_OSC_8MHZ
-            #pragma config FNOSC = FRCPLL             // Oscillator Selection Bits (System PLL)
-        #else 
-            #pragma config FNOSC = PRIPLL             // Oscillator Selection Bits (System PLL)
-        #endif
+		// DEVCFG2
+		#ifdef XTAL_8MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_10MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = OFF			// Not possible to generate USB clock from 10MHz
+			#pragma config FPLLMUL  = MUL_16
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz. Not possible
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_20MHZ
+			#pragma config POSCMOD  = HS
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config UPLLIDIV = DIV_5			// USB PLL Input Divider. PLL input need 4MHz
+			#pragma config FPLLIDIV = DIV_5			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#if (PB_DIV == 2)
+			#pragma config FPBDIV   = DIV_2
+		#endif	
+		#if (PB_DIV == 4)
+			#pragma config FPBDIV   = DIV_4
+		#endif	
+		#ifdef INT_OSC_8MHZ
+			#ifndef XTAL_8MHZ
+				#error Internal 8MHz need 8MHz configuration (XTAL_8MHZ)
+			#endif
+			#pragma config FNOSC = FRCPLL
+		#else 
+			#pragma config FNOSC = PRIPLL
+		#endif
 
-        // DEVCFG1
-        #pragma config FSOSCEN = OFF            // Secondary Oscillator Enable (Disable SOSC)
-        #pragma config IESO = OFF                // Internal/External Switch Over (Enabled)
-        #pragma config OSCIOFNC = OFF           // CLKO Output Signal Active on the OSCO Pin (Disabled)
-        #pragma config FPBDIV = DIV_2
-        #pragma config FCKSM = CSDCMD           // Clock Switching and Monitor Selection (Clock Switch Enabled, FSCM Enabled)
-        #pragma config WDTPS = PS1048576        // Watchdog Timer Postscaler (1:1048576)
-        #pragma config WINDIS = OFF
-        #pragma config FWDTEN = OFF
-        #pragma config FWDTWINSZ = WINSZ_25
+		// DEVCFG1
+		#pragma config FSOSCEN  = OFF				// Secondary Oscillator Enable (Disable SOSC)
+		#pragma config IESO     = OFF					// Internal/External Switch Over (Enabled)
+		#pragma config OSCIOFNC = OFF				// CLKO Output Signal Active on the OSCO Pin (Disabled)
+		#pragma config FCKSM    = CSECMD				// Clock Switching and Monitor Selection (Clock Switch Enabled, FSCM Enabled)
+		#pragma config WDTPS    = PS1048576			// Watchdog Timer Postscaler (1:1048576)
+		#pragma config WINDIS   = OFF
+		#pragma config FWDTEN   = OFF
+		#pragma config FWDTWINSZ = WINSZ_25
 
-        // DEVCFG0
-        #pragma config DEBUG = OFF
-        #pragma config JTAGEN = OFF
-        #pragma config ICESEL = ICS_PGx2
-        #pragma config PWP = OFF
-        #pragma config BWP = OFF
-        #pragma config CP = OFF
-    #endif
+		// DEVCFG0
+		#pragma config DEBUG = OFF
+		#pragma config JTAGEN = OFF
+		#pragma config ICESEL = ICS_PGx2
+		#pragma config PWP = OFF
+		#pragma config BWP = OFF
+		#pragma config CP = OFF
+	#endif
 #endif
 
 #define SWITCH_PRESSED 0

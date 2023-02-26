@@ -24,12 +24,11 @@ volatile uint8 do_isr_sleep_1ms = 0;
 
 void executeSleep(void);
 void __attribute__((nomips16)) PowerSaveSleep(void);
-void __attribute__((nomips16)) PowerSaveIdle(void);
 
 void init_sleep(void) {
 	sleepGetMainLoopRun_result = 1;
-	initTimer(&sleepAppRequest_delay);
-	initTimer(&sleepDriverRequest_delay);
+	init_timer(&sleepAppRequest_delay);
+	init_timer(&sleepDriverRequest_delay);
 }
 
 void deinit_sleep(void) {
@@ -44,15 +43,15 @@ void do_sleep(void) {
 		{
 			if ((sleepGetRequestRunApp() != 0) || (sleepGetRequestRunDriver() != 0)) {
 				sleepGetMainLoopRun_result = 1;
-			} else if ((readTimer(&sleepAppRequest_delay) == 0) && (readTimer(&sleepDriverRequest_delay) == 0)) {
+			} else if ((read_timer(&sleepAppRequest_delay) == 0) && (read_timer(&sleepDriverRequest_delay) == 0)) {
 				sleepGetMainLoopRun_result = 0;
 			} else {
 			}
 			
 			if (sleepGetRequestRunApp() != 0) {
-				writeTimer(&sleepAppRequest_delay, SLEEP_MINIMUM_DELAY);
+				write_timer(&sleepAppRequest_delay, SLEEP_MINIMUM_DELAY);
 				sleepEdgeDetector = 1;
-			} else if (readTimer(&sleepAppRequest_delay) == 0) {
+			} else if (read_timer(&sleepAppRequest_delay) == 0) {
 				if (sleepEdgeDetector) {
 					sleepEdgeDetector = 0;
 					sleepPointOfNoReturn = 1;
@@ -63,7 +62,7 @@ void do_sleep(void) {
 			}
 			
 			if (sleepGetRequestRunDriver() != 0) {
-				writeTimer(&sleepDriverRequest_delay, SLEEP_MINIMUM_DELAY);
+				write_timer(&sleepDriverRequest_delay, SLEEP_MINIMUM_DELAY);
 			} else {
 			}
 		}
@@ -135,10 +134,6 @@ void sleepExecuteSleep(void) {
 }
 
 /*Legacy sleep*/
-
-void idle_Request(void) {
-	PowerSaveIdle();
-}
 
 void sleep_Request(sint32 time) {
 	if (sleepRequestLock == 0) {

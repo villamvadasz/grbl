@@ -245,7 +245,7 @@ void st_wake_up(void) {
 	isStepperRunning = 1;	
 	// Enable stepper drivers.
 	#ifndef STEPPERS_ALWAYS_ENABLED
-		stepper_enable_enable();
+		stepper_enable_enable(0);
 	#endif
 	MAL_SYNC();
 	
@@ -287,9 +287,9 @@ void st_go_idle(void) {
 	}
 	#ifndef STEPPERS_ALWAYS_ENABLED
 		if (pin_state == false) {
-			stepper_enable_enable();
+			stepper_enable_enable(1);
 		} else {
-			stepper_enable_disable();
+			stepper_enable_disable(5);
 		}
 	#endif
 	MAL_SYNC();
@@ -471,9 +471,13 @@ void TIMER1_COMPA_vect(void)
 			system_log_st_go_idle(0);
 			st_go_idle();
 			// Ensure pwm is set properly upon completion of rate-controlled motion.
-			if (st.exec_block->is_pwm_rate_adjusted) { 
-				system_log_spindle_off(12);
-				spindle_set_state(SPINDLE_DISABLE, 0.0f);
+			if (st.exec_block != NULL) {
+				if (st.exec_block->is_pwm_rate_adjusted) { 
+					system_log_spindle_off(12);
+					spindle_set_state(SPINDLE_DISABLE, 0.0f);
+				}
+			} else {
+				// Do nothing. Worst case here is spindle is still active
 			}
 			system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
 			return; // Nothing to do but exit.

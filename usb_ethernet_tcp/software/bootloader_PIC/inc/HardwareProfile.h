@@ -48,27 +48,6 @@
     #error("Controller not supported")
 #endif
 
-
-#if defined(__PIC32MX1XX_2XX__)
-    // Maximum System frequency of 40MHz for PIC32MX1xx and PIC32MX2xx devices.
-    #define SYS_FREQ (40000000L)
-#elif defined(__PIC32MX3XX_7XX__)
-   // Maximum System frequency of 80MHz for PIC32MX3xx, PIC32MX4xx, 
-    // PIC32MX5xx, PIC32MX6xx and PIC32MX7xx devices.
-    #define SYS_FREQ (80000000L)
-	#define PB_DIV         		2
-#endif
-
-
-// Common macros 
-// Clock frequency values
-// These directly influence timed events using the Tick module.  They also are used for UART and SPI baud rate generation.
-#define GetSystemClock()		SYS_FREQ			// Hz
-#define GetInstructionClock()	(GetSystemClock()/1)	// 
-#define GetPeripheralClock()	(GetSystemClock()/PB_DIV)	// Divisor is dependent on the value of FPBDIV set(configuration bits).
-
-
-
 // Demo board hardware profiles
 #if defined(DEMO_BOARD_EXPLORER_16)
 	#include "HardwareProfile_PIC32MX_PIM_Explorer_16.h"

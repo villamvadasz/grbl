@@ -5,8 +5,8 @@ device=PIC32MX440F256H
 [PATH_INFO]
 BuildDirPolicy=BuildDirIsProjectDir
 dir_src=
-dir_bin=.\out
-dir_tmp=.\out
+dir_bin=.\output
+dir_tmp=.\output
 dir_sin=
 dir_inc=.\inc
 dir_lib=

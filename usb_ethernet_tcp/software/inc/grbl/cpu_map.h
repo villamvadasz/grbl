@@ -30,6 +30,7 @@
 	#include "mal.h"
 	#include "cpu_map_arduino.h"
 	#include "cpu_map_cnc_1_0_0.h"
+	#include "cpu_map_cnc_1_0_0_debug.h"
 	#include "cpu_map_cnc_1_0_0_mz.h"
 	#include "cpu_map_cnc_1_0_0_simulator.h"
 	#include "cpu_map_cnc_1_0_0_old_grbl.h"

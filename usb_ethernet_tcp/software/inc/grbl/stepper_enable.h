@@ -12,7 +12,7 @@
 	extern void stepper_enable_emergency_stop(void);
 	extern uint8 stepper_enable_emergency_stop_cleared(unsigned int auth); //auth is 3
 	
-	extern void stepper_enable_enable(void);
-	extern void stepper_enable_disable(void);
+	extern void stepper_enable_enable(unsigned int caller);
+	extern void stepper_enable_disable(unsigned int caller);
 
 #endif

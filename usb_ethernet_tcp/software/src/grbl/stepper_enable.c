@@ -23,7 +23,7 @@ void init_stepper_enable(void) {
 	#ifdef STEPPERS_DISABLE_DDR
 		STEPPERS_DISABLE_DDR = 0;
 	#endif
-	stepper_enable_disable(); // Here we always disable the stepper motors to ensure that a cyclical reset does not enable the motor for short periods
+	stepper_enable_disable(0); // Here we always disable the stepper motors to ensure that a cyclical reset does not enable the motor for short periods
 }
 
 void do_stepper_enable(void) {
@@ -32,9 +32,9 @@ void do_stepper_enable(void) {
 		if (stepper_enable_delayed_enabling_single_shoot) {
 			stepper_enable_delayed_enabling_single_shoot = 0;
 			#ifdef STEPPERS_ALWAYS_ENABLED
-				stepper_enable_enable();
+				stepper_enable_enable(2);
 			#else
-				stepper_enable_disable();
+				stepper_enable_disable(1);
 			#endif
 		}
 	}
@@ -83,16 +83,16 @@ void do_stepper_enable(void) {
 	if ((stepper_enable_emergency_stop_active == STEPPER_ENABLE_MACHINE_STOP_STATE) || (stepper_enable_emergency_stop_active == STEPPER_ENABLE_MACHINE_MOVE_STATE)) {
 	} else {
 		//Invalid value, force disable cyclically
-		stepper_enable_disable();
+		stepper_enable_disable(2);
 	}
 	if (stepper_enable_emergency_stop_delay) {
 		stepper_enable_emergency_stop_delay = 0;
-		stepper_enable_disable();
+		stepper_enable_disable(3);
 	}
 }
 
 void exceptions_user_callout_grbl(void) {
-	stepper_enable_disable();
+	stepper_enable_disable(4);
 }
 
 void isr_stepper_enable_1ms(void) {
@@ -119,7 +119,7 @@ uint8 stepper_enable_emergency_stop_cleared(unsigned int auth) {
 		if (system_control_get_state_ABORT() == 0) {
 			stepper_enable_emergency_stop_active = STEPPER_ENABLE_MACHINE_MOVE_STATE;
 			#ifdef STEPPERS_ALWAYS_ENABLED
-				stepper_enable_enable();
+				stepper_enable_enable(3);
 			#endif
 			result = 1;
 		}
@@ -129,7 +129,7 @@ uint8 stepper_enable_emergency_stop_cleared(unsigned int auth) {
 	return result;
 }
 
-void stepper_enable_enable(void) {
+void stepper_enable_enable(unsigned int caller) {
 	if (stepper_enable_emergency_stop_active == STEPPER_ENABLE_MACHINE_MOVE_STATE) {
 		//This output is fixed, not possible to invert it in SW due to Emergency Stop functionality
 		//Eeprom may be damaged then the disable would not work at all
@@ -138,19 +138,19 @@ void stepper_enable_enable(void) {
 		#endif
 		MAL_SYNC();
 		if (stepper_logger_single_shoot == 0) {
-			system_log_internal_stepper_enable();
+			system_log_internal_stepper_enable(caller);
 		}
 		stepper_logger_single_shoot = 1;
 	}
 }
 
-void stepper_enable_disable(void) {
+void stepper_enable_disable(unsigned int caller) {
 	#ifdef STEPPERS_DISABLE_PORT
 		STEPPERS_DISABLE_PORT = 1;
 	#endif
 	MAL_SYNC();
 	if (stepper_logger_single_shoot != 0) {
-		system_log_internal_stepper_disable();
+		system_log_internal_stepper_disable(caller);
 	}
 	stepper_logger_single_shoot = 0;
 }

@@ -28,7 +28,7 @@
 #ifndef c_grbl_config_h
 #define c_grbl_config_h
 
-#if defined(DEFAULTS_PIC32_MX_ARDUINO) || defined(DEFAULTS_PIC32_MX_CNC_1_0_0_SIMULATOR)|| defined(DEFAULTS_PIC32_MX_CNC_1_0_0_OLD_GRBL)|| defined(DEFAULTS_PIC32_MZ_CNC_1_0_0_MZ)
+#if defined(DEFAULTS_PIC32_MX_ARDUINO) || defined(DEFAULTS_PIC32_MX_CNC_1_0_0_SIMULATOR)|| defined(DEFAULTS_PIC32_MX_CNC_1_0_0_OLD_GRBL)|| defined(DEFAULTS_PIC32_MZ_CNC_1_0_0_MZ) || defined(DEFAULTS_PIC32_MX_CNC_1_0_0_DEBUG)
 #else
 	// Define CPU pin map and default settings.
 	// NOTE: OEMs can avoid the need to maintain/update the defaults.h and cpu_map.h files and use only
@@ -79,7 +79,11 @@
 
 // Allows GRBL to track and report gcode line numbers.  Enabling this means that the planning buffer
 // goes from 16 to 15 to make room for the additional line number data in the plan_block_t struct
+#ifdef DEFAULTS_PIC32_MX_CNC_1_0_0_DEBUG
+	#define USE_LINE_NUMBERS // Disabled by default. Uncomment to enable.
+#else
 // #define USE_LINE_NUMBERS // Disabled by default. Uncomment to enable.
+#endif
 
 // Upon a successful probe cycle, this option provides immediately feedback of the probe coordinates
 // through an automatically generated message. If disabled, users can still access the last probe

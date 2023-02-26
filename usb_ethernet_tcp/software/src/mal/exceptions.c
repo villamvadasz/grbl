@@ -2,6 +2,7 @@
 #include "c_isr.h"
 
 #include "k_stdtype.h"
+#include "exceptions.h"
 
 typedef enum _EXCEP {
 	EXCEP_IRQ = 0,			// interrupt
@@ -20,19 +21,11 @@ typedef enum _EXCEP {
 	EXCEP_C2E				// coprocessor 2
 } EXCEP;
 
-typedef struct _ExceptionLog {
-	unsigned int _excep_code;
-	unsigned int _excep_addr;
-	unsigned int magicWord;
-} ExceptionLog;
-
 EXCEP _excep_code;
 unsigned int _excep_addr;
 unsigned int _return_addr;
 
-#pragma GCC diagnostic error "-w"
 volatile ExceptionLog exceptionLog[16] __attribute__ ((persistent, address(0xA0000200)));
-#pragma GCC diagnostic pop
 
 uint32 exceptionCounter = 0;
 uint16 generateException = 0;
@@ -56,8 +49,8 @@ void _general_exception_handler(void) {
 			if (exceptionLog[x].magicWord == 0xDEAD) {//Hopefully magic word wont be written by POR
 				exceptionLogCnt = x + 1;
 			} else {
-                break;
-            }
+				break;
+			}
 		}
 	}
 

@@ -15,6 +15,13 @@
 	#ifndef SYS_FREQ
 		#error SYS_FREQ not defined
 	#endif
+	#ifndef PRESCALE1
+		#error PRESCALE not defined
+	#endif
+	#ifndef PRESCALE2
+		#error PRESCALE2 not defined
+	#endif
+
 	#ifdef __32MZ2048ECG144__
 		#ifndef PB3_DIV
 			#error PB3_DIV not defined
@@ -32,9 +39,9 @@
 		//#define PR4_CONFIG	(SYS_FREQ/PB_DIV/100000)
 	#endif
 
-	#define TMR1_FUNCTIONS()		isr_main_1ms();
-	#define TMR2_FUNCTIONS()		isr_main_100us();
-	#define TMR3_FUNCTIONS()		;
-	#define TMR4_FUNCTIONS()		;
+	#define TMR1_FUNCTIONS()	isr_main_1ms();
+	#define TMR2_FUNCTIONS()	isr_main_100us();
+	#define TMR3_FUNCTIONS()	;
+	#define TMR4_FUNCTIONS()	;
 
 #endif

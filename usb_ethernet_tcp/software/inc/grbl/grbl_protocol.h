@@ -82,7 +82,7 @@ extern void protocol_set_requestSynchMotion(void);
 extern uint8 protocol_get_requestSynchMotion(void);
 extern void protocol_clear_requestSynchMotion(void);
 
-extern void protocol_set_requestDwell(float seconds);
+extern void protocol_set_requestDwell(float milliseconds);
 extern void protocol_update_requestDwell(void);//needed due to synch takes a lot of time and timer must be started after motion
 extern uint8 protocol_get_requestDwell(void);
 
