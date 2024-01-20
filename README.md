@@ -34,7 +34,7 @@ You can connect over Ethernet on Port 5123
 	The 200MHz variant is currently under massive rework:
 	Makefile_32MZ2048ECG144 (for PIC32-HMZ144): Not working yet.
 #### Building the project
-Need: XC32 2.30 compiler Full Version.
+Need: XC32 4.20 compiler Full Version.
 build_all.bat will build all bootloaders, bootloader updated and application.
 build.bat will build application.
 #### Flash Bootloader
