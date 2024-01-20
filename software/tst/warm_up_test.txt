@@ -1,0 +1,42 @@
+Abort
+
+1. After Power up the Abort must be set
+2. Press Emergency Stop on Machine
+3. Check if Abort can not be cleared in the SW
+4. Release Emergency Stop but do not press Machine Start button
+5. Check if Abort can not be cleared in the SW
+6. Press Machine Start button
+7. Check if Abort can be cleared in the SW
+
+Spindle
+
+1. Send M5 to turn off spindle
+2. Check if spindle does not give any sound and is not moving
+3. Send M3 S0
+4. Check if spindle does not give any sound and is not moving
+5. Send M3 S5000
+6. Check if spindle is moving
+7. Send M3 S10000
+8. Check if spindle is moving
+9. Send M3 S15000
+10. Check if spindle is moving
+11. Check if the 3 steps have generated a higher and higher RPM.
+12. Send M5 to turn off spindle
+13. Check if spindle does not give any sound and is not moving
+
+Movement
+
+1. Move X axis 1mm to +
+2. Move X axis 1mm to -
+3. Move Y axis 1mm to +
+4. Move Y axis 1mm to +
+5. Move Z axis 1mm to +
+6. Move Z axis 1mm to -
+7. Check movement
+
+Spindle PWM check
+1. Set algoritm to 0, this is the old one with min and max rpm
+2. Set M3Snnnn to value : minrpm + ((maxrpm-minrpm)/2) for example: 4035+((32607-4035)/2) = 18321
+3. $D1
+4. Check PWM value, must be 50.
+5. Measure spindle RPM with device.

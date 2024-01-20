@@ -1,0 +1,35 @@
+﻿Build started 28.03.2020 18:50:33.
+     1>Project "c:\temp\project\project\cnc_1_0_0_simulator\software\bootloader_PC\PIC32UBL\PIC32UBL.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Release\PIC32UBL.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oy- /D WIN32 /D _WINDOWS /D NDEBUG /D _MBCS /Gm- /EHsc /MT /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Release\PIC32UBL.pch" /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt PIC32UBLDlg.cpp
+         PIC32UBLDlg.cpp
+     1>PIC32UBLDlg.cpp(301): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(325) : see declaration of 'sscanf'
+     1>PIC32UBLDlg.cpp(302): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(325) : see declaration of 'sscanf'
+       ResourceCompile:
+         All outputs are up-to-date.
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"Release\PIC32UBL.exe" /INCREMENTAL:NO /NOLOGO setupapi.lib kernel32.lib user32.lib /MANIFEST /ManifestFile:"Release\PIC32UBL.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"c:\temp\project\project\cnc_1_0_0_simulator\software\bootloader_PC\PIC32UBL\Release\PIC32UBL.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Release\PIC32UBL.lib" /MACHINE:X86 Release\PIC32UBL.res
+         Release\PIC32UBL.obj
+         Release\PIC32UBLDlg.obj
+         Release\stdafx.obj
+         Release\BootLoader.obj
+         Release\ComPort.obj
+         Release\Ethernet.obj
+         Release\Hex.obj
+         Release\USB_HID.obj
+         PIC32UBL.vcxproj -> c:\temp\project\project\cnc_1_0_0_simulator\software\bootloader_PC\PIC32UBL\Release\PIC32UBL.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"Release\PIC32UBL.exe;#1" /manifest res\PIC32UBL.manifest Release\PIC32UBL.exe.intermediate.manifest "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\Include\Manifest\dpiaware.manifest"
+       FinalizeBuildStatus:
+         Deleting file "Release\PIC32UBL.unsuccessfulbuild".
+         Touching "Release\PIC32UBL.lastbuildstate".
+     1>Done Building Project "c:\temp\project\project\cnc_1_0_0_simulator\software\bootloader_PC\PIC32UBL\PIC32UBL.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.95

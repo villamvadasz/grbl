@@ -1,6 +1,0 @@
-[Header]
-MagicCookie={0b13fe8c-dfe0-40eb-8900-6712719559a7}
-Version=1.0
-[TOOL_LOC_STAMPS]
-tool_loc{DBB2B82D-3E10-4401-85A6-C9CB169D3E05}=C:\Program Files\Microchip\xc32\v3.00\bin\xc32-gcc.exe
-tool_loc{A90E7C70-81C8-4500-B1F8-8560038BEFC0}=C:\Program Files (x86)\Microchip\xc32\v2.30\bin\xc32-ld.exe
