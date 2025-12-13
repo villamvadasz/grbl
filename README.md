@@ -49,7 +49,10 @@ Start bootloader_PC.
 Select USB or Ethernet. 
 Add IP address.
 Connect.
+Add serial number to the label box and click the button.
+Add the crypto key to the label box and click the button.
 Select HEX File for flashing: Most probably it will cnc_1_0_0_440F256H.hex or cnc_1_0_0_440F256H_simulator.hex
+Add the signature from the signature_bootloader.txt to the corresponding device and hex file.
 Erase-Program-Verfy
 Run Application
 Disconnect
