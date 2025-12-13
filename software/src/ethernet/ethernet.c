@@ -58,11 +58,16 @@ unsigned int init_ethernet_Asynch(void) {
 	return result;		
 }
 
+__attribute__(( weak )) unsigned int ethernet_callout_wait_for_other_device(void) {return 0;}
+
 void do_ethernet(void) {
 	if (ethernet_is_initialized_value == 0) {
-		unsigned int init_ethernet_Asynch_result = init_ethernet_Asynch();
-		if (init_ethernet_Asynch_result != 0) {
-			ethernet_is_initialized_value = 1;
+		extern unsigned int ethernet_callout_wait_for_other_device(void);
+		if (ethernet_callout_wait_for_other_device() == 0) {
+			unsigned int init_ethernet_Asynch_result = init_ethernet_Asynch();
+			if (init_ethernet_Asynch_result != 0) {
+				ethernet_is_initialized_value = 1;
+			}
 		}
 	} else {
 		do_enc28j60();
@@ -79,6 +84,7 @@ void isr_ethernet_1ms(void) {
 	isr_tcp_1ms();
 	isr_udp_1ms();
 	isr_berkeleyapi_1ms();
+	isr_Stack_1ms();
 }
 
 void deinit_ethernet(void) {

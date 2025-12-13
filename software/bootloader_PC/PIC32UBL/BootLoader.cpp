@@ -3,6 +3,8 @@
 #include "ComPort.h"
 #include "USB_HID.h"
 #include "Hex.h"
+#include "HexEnc.h"
+#include "FileLoader.h"
 #include "BootLoader.h"
 #include "PIC32UBL.h"
 #include "PIC32UBLDlg.h"
@@ -16,11 +18,12 @@
 #define EOT 04
 #define DLE 16
 
+char Buff[1000];
 
 /**
  * Static table used for the table_driven implementation.
  *****************************************************************************/
-static const unsigned short crc_table[16] = 
+static const unsigned short crc_table[16] =
 {
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
     0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef
@@ -36,26 +39,26 @@ static const unsigned short crc_table[16] =
  *****************************************************************************/
 unsigned short CalculateCrc(char *data, unsigned int len)
 {
-    unsigned int i;
-    unsigned short crc = 0;
-    
-    while(len--)
-    {
-        i = (crc >> 12) ^ (*data >> 4);
-	    crc = crc_table[i & 0x0F] ^ (crc << 4);
-	    i = (crc >> 12) ^ (*data >> 0);
-	    crc = crc_table[i & 0x0F] ^ (crc << 4);
-	    data++;
-	} 
+	unsigned int i;
+	unsigned short crc = 0;
 
-    return (crc & 0xFFFF);
+	while(len--)
+	{
+		i = (crc >> 12) ^ (*data >> 4);
+		crc = crc_table[i & 0x0F] ^ (crc << 4);
+		i = (crc >> 12) ^ (*data >> 0);
+		crc = crc_table[i & 0x0F] ^ (crc << 4);
+		data++;
+	}
+
+	return (crc & 0xFFFF);
 }
 
 /****************************************************************************
  *  This thread calls receive and transmit tasks
  *
  * \param lpParam  this Pointer
- 
+
 
  * \return  0 on exit.
  *****************************************************************************/
@@ -65,7 +68,7 @@ UINT RxTxThread(LPVOID lpParam)
 
 	while(bootloaderPtr->ExitThread == FALSE)
 	{
-		
+
 		bootloaderPtr->ReceiveTask();
 		bootloaderPtr->TransmitTask();
 		Sleep(1);
@@ -75,21 +78,18 @@ UINT RxTxThread(LPVOID lpParam)
 	return 0;
 }
 
-
-
-
 /****************************************************************************
  * Shut down the Receive transmit thread.
  *
- * \param       
- * \param      
- * \param 		
- * \return         
+ * \param
+ * \param
+ * \param 
+ * \return
  *****************************************************************************/
 void CBootLoader::ShutdownThread( )
 {
    HRESULT hr = S_OK;
-  
+
    if(BtlThread)
    {
 	   // Set a flag to exit the thread
@@ -104,7 +104,7 @@ void CBootLoader::ShutdownThread( )
 			::CloseHandle( BtlThread );
 	   }
 
-	   
+
 
 	   // Set the thread handle to NULL
 	   BtlThread = NULL;
@@ -114,10 +114,10 @@ void CBootLoader::ShutdownThread( )
 /****************************************************************************
  * Create	Thread
  *
- * \param   hWnd  Main Window Handle 
- * \param      
- * \param 		
- * \return         
+ * \param   hWnd  Main Window Handle
+ * \param
+ * \param 
+ * \return
  *****************************************************************************/
 void CBootLoader::CreateRxTxThread(HWND hWnd)
 {
@@ -125,27 +125,27 @@ void CBootLoader::CreateRxTxThread(HWND hWnd)
 	if(BtlThread)
 	{
 		return; // Thread is already running.
-		
+
 	}
 	ExitThread = false;
 	BtlThread = ::AfxBeginThread(RxTxThread, this, THREAD_PRIORITY_NORMAL, 0, 0, 0);
-	
+
 }
 
 
 /****************************************************************************
  *  Receive Task
  *
- * \param   
- * \param      
- * \param 		
- * \return         
+ * \param
+ * \param
+ * \param 
+ * \return
  *****************************************************************************/
 void CBootLoader::ReceiveTask(void)
 {
 	unsigned short BuffLen;
 	char Buff[255];
-	
+
 	BuffLen = ReadPort((char*)Buff, (sizeof(Buff) - 10));
 	BuildRxFrame((unsigned char*)Buff, BuffLen);
 	if(RxFrameValid)
@@ -164,7 +164,7 @@ void CBootLoader::ReceiveTask(void)
 		{
 			// Reset flags
 			NoResponseFromDevice = false;
-            RxFrameValid = false;		
+			RxFrameValid = false;
 			// Handle no response situation.
 			HandleNoResponse();
 		}
@@ -175,10 +175,10 @@ void CBootLoader::ReceiveTask(void)
 /****************************************************************************
  *  Handle no response situation
  *
- * \param   
- * \param      
- * \param 		
- * \return         
+ * \param
+ * \param
+ * \param 
+ * \return
  *****************************************************************************/
 void CBootLoader::HandleNoResponse(void)
 {
@@ -189,6 +189,8 @@ void CBootLoader::HandleNoResponse(void)
 		case ERASE_FLASH:
 		case PROGRAM_FLASH:
 		case READ_CRC:
+		case WRITE_CRYPTO_SIGNATURE:
+		case READ_SERIAL_NUMBER:
 			// Notify main window that there was no reponse.
 			::PostMessage(m_hWnd, WM_USER_BOOTLOADER_NO_RESP, (WPARAM)LastSentCommand, 0 );
 			break;
@@ -199,10 +201,10 @@ void CBootLoader::HandleNoResponse(void)
 /****************************************************************************
  *  Handle Response situation
  *
- * \param   
- * \param      
- * \param 		
- * \return         
+ * \param
+ * \param
+ * \param 
+ * \return
  *****************************************************************************/
 void CBootLoader::HandleResponse(void)
 {
@@ -210,28 +212,33 @@ void CBootLoader::HandleResponse(void)
 	char majorVer = RxData[3];
 	char minorVer = RxData[4];
 	CString string;
-	 
-	
+
+
 	switch(cmd)
 	{
 	case READ_BOOT_INFO:
 	case ERASE_FLASH:
 	case READ_CRC:
+	case WRITE_CRYPTO_SIGNATURE:
+	case READ_SERIAL_NUMBER:
+	case WRITE_SERIAL_NUMBER:
+	case WRITE_CRYPTO_KEY:
 		// Notify main window that command received successfully.
 		::PostMessage(m_hWnd, WM_USER_BOOTLOADER_RESP_OK, (WPARAM)cmd, (LPARAM)&RxData[1] );
 		break;
 
 	case PROGRAM_FLASH:
-		
+
 		// If there is a hex record, send next hex record.
 		ResetHexFilePtr = false; // No need to reset hex file pointer.
 		if(!SendCommand(PROGRAM_FLASH, MaxRetry, TxRetryDelay))
 		{
 			// Notify main window that programming operation completed.
-			::PostMessage(m_hWnd, WM_USER_BOOTLOADER_RESP_OK, (WPARAM)cmd, (LPARAM)&RxData[1] );		 
+			::PostMessage(m_hWnd, WM_USER_BOOTLOADER_RESP_OK, (WPARAM)cmd, (LPARAM)&RxData[1] );
 		}
 		ResetHexFilePtr = true;
 		break;
+	
 	}
 }
 
@@ -239,31 +246,31 @@ void CBootLoader::HandleResponse(void)
 /****************************************************************************
  *  Builds the response frame
  *
- * \param  buff: Pointer to the data buffer 
- * \param  buffLen: Buffer length    
- * \param 		
- * \return         
+ * \param  buff: Pointer to the data buffer
+ * \param  buffLen: Buffer length
+ * \param 
+ * \return
  *****************************************************************************/
 void CBootLoader::BuildRxFrame(unsigned char *buff, unsigned short buffLen)
 {
 
 	static bool Escape = false;
 	unsigned short crc;
-	
-	
+
+
 	while((buffLen > 0) && (RxFrameValid == false))
 	{
 		buffLen --;
 
 		if(RxDataLen >= (sizeof(RxData)-2))
 		{
-			RxDataLen = 0;			
+			RxDataLen = 0;
 		}
 
 		switch(*buff)
 		{
-			
-			
+
+
 			case SOH: //Start of header
 				if(Escape)
 				{
@@ -275,10 +282,10 @@ void CBootLoader::BuildRxFrame(unsigned char *buff, unsigned short buffLen)
 				else
 				{
 					// Received byte is indeed a SOH which indicates start of new frame.
-					RxDataLen = 0;					
-				}		
+					RxDataLen = 0;
+				}
 				break;
-				
+
 			case EOT: // End of transmission
 				if(Escape)
 				{
@@ -298,55 +305,54 @@ void CBootLoader::BuildRxFrame(unsigned char *buff, unsigned short buffLen)
 						if((CalculateCrc(RxData, (RxDataLen-2)) == crc) && (RxDataLen > 2))
 						{
 							// CRC matches and frame received is valid.
-							RxFrameValid = TRUE;						
+							RxFrameValid = TRUE;
 						}
 					}
-				}							
+				}
 				break;
-				
-				
-		    case DLE: // Escape character received.
+
+
+			case DLE: // Escape character received.
 				if(Escape)
 				{
 					// Received byte is not ESC but data.
 					RxData[RxDataLen++] = *buff;
 					// Reset Escape Flag.
-					Escape = FALSE;					
+					Escape = FALSE;
 				}
 				else
 				{
 					// Received byte is an escape character. Set Escape flag to escape next byte.
-					Escape = TRUE;	
-				}	
+					Escape = TRUE;
+				}
 				break;
-			
-			default: // Data field.
-			    RxData[RxDataLen++] = *buff;
-			    // Reset Escape Flag.
-			    Escape = FALSE;
-				break;	
-			
-		}	
-		// Increment the pointer.
-		buff++;	
-		
-	}	
-}
 
+			default: // Data field.
+				RxData[RxDataLen++] = *buff;
+				// Reset Escape Flag.
+				Escape = FALSE;
+				break;
+
+		}
+		// Increment the pointer.
+		buff++;
+
+	}
+}
 
 /****************************************************************************
  *  Transmit task: Transmits frame if there is a frame to send.
  *
- * \param   
- * \param   
- * \param 		
- * \return         
+ * \param
+ * \param
+ * \param
+ * \return
  *****************************************************************************/
 void CBootLoader::TransmitTask(void)
 {
 	static unsigned long NextRetryTimeInMs;
- 
-	
+
+
 	switch(TxState)
 	{
 
@@ -365,7 +371,7 @@ void CBootLoader::TransmitTask(void)
 
 	case RE_TRY:
 		if(RetryCount)
-		{			
+		{
 			if(NextRetryTimeInMs < GetTickCount())
 			{
 				// Delay elapsed. Its time to retry.
@@ -373,11 +379,11 @@ void CBootLoader::TransmitTask(void)
 				WritePort(TxPacket, TxPacketLen);
 				// Decrement retry count.
 				RetryCount--;
-				
+
 			}
 		}
 		else
-		{	
+		{
 			// Retries Exceeded
 			NoResponseFromDevice = true;
 			// Reset the state
@@ -387,14 +393,13 @@ void CBootLoader::TransmitTask(void)
 	}
 }
 
-
 /****************************************************************************
  *  Stops transmission retries
  *
- * \param   
- * \param   
- * \param 		
- * \return         
+ * \param
+ * \param
+ * \param
+ * \return
  *****************************************************************************/
 void CBootLoader::StopTxRetries(void)
 {
@@ -403,29 +408,38 @@ void CBootLoader::StopTxRetries(void)
 	RetryCount = 0;
 }
 
-
 /****************************************************************************
  *  Send Command
  *
- * \param		cmd:  Command  
+ * \param		cmd:  Command
  * \param		data: Pointer to data buffer if any
  * \param 		dataLen: Data length
  * \param		retries: Number of retries allowed
  * \param		retryDelayInMs: Delay between retries in milisecond
- * \return         
+ * \return
  *****************************************************************************/
-char Buff[1000];
-
 bool CBootLoader::SendCommand(char cmd, unsigned short Retries, unsigned short DelayInMs)
 {
-	
-	
-	unsigned short crc;
-	
-	unsigned int StartAddress,  Len;
+	unsigned short crc = 0;
+	unsigned int Len = 0;
 	unsigned short BuffLen = 0;
 	unsigned short HexRecLen;
+
 	UINT totalRecords = 10;
+	switch (FileLoaderType) {
+		case FileLoaderType_Hex : {
+			totalRecords = 10;
+			break;
+		}
+		case FileLoaderType_HexEnc : {
+			totalRecords = 4;
+			break;
+		}
+		default : {
+			break;
+		}
+	}
+
 	TxPacketLen = 0;
 
 	// Store for later use.
@@ -433,73 +447,141 @@ bool CBootLoader::SendCommand(char cmd, unsigned short Retries, unsigned short D
 
 	switch((unsigned char)cmd)
 	{
-	case READ_BOOT_INFO:
-		Buff[BuffLen++] = cmd;
-		MaxRetry = RetryCount = Retries;	
-		TxRetryDelay = DelayInMs; // in ms
-		break;
-
-	case ERASE_FLASH:
-		Buff[BuffLen++] = cmd;
-		MaxRetry = RetryCount = Retries;	
-		TxRetryDelay = DelayInMs; // in ms
-		break;
-
-	case JMP_TO_APP:
-		Buff[BuffLen++] = cmd;
-		MaxRetry = RetryCount = 1;	
-		TxRetryDelay = 10; // in ms
-		break;
-	
-	case PROGRAM_FLASH:
-		Buff[BuffLen++] = cmd;
-		if(ResetHexFilePtr)
-		{
-			if(!HexManager.ResetHexFilePointer())
+		case READ_BOOT_INFO: {
+			Buff[BuffLen++] = cmd;
+			MaxRetry = RetryCount = Retries;
+			TxRetryDelay = DelayInMs; // in ms
+			break;
+		}
+		case ERASE_FLASH: {
+			Buff[BuffLen++] = cmd;
+			MaxRetry = RetryCount = Retries;
+			TxRetryDelay = DelayInMs; // in ms
+			break;
+		}
+		case JMP_TO_APP: {
+			Buff[BuffLen++] = cmd;
+			MaxRetry = RetryCount = 1;
+			TxRetryDelay = 10; // in ms
+			break;
+		}
+		case PROGRAM_FLASH: {
+			Buff[BuffLen++] = cmd;
+			if(ResetHexFilePtr)
 			{
-				// Error in resetting the file pointer
+				if(!ResetFilePointer())
+				{
+					// Error in resetting the file pointer
+					return false;
+				}
+			}
+			HexRecLen = GetNextPartOfFile(&Buff[BuffLen], (sizeof(Buff) - 5));
+			if(HexRecLen == 0)
+			{
+				//Not a valid hex file.
 				return false;
 			}
-		}
-		HexRecLen = HexManager.GetNextHexRecord(&Buff[BuffLen], (sizeof(Buff) - 5));
-		if(HexRecLen == 0)
-		{
-			//Not a valid hex file.
-			return false;
-		}
-		
-		BuffLen = BuffLen + HexRecLen;
-		while(totalRecords)
-		{
-			HexRecLen = HexManager.GetNextHexRecord(&Buff[BuffLen], (sizeof(Buff) - 5));
+
 			BuffLen = BuffLen + HexRecLen;
-			totalRecords--;
+			while(totalRecords)
+			{
+				HexRecLen = GetNextPartOfFile(&Buff[BuffLen], (sizeof(Buff) - 5));
+				BuffLen = BuffLen + HexRecLen;
+				totalRecords--;
+			}
+			MaxRetry = RetryCount = Retries;
+			TxRetryDelay = DelayInMs; // in ms
+			break;
 		}
-		MaxRetry = RetryCount = Retries;	
-		TxRetryDelay = DelayInMs; // in ms
-		break;
+		case READ_CRC: {
+			unsigned int StartAddress = 0;
+			Buff[BuffLen++] = cmd;
+			VerifyFlash((unsigned int*)&StartAddress, (unsigned int*)&Len, (unsigned short*)&crc);
+			Buff[BuffLen++] = (StartAddress);
+			Buff[BuffLen++] = (StartAddress >> 8);
+			Buff[BuffLen++] = (StartAddress >> 16);
+			Buff[BuffLen++] = (StartAddress >> 24);
+			Buff[BuffLen++] = (Len);
+			Buff[BuffLen++] = (Len >> 8);
+			Buff[BuffLen++] = (Len >> 16);
+			Buff[BuffLen++] = (Len >> 24);
+			Buff[BuffLen++] =  (char)crc;
+			Buff[BuffLen++] =  (char)(crc >> 8);
+			MaxRetry = RetryCount = Retries;
+			TxRetryDelay = DelayInMs; // in ms
+			break;
+		}
+		case WRITE_CRYPTO_SIGNATURE: {
+			unsigned char CryptoSignature[16];
+			Buff[BuffLen++] = cmd;
+			GetCryptoSignature(CryptoSignature);
+			Buff[BuffLen++] = CryptoSignature[0];
+			Buff[BuffLen++] = CryptoSignature[1];
+			Buff[BuffLen++] = CryptoSignature[2];
+			Buff[BuffLen++] = CryptoSignature[3];
+			Buff[BuffLen++] = CryptoSignature[4];
+			Buff[BuffLen++] = CryptoSignature[5];
+			Buff[BuffLen++] = CryptoSignature[6];
+			Buff[BuffLen++] = CryptoSignature[7];
+			Buff[BuffLen++] = CryptoSignature[8];
+			Buff[BuffLen++] = CryptoSignature[9];
+			Buff[BuffLen++] = CryptoSignature[10];
+			Buff[BuffLen++] = CryptoSignature[11];
+			Buff[BuffLen++] = CryptoSignature[12];
+			Buff[BuffLen++] = CryptoSignature[13];
+			Buff[BuffLen++] = CryptoSignature[14];
+			Buff[BuffLen++] = CryptoSignature[15];
 
-	case READ_CRC:
-		Buff[BuffLen++] = cmd;
-		HexManager.VerifyFlash((unsigned int*)&StartAddress, (unsigned int*)&Len, (unsigned short*)&crc);
-		Buff[BuffLen++] = (StartAddress);
-		Buff[BuffLen++] = (StartAddress >> 8);
-		Buff[BuffLen++] = (StartAddress >> 16);
-		Buff[BuffLen++] = (StartAddress >> 24);
-		Buff[BuffLen++] = (Len);
-		Buff[BuffLen++] = (Len >> 8);
-		Buff[BuffLen++] = (Len >> 16);
-		Buff[BuffLen++] = (Len >> 24);
-		Buff[BuffLen++] =  (char)crc;
-		Buff[BuffLen++] =  (char)(crc >> 8);
-		MaxRetry = RetryCount = Retries;	
-		TxRetryDelay = DelayInMs; // in ms
-		break;
-
-	default:
-		return false;
-		break;
-
+			MaxRetry = RetryCount = Retries;
+			TxRetryDelay = DelayInMs; // in ms
+			break;
+		}
+		case READ_SERIAL_NUMBER: {
+			Buff[BuffLen++] = cmd;
+			MaxRetry = RetryCount = Retries;
+			TxRetryDelay = DelayInMs; // in ms
+			break;
+		}
+		case WRITE_SERIAL_NUMBER: {
+			unsigned char CryptoSignature[16];
+			GetCryptoSignature(CryptoSignature);
+			Buff[BuffLen++] = cmd;
+			Buff[BuffLen++] = CryptoSignature[0];
+			Buff[BuffLen++] = CryptoSignature[1];
+			Buff[BuffLen++] = CryptoSignature[2];
+			Buff[BuffLen++] = CryptoSignature[3];
+			MaxRetry = RetryCount = Retries;
+			TxRetryDelay = DelayInMs; // in ms
+			break;
+		}
+		case WRITE_CRYPTO_KEY : {
+			unsigned char CryptoSignature[16];
+			GetCryptoSignature(CryptoSignature);
+			Buff[BuffLen++] = cmd;
+			Buff[BuffLen++] = CryptoSignature[0];
+			Buff[BuffLen++] = CryptoSignature[1];
+			Buff[BuffLen++] = CryptoSignature[2];
+			Buff[BuffLen++] = CryptoSignature[3];
+			Buff[BuffLen++] = CryptoSignature[4];
+			Buff[BuffLen++] = CryptoSignature[5];
+			Buff[BuffLen++] = CryptoSignature[6];
+			Buff[BuffLen++] = CryptoSignature[7];
+			Buff[BuffLen++] = CryptoSignature[8];
+			Buff[BuffLen++] = CryptoSignature[9];
+			Buff[BuffLen++] = CryptoSignature[10];
+			Buff[BuffLen++] = CryptoSignature[11];
+			Buff[BuffLen++] = CryptoSignature[12];
+			Buff[BuffLen++] = CryptoSignature[13];
+			Buff[BuffLen++] = CryptoSignature[14];
+			Buff[BuffLen++] = CryptoSignature[15];
+			MaxRetry = RetryCount = Retries;
+			TxRetryDelay = DelayInMs; // in ms
+			break;
+		}
+		default: {
+			return false;
+			break;
+		}
 	}
 
 	// Calculate CRC for the frame.
@@ -516,95 +598,204 @@ bool CBootLoader::SendCommand(char cmd, unsigned short Retries, unsigned short D
 		if((Buff[i] == EOT) || (Buff[i] == SOH)
 				|| (Buff[i] == DLE))
 		{
-			TxPacket[TxPacketLen++] = DLE;			
+			TxPacket[TxPacketLen++] = DLE;
 		}
 		TxPacket[TxPacketLen++] = Buff[i];
 	}
 
 	// EOT: End of transmission
 	TxPacket[TxPacketLen++] = EOT;
-	
+
 	return true;
-	
+
 }
 
 /****************************************************************************
- *  Gets the progress of each command. This function can be used for progress 
+ *  Gets the progress of each command. This function can be used for progress
 	bar.
  *
- * \param	Lower: Pointer to current count of the progress bar.	
- * \param	Upper: Pointer to max count.	
- * \param 		
- * \return         
+ * \param	Lower: Pointer to current count of the progress bar.
+ * \param	Upper: Pointer to max count.
+ * \param 
+ * \return
  *****************************************************************************/
 void CBootLoader::GetProgress(int* Lower, int* Upper)
 {
-	
-
 	switch(LastSentCommand)
 	{
 	case READ_BOOT_INFO:
 	case ERASE_FLASH:
 	case READ_CRC:
 	case JMP_TO_APP:
+	case WRITE_CRYPTO_SIGNATURE:
+	case READ_SERIAL_NUMBER:
+	case WRITE_SERIAL_NUMBER:
+	case WRITE_CRYPTO_KEY:
 		// Progress with respect to retry count.
-		*Lower = (MaxRetry - RetryCount); 
+		*Lower = (MaxRetry - RetryCount);
 		*Upper = MaxRetry;
 		break;
 
 	case PROGRAM_FLASH:
 		// Progress with respect to line counts in hex file.
-		*Lower = HexManager.HexCurrLineNo;
-		*Upper = HexManager.HexTotalLines; 
+		*Lower = GetProgressLower();
+		*Upper = GetProgressUpper();
 		break;
-
 	}
 }
 
 /****************************************************************************
  *  Gets locally calculated CRC
  *
- * \param		
- * \param		
- * \param 		
- * \return 16 bit CRC      
+ * \param
+ * \param
+ * \param 
+ * \return 16 bit CRC
  *****************************************************************************/
-unsigned short CBootLoader::CalculateFlashCRC(void)
+unsigned short CBootLoader::CalculateFlashCRC(unsigned char *key_stored)
 {
-	unsigned int StartAddress,  Len;
-	unsigned short crc;
-	HexManager.VerifyFlash((unsigned int*)&StartAddress, (unsigned int*)&Len, (unsigned short*)&crc);
+	unsigned int StartAddress = 0;
+	unsigned int Len = 0;
+	unsigned short crc = 0;
+	VerifyFlash((unsigned int*)&StartAddress, (unsigned int*)&Len, (unsigned short*)&crc);
 	return crc;
 }
 
 /****************************************************************************
  *  Loads hex file
  *
- * \param		
- * \param		
- * \param 		
- * \return 16 bit CRC      
+ * \param
+ * \param
+ * \param 
+ * \return 16 bit CRC
  *****************************************************************************/
 bool CBootLoader::LoadHexFile(void)
 {
-	return HexManager.LoadHexFile();
+	bool result = false;
+	FileLoaderType = FileLoader.LoadHexFile();
+	switch (FileLoaderType) {
+		case FileLoaderType_None : {
+			result = false;
+			break;
+		}
+		case FileLoaderType_Hex : {
+			result = HexManager.LoadHexFile(FileLoader.FilePath);
+			break;
+		}
+		case FileLoaderType_HexEnc : {
+			result = HexEncManager.LoadHexEncFile(FileLoader.FilePath);
+			break;
+		}
+		default : {
+			result = false;
+			break;
+		}
+	}
+	return result;
 }
 
+unsigned short CBootLoader::GetNextPartOfFile(char *HexRec, unsigned int BuffLen) {
+	unsigned short result = 0;
+	switch (FileLoaderType) {
+		case FileLoaderType_Hex : {
+			result = HexManager.GetNextHexRecord(HexRec, BuffLen);
+			break;
+		}
+		case FileLoaderType_HexEnc : {
+			result = HexEncManager.GetNextHexEncRecord(HexRec, BuffLen);
+			break;
+		}
+		default : {
+			break;
+		}
+	}
+	return result;
+}
 
+bool CBootLoader::ResetFilePointer(void) {
+	bool result = false;
+	switch (FileLoaderType) {
+		case FileLoaderType_Hex : {
+			result = HexManager.ResetHexFilePointer();
+			break;
+		}
+		case FileLoaderType_HexEnc : {
+			result = HexEncManager.ResetHexEncFilePointer();
+			break;
+		}
+		default : {
+			break;
+		}
+	}
+	return result;
+}
+
+int CBootLoader::GetProgressLower(void) {
+	int result = 0;
+	switch (FileLoaderType) {
+		case FileLoaderType_Hex : {
+			result = HexManager.HexCurrLineNo;
+			break;
+		}
+		case FileLoaderType_HexEnc : {
+			result = HexEncManager.Lower / 128;
+			break;
+		}
+		default : {
+			break;
+		}
+	}
+
+	return result;
+}
+
+int CBootLoader::GetProgressUpper(void) {
+	int result = 0;
+	switch (FileLoaderType) {
+		case FileLoaderType_Hex : {
+			result = HexManager.HexTotalLines;
+			break;
+		}
+		case FileLoaderType_HexEnc : {
+			result = HexEncManager.Upper / 128;
+			break;
+		}
+		default : {
+			break;
+		}
+	}
+	return result;
+}
+
+void CBootLoader::VerifyFlash(unsigned int* StartAdress, unsigned int* ProgLen, unsigned short* crc) {
+	switch (FileLoaderType) {
+		case FileLoaderType_Hex : {
+			HexManager.VerifyFlash(StartAdress, ProgLen, crc);
+			break;
+		}
+		case FileLoaderType_HexEnc : {
+			HexEncManager.VerifyFlash(StartAdress, ProgLen, crc);
+			break;
+		}
+		default : {
+			break;
+		}
+	}
+}
 
 /****************************************************************************
  *  Open communication port (USB/COM/Eth)
  *
- * \param Port Type	(USB/COM)	
- * \param	com port	
+ * \param Port Type	(USB/COM)
+ * \param	com port
  * \param 	baud rate
  * \param   vid
  * \param   pid
- * \return       
+ * \return
  *****************************************************************************/
 void CBootLoader::OpenPort(UINT portType, UINT comport, UINT baud, UINT vid, UINT pid, USHORT skt, ULONG ip, HWND hwnd)
 {
-	
+
 	PortSelected = portType;
 	switch(portType)
 	{
@@ -614,27 +805,27 @@ void CBootLoader::OpenPort(UINT portType, UINT comport, UINT baud, UINT vid, UIN
 
 	case COM:
 		ComPort.OpenComPort(comport, baud);
-		break; 
+		break;
 
 	case ETH:
 		Ethernet.OpenUdpPort(skt, ip);
 		break;
 
 	}
-	 
+
 }
 
 /****************************************************************************
  *  Get communication port status.
  *
- * \param 
+ * \param
  * \return true: Port opened.
 		   false: Port closed.
  *****************************************************************************/
 BOOL CBootLoader::GetPortOpenStatus(UINT PortType)
 {
 	BOOL result;
-	
+
     switch(PortType)
 	{
 	case USB:
@@ -643,7 +834,7 @@ BOOL CBootLoader::GetPortOpenStatus(UINT PortType)
 
 	case COM:
 		result = ComPort.GetComPortOpenStatus();
-		break; 
+		break;
 
 	case ETH:
 		result = Ethernet.GetSocketOpenStatus();
@@ -658,8 +849,8 @@ BOOL CBootLoader::GetPortOpenStatus(UINT PortType)
 /****************************************************************************
  *  Closes the communication port (USB/COM/ETH)
  *
- * \param 
- * \return 
+ * \param
+ * \return
  *****************************************************************************/
 void CBootLoader::ClosePort(UINT PortType)
 {
@@ -673,22 +864,21 @@ void CBootLoader::ClosePort(UINT PortType)
 
 	case COM:
 		ComPort.CloseComPort();
-		break;   
+		break;
 
 	case ETH:
 		Ethernet.CloseUdpPort();
 		break;
-		
+
 
 	}
 }
-
 
 /****************************************************************************
  *  Write communication port (USB/COM/ETH)
  *
  * \param Buffer, Len
- * \return 
+ * \return
  *****************************************************************************/
 void CBootLoader::WritePort(char *buffer, int bufflen)
 {
@@ -701,7 +891,7 @@ void CBootLoader::WritePort(char *buffer, int bufflen)
 
 	case COM:
 		ComPort.SendComPort(buffer, bufflen);
-		break;    
+		break;
 
 	case ETH:
 		Ethernet.SendUdpPort((BYTE *)buffer, bufflen);
@@ -710,12 +900,11 @@ void CBootLoader::WritePort(char *buffer, int bufflen)
 	}
 }
 
-
 /****************************************************************************
  *  Read communication port (USB/COM/ETH)
  *
  * \param Buffer, Len
- * \return 
+ * \return
  *****************************************************************************/
 unsigned short CBootLoader::ReadPort(char *buffer, int bufflen)
 {
@@ -728,7 +917,7 @@ unsigned short CBootLoader::ReadPort(char *buffer, int bufflen)
 
 	case COM:
 		bytesRead = ComPort.ReadComPort(buffer, bufflen);
-		break;   
+		break;
 
 	case ETH:
 		bytesRead = Ethernet.ReadUdpPort((BYTE*)buffer, bufflen);
@@ -737,7 +926,6 @@ unsigned short CBootLoader::ReadPort(char *buffer, int bufflen)
 
 	return bytesRead;
 }
-
 
 BOOL CBootLoader::NotifyDeviceChange(UINT portType, char *devPath)
 {
@@ -749,6 +937,18 @@ BOOL CBootLoader::NotifyDeviceChange(UINT portType, char *devPath)
 	return FALSE;
 }
 
+void CBootLoader::GetCryptoSignature(unsigned char* CryptoSignature)
+{
+	if (CryptoSignature != NULL) {
+		memcpy(CryptoSignature, CryptoSignatureHexManager, 16);
+	}
+}
 
+void CBootLoader::SetCryptoSignature(unsigned char* CryptoSignature)
+{
+	if (CryptoSignature != NULL) {
+		memcpy(CryptoSignatureHexManager, CryptoSignature, 16);
+	}
+}
 
 /*******************End of file**********************************************/

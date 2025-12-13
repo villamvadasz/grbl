@@ -14,7 +14,7 @@
 	#define DEE_PAGE_CNT 3
 
 	//Defines that one eeprom page how much flash pages should use. So one DEE PAGE consist of several flash pages
-	#define DEE_FLASH_PAGE_CNT	3
+	#define DEE_FLASH_PAGE_CNT	2
 
 	#define EEPROM_FLASH_ADDR ADDRESS_EEPROM_FLASH_ADDR_CNC
 	

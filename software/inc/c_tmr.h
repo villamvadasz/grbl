@@ -4,7 +4,7 @@
 	#include "c_main.h"
 	#include "main.h"
 
-	#define TIMERCNT 10 //number how much timers are supported
+	#define TIMERCNT 16 //number how much timers are supported
 	#define PRESCALE1       		256
 	#define PRESCALE2       		256
 	//#define TMR_USE_TMR4_1MS

@@ -8,6 +8,18 @@
 		extern volatile unsigned int dummyLAT;
 		extern volatile unsigned int dummyTRIS;
 
+		extern volatile unsigned int dummyENDSWITCH_X_PORT;
+		extern volatile unsigned int dummyENDSWITCH_X_LAT;
+		extern volatile unsigned int dummyENDSWITCH_X_TRIS;
+
+		extern volatile unsigned int dummyENDSWITCH_Y_PORT;
+		extern volatile unsigned int dummyENDSWITCH_Y_LAT;
+		extern volatile unsigned int dummyENDSWITCH_Y_TRIS;
+
+		extern volatile unsigned int dummyENDSWITCH_Z_PORT;
+		extern volatile unsigned int dummyENDSWITCH_Z_LAT;
+		extern volatile unsigned int dummyENDSWITCH_Z_TRIS;
+
 		//#define STEP_X_DDR N/A
 		//#define STEP_Y_DDR N/A
 		//#define STEP_Z_DDR N/A
@@ -25,12 +37,14 @@
 		//#define STEPPERS_DISABLE_DDR N/A
 		//#define STEPPERS_DISABLE_PORT N/A
 
-		//#define LIMIT_X_DDR N/A
-		//#define LIMIT_Y_DDR N/A
-		//#define LIMIT_Z_DDR N/A
-		//#define LIMIT_X_PIN N/A
-		//#define LIMIT_Y_PIN N/A
-		//#define LIMIT_Z_PIN N/A
+		#define GRBL_SIMULATE_ENDSWITCH
+
+		#define LIMIT_X_DDR dummyENDSWITCH_X_TRIS
+		#define LIMIT_Y_DDR dummyENDSWITCH_Y_TRIS
+		#define LIMIT_Z_DDR dummyENDSWITCH_Z_TRIS
+		#define LIMIT_X_PIN dummyENDSWITCH_X_PORT
+		#define LIMIT_Y_PIN dummyENDSWITCH_Y_PORT
+		#define LIMIT_Z_PIN dummyENDSWITCH_Z_PORT
 
 		//#define LIMIT_X_PIN_PUE N/A
 		//#define LIMIT_Y_PIN_PUE N/A
@@ -85,8 +99,8 @@
 		//#define PROBE_NEGATE_PIN_PUE N/A
 		//#define PROBE_NEGATE_PIN_CN N/A
 
-		#define EXTERNAL_POWER_TRIS TRISDbits.TRISD6
-		#define EXTERNAL_POWER_PORT PORTDbits.RD6
+		//#define EXTERNAL_POWER_TRIS N/A
+		//#define EXTERNAL_POWER_PORT N/A
 		//#define EXTERNAL_POWER_PORT_PUE N/A
 		//#define EXTERNAL_POWER_PORT_CN N/A
 
@@ -108,7 +122,7 @@
 		#define HOMING_CYCLE_0 (1<<Z_AXIS)                // REQUIRED: First move Z to clear workspace.
 		#define HOMING_CYCLE_1 (1<<Y_AXIS)
 		#define HOMING_CYCLE_2 (1<<X_AXIS)
-		#define HOMING_IS_JUST_ZEROING_MACHINE_POS
+		//#define HOMING_IS_JUST_ZEROING_MACHINE_POS
 
 
 
@@ -199,6 +213,22 @@
 		extern volatile unsigned int dummyTRIS5;
 		extern volatile unsigned int dummyTRIS6;
 		extern volatile unsigned int dummyTRIS7;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	#endif

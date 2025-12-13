@@ -227,17 +227,29 @@ uint32 globalTimeUs = 0;
 static volatile uint32 delayCnt = 0;
 static volatile uint8 delayCntLock = 0;
 static Timer *ptrList[TIMERCNT];
+unsigned int ptrListCnt = 0;
 #define SIZEOFPTR (sizeof(ptrList)/sizeof(*ptrList))
+volatile uint32 tmr_stop_watchdog_triggering = 0;
 
 void init_tmr (void) {
 	uint8 x = 0;
 
 	#ifndef TMR_USE_TMR4_1MS
 		//TMR1 1ms
-		T1CON = ((T1_ON | T1_SOURCE_INT | T1_PS_1_256)&~(T1_ON));
+		unsigned int tmr1_prescaler_val = 0;
+		#if PRESCALE1 == 256
+			tmr1_prescaler_val = T1_PS_1_256;
+		#elif PRESCALE1 == 32
+			tmr1_prescaler_val = T1_PS_1_32;
+		#elif PRESCALE1 == 16
+			tmr1_prescaler_val = T1_PS_1_16;
+		#else
+			#error Not implemented prescaler
+		#endif
+		T1CON = ((T1_ON | T1_SOURCE_INT | tmr1_prescaler_val)&~(T1_ON));
 		TMR1 = 0;
 		PR1 = (PR1_CONFIG);
-		T1CONSET =((T1_ON | T1_SOURCE_INT | T1_PS_1_256)&(T1_ON));
+		T1CONSET =((T1_ON | T1_SOURCE_INT | tmr1_prescaler_val)&(T1_ON));
 
 		IFS0CLR = _IFS0_T1IF_MASK;
 		IPC1CLR = _IPC1_T1IP_MASK, IPC1SET = (((T1_INT_ON | ISR_IPLV_TMR1) & 7) << _IPC1_T1IP_POSITION);
@@ -246,7 +258,17 @@ void init_tmr (void) {
 	#endif
 	#ifdef TMR_USE_TMR4_1MS
 		//TMR4 1ms
-		OpenTimer4(T4_ON | T4_SOURCE_INT | T4_PS_1_256, PR1_CONFIG);
+		unsigned int tmr4_prescaler_val = 0;
+		#if PRESCALE1 == 256
+			tmr4_prescaler_val = T4_PS_1_256;
+		#elif PRESCALE1 == 32
+			tmr4_prescaler_val = T4_PS_1_32;
+		#elif PRESCALE1 == 16
+			tmr4_prescaler_val = T4_PS_1_16;
+		#else
+			#error Not implemented prescaler
+		#endif
+		OpenTimer4(T4_ON | T4_SOURCE_INT | tmr4_prescaler_val, PR1_CONFIG);
 		ConfigIntTimer4(T4_INT_ON | T4_INT_PRIOR_2);
 	#endif
 	#ifdef TMR_USE_TMR1_SOSC
@@ -257,10 +279,20 @@ void init_tmr (void) {
 
 	#ifndef TMR_DISABLE_TMR2_100US
 		//TMR2 100uS
-		T2CON = ((T2_ON | T2_SOURCE_INT | T2_PS_1_16)&~(T2_ON));
+		unsigned int tmr2_prescaler_val = 0;
+		#if PRESCALE2 == 256
+			tmr2_prescaler_val = T2_PS_1_256;
+		#elif PRESCALE2 == 32
+			tmr2_prescaler_val = T2_PS_1_32;
+		#elif PRESCALE2 == 16
+			tmr2_prescaler_val = T2_PS_1_16;
+		#else
+			#error Not implemented prescaler
+		#endif
+		T2CON = ((T2_ON | T2_SOURCE_INT | tmr2_prescaler_val)&~(T2_ON));
 		TMR2 = 0;
 		PR2 = (PR2_CONFIG);
-		T2CONSET =((T2_ON | T2_SOURCE_INT | T2_PS_1_16)&(T2_ON));
+		T2CONSET =((T2_ON | T2_SOURCE_INT | tmr2_prescaler_val)&(T2_ON));
 
 		IFS0CLR = _IFS0_T2IF_MASK;
 		IPC2CLR = _IPC2_T2IP_MASK, IPC2SET = (((T2_INT_ON | ISR_IPLV_TMR2) & 7) << _IPC2_T2IP_POSITION);
@@ -409,6 +441,7 @@ void add_timer(Timer *ptr) {
 	for (x = 0; x < SIZEOFPTR; x++) {
 		if (ptrList[x] == NULL) {
 			ptrList[x] = ptr;
+			ptrListCnt++;
 			break;
 		}
 	}
@@ -421,6 +454,7 @@ void remove_timer(Timer *ptr) {
 	for (x = 0; x < SIZEOFPTR; x++) {
 		if (ptrList[x] == ptr) {
 			ptrList[x] = NULL;
+			ptrListCnt--;
 			break;
 		}
 	}
@@ -486,7 +520,9 @@ void isr_tmr1(void) { //1ms
 	static uint16 ms500Cnt = 0;
 	static uint16 ms1000Cnt = 0;
 	
-	ClearWDT();
+	if (tmr_stop_watchdog_triggering == 0) {
+		ClearWDT();
+	}
 
 	globalTime++;
 

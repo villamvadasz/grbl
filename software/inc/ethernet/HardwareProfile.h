@@ -59,6 +59,8 @@
 #define _HARDWAREPROFILE_H_
 
 	#include "c_ethernet.h"
+	#include "c_main.h"
+	#include "ethernet_compiler.h"
 
 	#ifdef ETHERNET_CNC_2_0_0
 		#include "HWP_PIC32_CNC_2_0_0.h"

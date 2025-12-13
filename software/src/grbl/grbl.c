@@ -48,6 +48,19 @@ volatile unsigned int dummyTRIS4;
 volatile unsigned int dummyTRIS5;
 volatile unsigned int dummyTRIS6;
 volatile unsigned int dummyTRIS7;
+#ifdef GRBL_SIMULATE_ENDSWITCH
+	volatile unsigned int dummyENDSWITCH_X_PORT;
+	volatile unsigned int dummyENDSWITCH_X_LAT;
+	volatile unsigned int dummyENDSWITCH_X_TRIS;
+
+	volatile unsigned int dummyENDSWITCH_Y_PORT;
+	volatile unsigned int dummyENDSWITCH_Y_LAT;
+	volatile unsigned int dummyENDSWITCH_Y_TRIS;
+
+	volatile unsigned int dummyENDSWITCH_Z_PORT;
+	volatile unsigned int dummyENDSWITCH_Z_LAT;
+	volatile unsigned int dummyENDSWITCH_Z_TRIS;
+#endif
 
 unsigned int grbl_reset_asyn_execute = 0;
 
@@ -62,8 +75,8 @@ void init_grbl(void) {
 	TMR3 = 0;
 	PR3 = 0xFFFF;
 	#if TIMER_PRESACLER == 4
-		T3CONbits.TCKPS = 0b010; //Prescaler is 4
-		T4CONbits.TCKPS = 0b010; //Prescaler is 4
+		T3CONbits.TCKPS = 0x2; //Prescaler is 4
+		T4CONbits.TCKPS = 0x2; //Prescaler is 4
 	#else
 		#error TODO implement
 	#endif

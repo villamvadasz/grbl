@@ -1,15 +1,15 @@
  /*********************************************************************
  *
- *                  PIC32 Boot Loader
+ *				  PIC32 Boot Loader
  *
  *********************************************************************
- * FileName:        Usb_Tasks.c
+ * FileName:		Usb_Tasks.c
  * Dependencies:
- * Processor:       PIC32
+ * Processor:	   PIC32
  *
- * Compiler:        MPLAB C32
- *                  MPLAB IDE
- * Company:         Microchip Technology, Inc.
+ * Compiler:		MPLAB C32
+ *				  MPLAB IDE
+ * Company:		 Microchip Technology, Inc.
  *
  * Software License Agreement
  *
@@ -99,11 +99,11 @@ void UsbInit(UINT pbClk)
 //	host is not actively providing power on Vbus. Therefore, implementing this
 //	bus sense feature is optional.  This firmware can be made to use this bus
 //	sense feature by making sure "USE_USB_BUS_SENSE_IO" has been defined in the
-//	HardwareProfile.h file.    
-    #if defined(USE_USB_BUS_SENSE_IO)
-    tris_usb_bus_sense = INPUT_PIN; // See HardwareProfile.h
-    #endif
-    
+//	HardwareProfile.h file.	
+	#if defined(USE_USB_BUS_SENSE_IO)
+	tris_usb_bus_sense = INPUT_PIN; // See HardwareProfile.h
+	#endif
+	
 //	If the host PC sends a GetStatus (device) request, the firmware must respond
 //	and let the host know if the USB peripheral device is currently bus powered
 //	or self powered.  See chapter 9 in the official USB specifications for details
@@ -116,10 +116,10 @@ void UsbInit(UINT pbClk)
 //	is used for	this purpose.  If using this feature, make sure "USE_SELF_POWER_SENSE_IO"
 //	has been defined in HardwareProfile.h, and that an appropriate I/O pin has been mapped
 //	to it in HardwareProfile.h.
-    #if defined(USE_SELF_POWER_SENSE_IO)
-    tris_self_power = INPUT_PIN;	// See HardwareProfile.h
-    #endif
-    
+	#if defined(USE_SELF_POWER_SENSE_IO)
+	tris_self_power = INPUT_PIN;	// See HardwareProfile.h
+	#endif
+	
    
 	 // Call USB Stack function to initialize USB.
 	 USBDeviceInit();
@@ -127,8 +127,8 @@ void UsbInit(UINT pbClk)
 	 
 	#if defined(USB_INTERRUPT)
 	INTEnableSystemMultiVectoredInt();
-    USBDeviceAttach();
-    #endif
+	USBDeviceAttach();
+	#endif
 	
 }	
 
@@ -151,7 +151,7 @@ void UsbInit(UINT pbClk)
 ********************************************************************/
 void UsbClose(void)
 {
-    USBDisableInterrupts();
+	USBDisableInterrupts();
 	USBModuleDisable();
 	
 }	
@@ -179,58 +179,58 @@ void UsbTasks(void)
 	
 	
 	 #if defined(USB_POLLING)		
-	//This function must be called everytime. This is a stack function.
-	USBDeviceTasks();
+     //This function must be called everytime. This is a stack function.
+	 USBDeviceTasks();
 	 #endif
 
-    if(USBGetDeviceState() == CONFIGURED_STATE)
+	if(USBGetDeviceState() == CONFIGURED_STATE)
 	{
-    	// Check if bootloader has something to send out to PC. 
-    	TxLen = FRAMEWORK_GetTransmitFrame(UsbTxData);
-    
-    	// Initialize the transmit pointer.
-    	TxPtr = &UsbTxData[0];
-    	
-    	while(TxLen)	
-    	{
-    	
-    		while(UsbTxBusy()); // Wait for USB transmit completion.	
-    		
-    		// Send the packet (USB endpoint size is always 64 bytes)
-    		USBTxOnePacket(HID_EP, TxPtr, MaxUsbPacketSize);	
-    		
-    		if(TxLen > MaxUsbPacketSize)
-    		{
-    			// Send pending bytes in next loop.
-    			TxLen -= MaxUsbPacketSize;
-    			// Point to next 64bytes.
-    			TxPtr += MaxUsbPacketSize;
-    			// Probably a wait is needed here, otherwise PC app may miss frames.
-    			//Wait();			
-    		}	
-    		else
-    		{
-    			// No more bytes.
-    			TxLen = 0;
-    		}			
-    	}
-    	
-    	// Following part of the code checks if there is any data from USB.
-    	// If there are any data available, it just pushes the data to the frame work. 
-    	// Framework decodes the packet and takes necessary action like erasing/ programming etc.	
-    		
-    	if(UsbRxDataAvlbl())// Check if we have got any data from USB.	 		
-        {
-    	    // Yes, we got a packet from HID End point.	    
-    	    // Pass the buffer to frame work. Framework decodes the packet and executes the Bootloder specific commands (Erasing/Programming etc).
-    		FRAMEWORK_BuildRxFrame(UsbRxData, MaxUsbPacketSize);
-    	    	    
-    	    // Re-arm the HID endpoint to receive next packet.(Remember! We have armed the HID endpoint for the first time in function USBCBInitEP())
-    	    USBOutHandle = HIDRxPacket(HID_EP,(BYTE*)UsbRxData,MaxUsbPacketSize);	    	    		
-    	}
-    
-    }// if device configured.   
-       	
+		// Check if bootloader has something to send out to PC. 
+		TxLen = GetTransmitFrame(UsbTxData);
+	
+		// Initialize the transmit pointer.
+		TxPtr = &UsbTxData[0];
+		
+		while(TxLen)	
+		{
+		
+			while(UsbTxBusy()); // Wait for USB transmit completion.	
+			
+			// Send the packet (USB endpoint size is always 64 bytes)
+			USBTxOnePacket(HID_EP, TxPtr, MaxUsbPacketSize);	
+			
+			if(TxLen > MaxUsbPacketSize)
+			{
+				// Send pending bytes in next loop.
+				TxLen -= MaxUsbPacketSize;
+				// Point to next 64bytes.
+				TxPtr += MaxUsbPacketSize;
+				// Probably a wait is needed here, otherwise PC app may miss frames.
+				//Wait();
+			}	
+			else
+			{
+				// No more bytes.
+				TxLen = 0;
+			}			
+		}
+		
+		// Following part of the code checks if there is any data from USB.
+		// If there are any data available, it just pushes the data to the frame work. 
+		// Framework decodes the packet and takes necessary action like erasing/ programming etc.	
+			
+		if(UsbRxDataAvlbl())// Check if we have got any data from USB.
+		{
+			// Yes, we got a packet from HID End point.
+			// Pass the buffer to frame work. Framework decodes the packet and executes the Bootloder specific commands (Erasing/Programming etc).
+			BuildRxFrame(UsbRxData, MaxUsbPacketSize);
+					
+			// Re-arm the HID endpoint to receive next packet.(Remember! We have armed the HID endpoint for the first time in function USBCBInitEP())
+			USBOutHandle = HIDRxPacket(HID_EP,(BYTE*)UsbRxData,MaxUsbPacketSize);
+		}
+	
+	}// if device configured.   
+	   	
 	
 }	
 
@@ -258,48 +258,48 @@ void UsbTasks(void)
 
 
 /*******************************************************************
- * Function:        void USBCBInitEP(void)
+ * Function:		void USBCBInitEP(void)
  *
- * PreCondition:    None
+ * PreCondition:	None
  *
- * Input:           None
+ * Input:		   None
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    None
+ * Side Effects:	None
  *
- * Overview:        This function is called when the device becomes
- *                  initialized, which occurs after the host sends a
+ * Overview:		This function is called when the device becomes
+ *				  initialized, which occurs after the host sends a
  * 					SET_CONFIGURATION (wValue not = 0) request.  This 
  *					callback function should initialize the endpoints 
  *					for the device's usage according to the current 
  *					configuration.
  *
- * Note:            None
+ * Note:			None
  *******************************************************************/
 void USBCBInitEP(void)
 {
-    //enable the HID endpoint
-    USBEnableEndpoint(HID_EP,USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
-    //Arm the OUT endpoint for the packet we will be receiving.
-    USBOutHandle = HIDRxPacket(HID_EP,(BYTE*)UsbRxData,MaxUsbPacketSize);
+	//enable the HID endpoint
+	USBEnableEndpoint(HID_EP,USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+	//Arm the OUT endpoint for the packet we will be receiving.
+	USBOutHandle = HIDRxPacket(HID_EP,(BYTE*)UsbRxData,MaxUsbPacketSize);
 }
 
 
 /******************************************************************************
- * Function:        void USBCBSuspend(void)
+ * Function:		void USBCBSuspend(void)
  *
- * PreCondition:    None
+ * PreCondition:	None
  *
- * Input:           None
+ * Input:		   None
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    None
+ * Side Effects:	None
  *
- * Overview:        Call back that is invoked when a USB suspend is detected
+ * Overview:		Call back that is invoked when a USB suspend is detected
  *
- * Note:            None
+ * Note:			None
  *****************************************************************************/
 void USBCBSuspend(void)
 {
@@ -317,47 +317,47 @@ void USBCBSuspend(void)
 
 	//IMPORTANT NOTE: Do not clear the USBActivityIF (ACTVIF) bit here.  This bit is 
 	//cleared inside the usb_device.c file.  Clearing USBActivityIF here will cause 
-	//things to not work as intended.	    
+	//things to not work as intended.		
 }
 
 
 /********************************************************************
- * Function:        void USBCB_SOF_Handler(void)
+ * Function:		void USBCB_SOF_Handler(void)
  *
- * PreCondition:    None
+ * PreCondition:	None
  *
- * Input:           None
+ * Input:		   None
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    None
+ * Side Effects:	None
  *
- * Overview:        The USB host sends out a SOF packet to full-speed
- *                  devices every 1 ms. This interrupt may be useful
- *                  for isochronous pipes. End designers should
- *                  implement callback routine as necessary.
+ * Overview:		The USB host sends out a SOF packet to full-speed
+ *				  devices every 1 ms. This interrupt may be useful
+ *				  for isochronous pipes. End designers should
+ *				  implement callback routine as necessary.
  *
- * Note:            None
+ * Note:			None
  *******************************************************************/
 void USBCB_SOF_Handler(void)
 {
-    // No need to clear UIRbits.SOFIF to 0 here.
-    // Callback caller is already doing that.
+	// No need to clear UIRbits.SOFIF to 0 here.
+	// Callback caller is already doing that.
 }
 
 
 /******************************************************************************
- * Function:        void USBCBWakeFromSuspend(void)
+ * Function:		void USBCBWakeFromSuspend(void)
  *
- * PreCondition:    None
+ * PreCondition:	None
  *
- * Input:           None
+ * Input:		   None
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    None
+ * Side Effects:	None
  *
- * Overview:        The host may put USB peripheral devices in low power
+ * Overview:		The host may put USB peripheral devices in low power
  *					suspend mode (by "sending" 3+ms of idle).  Once in suspend
  *					mode, the host may wake the device back up by sending non-
  *					idle state signalling.
@@ -365,7 +365,7 @@ void USBCB_SOF_Handler(void)
  *					This call back is invoked when a wakeup from USB suspend 
  *					is detected.
  *
- * Note:            None
+ * Note:			None
  *****************************************************************************/
 void USBCBWakeFromSuspend(void)
 {
@@ -381,42 +381,42 @@ void USBCBWakeFromSuspend(void)
 
 
 /*******************************************************************
- * Function:        void USBCBStdSetDscHandler(void)
+ * Function:		void USBCBStdSetDscHandler(void)
  *
- * PreCondition:    None
+ * PreCondition:	None
  *
- * Input:           None
+ * Input:		   None
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    None
+ * Side Effects:	None
  *
- * Overview:        The USBCBStdSetDscHandler() callback function is
+ * Overview:		The USBCBStdSetDscHandler() callback function is
  *					called when a SETUP, bRequest: SET_DESCRIPTOR request
  *					arrives.  Typically SET_DESCRIPTOR requests are
  *					not used in most applications, and it is
  *					optional to support this type of request.
  *
- * Note:            None
+ * Note:			None
  *******************************************************************/
 void USBCBStdSetDscHandler(void)
 {
-    // Must claim session ownership if supporting this request
+	// Must claim session ownership if supporting this request
 }//end
 
 
 /*******************************************************************
- * Function:        void USBCBCheckOtherReq(void)
+ * Function:		void USBCBCheckOtherReq(void)
  *
- * PreCondition:    None
+ * PreCondition:	None
  *
- * Input:           None
+ * Input:		   None
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    None
+ * Side Effects:	None
  *
- * Overview:        When SETUP packets arrive from the host, some
+ * Overview:		When SETUP packets arrive from the host, some
  * 					firmware must process the request and respond
  *					appropriately to fulfill the request.  Some of
  *					the SETUP packets will be for standard
@@ -431,35 +431,35 @@ void USBCBStdSetDscHandler(void)
  *					this request should be handled by class specific 
  *					firmware, such as that contained in usb_function_hid.c.
  *
- * Note:            None
+ * Note:			None
  *******************************************************************/
 void USBCBCheckOtherReq(void)
 {
-    USBCheckHIDRequest();
+	USBCheckHIDRequest();
 }//end
 
 
 /*******************************************************************
- * Function:        void USBCBErrorHandler(void)
+ * Function:		void USBCBErrorHandler(void)
  *
- * PreCondition:    None
+ * PreCondition:	None
  *
- * Input:           None
+ * Input:		   None
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    None
+ * Side Effects:	None
  *
- * Overview:        The purpose of this callback is mainly for
- *                  debugging during development. Check UEIR to see
- *                  which error causes the interrupt.
+ * Overview:		The purpose of this callback is mainly for
+ *				  debugging during development. Check UEIR to see
+ *				  which error causes the interrupt.
  *
- * Note:            None
+ * Note:			None
  *******************************************************************/
 void USBCBErrorHandler(void)
 {
-    // No need to clear UEIR to 0 here.
-    // Callback caller is already doing that.
+	// No need to clear UEIR to 0 here.
+	// Callback caller is already doing that.
 
 	// Typically, user firmware does not need to do anything special
 	// if a USB error occurs.  For example, if the host sends an OUT
@@ -481,67 +481,67 @@ void USBCBErrorHandler(void)
 
 
 /*******************************************************************
- * Function:        BOOL USER_USB_CALLBACK_EVENT_HANDLER(
- *                        USB_EVENT event, void *pdata, WORD size)
+ * Function:		BOOL USER_USB_CALLBACK_EVENT_HANDLER(
+ *						USB_EVENT event, void *pdata, WORD size)
  *
- * PreCondition:    None
+ * PreCondition:	None
  *
- * Input:           USB_EVENT event - the type of event
- *                  void *pdata - pointer to the event data
- *                  WORD size - size of the event data
+ * Input:		   USB_EVENT event - the type of event
+ *				  void *pdata - pointer to the event data
+ *				  WORD size - size of the event data
  *
- * Output:          None
+ * Output:		  None
  *
- * Side Effects:    None
+ * Side Effects:	None
  *
- * Overview:        This function is called from the USB stack to
- *                  notify a user application that a USB event
- *                  occured.  This callback is in interrupt context
- *                  when the USB_INTERRUPT option is selected.
+ * Overview:		This function is called from the USB stack to
+ *				  notify a user application that a USB event
+ *				  occured.  This callback is in interrupt context
+ *				  when the USB_INTERRUPT option is selected.
  *
- * Note:            None
+ * Note:			None
  *******************************************************************/
 BOOL USER_USB_CALLBACK_EVENT_HANDLER(USB_EVENT event, void *pdata, WORD size)
 {
-    switch(event)
-    {
-        case EVENT_TRANSFER:
-            //Add application specific callback task or callback function here if desired.
-            break;
-        case EVENT_SOF:
-            USBCB_SOF_Handler();
-            break;
-        case EVENT_SUSPEND:
-            USBCBSuspend();
-            break;
-        case EVENT_RESUME:
-            USBCBWakeFromSuspend();
-            break;
-        case EVENT_CONFIGURED: 
-            USBCBInitEP();
-            break;
-        case EVENT_SET_DESCRIPTOR:
-            USBCBStdSetDscHandler();
-            break;
-        case EVENT_EP0_REQUEST:
-            USBCBCheckOtherReq();
-            break;
-        case EVENT_BUS_ERROR:
-            USBCBErrorHandler();
-            break;
-        case EVENT_TRANSFER_TERMINATED:
-            //Add application specific callback task or callback function here if desired.
-            //The EVENT_TRANSFER_TERMINATED event occurs when the host performs a CLEAR
-            //FEATURE (endpoint halt) request on an application endpoint which was 
-            //previously armed (UOWN was = 1).  Here would be a good place to:
-            //1.  Determine which endpoint the transaction that just got terminated was 
-            //      on, by checking the handle value in the *pdata.
-            //2.  Re-arm the endpoint if desired (typically would be the case for OUT 
-            //      endpoints).
-            break;
-        default:
-            break;
-    }      
-    return TRUE; 
+	switch(event)
+	{
+		case EVENT_TRANSFER:
+			//Add application specific callback task or callback function here if desired.
+			break;
+		case EVENT_SOF:
+			USBCB_SOF_Handler();
+			break;
+		case EVENT_SUSPEND:
+			USBCBSuspend();
+			break;
+		case EVENT_RESUME:
+			USBCBWakeFromSuspend();
+			break;
+		case EVENT_CONFIGURED: 
+			USBCBInitEP();
+			break;
+		case EVENT_SET_DESCRIPTOR:
+			USBCBStdSetDscHandler();
+			break;
+		case EVENT_EP0_REQUEST:
+			USBCBCheckOtherReq();
+			break;
+		case EVENT_BUS_ERROR:
+			USBCBErrorHandler();
+			break;
+		case EVENT_TRANSFER_TERMINATED:
+			//Add application specific callback task or callback function here if desired.
+			//The EVENT_TRANSFER_TERMINATED event occurs when the host performs a CLEAR
+			//FEATURE (endpoint halt) request on an application endpoint which was 
+			//previously armed (UOWN was = 1).  Here would be a good place to:
+			//1.  Determine which endpoint the transaction that just got terminated was 
+			//	  on, by checking the handle value in the *pdata.
+			//2.  Re-arm the endpoint if desired (typically would be the case for OUT 
+			//	  endpoints).
+			break;
+		default:
+			break;
+	}	  
+	return TRUE; 
 }
 

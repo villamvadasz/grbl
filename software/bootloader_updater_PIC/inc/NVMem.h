@@ -38,10 +38,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern UINT NVMWriteWord(void* address, UINT data);
-extern UINT NVMErasePage(void* address);
-extern UINT NVMWriteRow(void* address, void* data);
-extern UINT NVMClearError(void);
+extern UINT NVMemWriteWord(void* address, UINT data);
+extern UINT NVMemErasePage(void* address);
+extern UINT NVMemWriteRow(void* address, void* data);
+extern UINT NVMemClearError(void);
 #ifdef __cplusplus
 }
 #endif

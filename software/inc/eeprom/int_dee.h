@@ -1,34 +1,35 @@
 #ifndef _INT_DEE_H_
 #define _INT_DEE_H_
 
+
+#if defined (__32MX440F256H__) || defined (__32MX440F512H__) || defined (__32MX470F512H__) || defined (__32MX460F512L__)  || defined (__32MX470F512L__)  || defined (__32MX795F512H__) || defined (__32MZ2048ECG144__)
+#else
+	#error TODO define how big the flash is in that controller
+#endif
+
 	#ifdef __32MZ2048ECG144__
 		#define NUMBER_OF_BYTES_IN_PAGE		  (16384)
-	#else
-		#ifdef __32MX440F256H__
-			#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
-		#else
-			#ifdef __32MX460F512L__
-				#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
-			#else
-				#ifdef __32MX470F512L__
-					#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
-				#else
-					#ifdef __32MX470F512H__
-						#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
-					#else
-						#ifdef __32MZ2048EFM100__
-							#define NUMBER_OF_BYTES_IN_PAGE		  (16384)
-						#else
-							#ifdef __32MX795F512H__
-								#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
-							#else
-								#error TODO define how big the flash is in that controller
-							#endif
-						#endif
-					#endif
-				#endif
-			#endif
-		#endif
+	#endif
+	#ifdef __32MX440F256H__
+		#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+	#endif
+	#ifdef __32MX440F512H__
+		#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+	#endif
+	#ifdef __32MX460F512L__
+		#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+	#endif
+	#ifdef __32MX470F512L__
+		#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+	#endif
+	#ifdef __32MX470F512H__
+		#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
+	#endif
+	#ifdef __32MZ2048EFM100__
+		#define NUMBER_OF_BYTES_IN_PAGE		  (16384)
+	#endif
+	#ifdef __32MX795F512H__
+		#define NUMBER_OF_BYTES_IN_PAGE		  (4096)
 	#endif
 
 	#define NUMBER_OF_INSTRUCTIONS_IN_PAGE  (NUMBER_OF_BYTES_IN_PAGE / 4) // number of 32-bit word instructions per page, 4096 bytes

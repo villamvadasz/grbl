@@ -80,3 +80,11 @@ __attribute__(( weak )) uint8 eep_manager_IsBusy(void) {return 0;}
 
 __attribute__(( weak )) void beforeSleepUser(void) {}
 __attribute__(( weak )) void afterSleepUser(void) {}
+
+__attribute__(( weak )) void init_sio(void) {}
+__attribute__(( weak )) void do_sio(void) {}
+__attribute__(( weak )) void isr_sio_1ms(void) {}
+
+__attribute__(( weak )) void init_random(void) {}
+__attribute__(( weak )) void do_random(void) {}
+__attribute__(( weak )) void isr_random_1ms(void) {}

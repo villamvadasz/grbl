@@ -56,13 +56,20 @@
 #include "TCPIP.h"
 #include "tmr.h"
 
+#if defined(STACK_USE_WGET)
+	#include "wget.h"
+#endif
+#if defined(STACK_USE_WGET_FSIO)
+	#include "wget_fsio.h"
+#endif
+
 #if defined( WF_CS_TRIS )
-    #if defined( WF_CONFIG_CONSOLE )
-        #include "TCPIP Stack/WFConsole.h"
-    #endif
-    #if defined( STACK_USE_EZ_CONFIG ) || defined( EZ_CONFIG_SCAN )
-        #include "TCPIP Stack/WFEasyConfig.h"
-    #endif
+	#if defined( WF_CONFIG_CONSOLE )
+		#include "TCPIP Stack/WFConsole.h"
+	#endif
+	#if defined( STACK_USE_EZ_CONFIG ) || defined( EZ_CONFIG_SCAN )
+		#include "TCPIP Stack/WFEasyConfig.h"
+	#endif
 	#include "TCPIP Stack/WFApi.h"
 	
 	#if defined(CONFIG_WPA_ENTERPRISE)
@@ -73,12 +80,12 @@
 // Stack FSM states.
 typedef enum
 {
-    SM_STACK_IDLE,
-    SM_STACK_MAC,
-    SM_STACK_IP,
-    SM_STACK_ARP,
-    SM_STACK_TCP,
-    SM_STACK_UDP
+	SM_STACK_IDLE,
+	SM_STACK_MAC,
+	SM_STACK_IP,
+	SM_STACK_ARP,
+	SM_STACK_TCP,
+	SM_STACK_UDP
 } SM_STACK;
 static SM_STACK smStack;
 
@@ -88,6 +95,11 @@ NODE_INFO remoteNode;
 BOOL g_DhcpRenew = FALSE;
 extern void SetDhcpProgressState(void);
 UINT32 g_DhcpRetryTimer = 0;
+#endif
+
+#if defined (STACK_USE_MQTT_CLIENT)
+	#include "MQTT.h"
+	#include "MQTTclient.h"
 #endif
 
 static DWORD dwLastIP = 0;
@@ -165,9 +177,13 @@ unsigned int StackInit_Async(void)
 
 			#if defined(WF_CS_TRIS) && defined(STACK_USE_EZ_CONFIG) && !defined(__18CXX)
 				WFEasyConfigInit();
-			#endif    
+			#endif
 
 				ARPInit();
+
+			#if defined (STACK_USE_MQTT_CLIENT)
+			    MQTTClientInit();
+			#endif
 
 			#if defined(STACK_USE_UDP)
 				UDPInit();
@@ -220,6 +236,16 @@ unsigned int StackInit_Async(void)
 			#if defined(STACK_USE_RANDOM)
 				RandomInit();
 			#endif
+
+			#if defined(STACK_USE_SNTP_CLIENT)
+				SNTPInit();
+			#endif
+			#if defined(STACK_USE_WGET)
+				init_wget();
+			#endif
+			#if defined(STACK_USE_WGET_FSIO)
+				init_wget_fsio();
+			#endif
 			StackInit_Async_sm = 3;
 			break;
 		}
@@ -255,55 +281,55 @@ unsigned int StackInit_Async(void)
  ********************************************************************/
 void StackTask(void)
 {
-    WORD dataCount;
-    IP_ADDR tempLocalIP;
+	WORD dataCount;
+	IP_ADDR tempLocalIP;
 	BYTE cFrameType;
 	BYTE cIPFrameType;
 
-   
-    #if defined( WF_CS_TRIS )
-        // This task performs low-level MAC processing specific to the MRF24W
-        MACProcess();
-        #if defined( STACK_USE_EZ_CONFIG ) && !defined(__18CXX)
-            WFEasyConfigMgr();
-        #endif
-        
-    	#if defined(STACK_USE_DHCP_CLIENT)
-        	// Normally, an application would not include  DHCP module
-        	// if it is not enabled. But in case some one wants to disable
-        	// DHCP module at run-time, remember to not clear our IP
-        	// address if link is removed.
-        	if(AppConfig.Flags.bIsDHCPEnabled)
-        	{
-        		if(g_DhcpRenew == TRUE)
-        		{
-        			g_DhcpRenew = FALSE;
-            		AppConfig.MyIPAddr.Val = AppConfig.DefaultIPAddr.Val;
-        			AppConfig.MyMask.Val = AppConfig.DefaultMask.Val;
-        			AppConfig.Flags.bInConfigMode = TRUE;
-        			DHCPInit(0);
+
+	#if defined( WF_CS_TRIS )
+		// This task performs low-level MAC processing specific to the MRF24W
+		MACProcess();
+		#if defined( STACK_USE_EZ_CONFIG ) && !defined(__18CXX)
+			WFEasyConfigMgr();
+		#endif
+		
+		#if defined(STACK_USE_DHCP_CLIENT)
+			// Normally, an application would not include  DHCP module
+			// if it is not enabled. But in case some one wants to disable
+			// DHCP module at run-time, remember to not clear our IP
+			// address if link is removed.
+			if(AppConfig.Flags.bIsDHCPEnabled)
+			{
+				if(g_DhcpRenew == TRUE)
+				{
+					g_DhcpRenew = FALSE;
+					AppConfig.MyIPAddr.Val = AppConfig.DefaultIPAddr.Val;
+					AppConfig.MyMask.Val = AppConfig.DefaultMask.Val;
+					AppConfig.Flags.bInConfigMode = TRUE;
+					DHCPInit(0);
 					g_DhcpRetryTimer = (UINT32)TickGet();
-        		} else {
-        			if (g_DhcpRetryTimer && TickGet() - g_DhcpRetryTimer >= TICKS_PER_SECOND * 8) {
+				} else {
+					if (g_DhcpRetryTimer && TickGet() - g_DhcpRetryTimer >= TICKS_PER_SECOND * 8) {
 						DHCPInit(0);
 						g_DhcpRetryTimer = (UINT32)TickGet();
-        			}
-        		}
-        	
-        		// DHCP must be called all the time even after IP configuration is
-        		// discovered.
-        		// DHCP has to account lease expiration time and renew the configuration
-        		// time.
-        		DHCPTask();
-        		
-        		if(DHCPIsBound(0)) {
-        			AppConfig.Flags.bInConfigMode = FALSE;
+					}
+				}
+			
+				// DHCP must be called all the time even after IP configuration is
+				// discovered.
+				// DHCP has to account lease expiration time and renew the configuration
+				// time.
+				DHCPTask();
+				
+				if(DHCPIsBound(0)) {
+					AppConfig.Flags.bInConfigMode = FALSE;
 					g_DhcpRetryTimer = 0;
-        		}
-        	}
-    	#endif // STACK_USE_DHCP_CLIENT
-        
-    #endif // WF_CS_TRIS
+				}
+			}
+		#endif // STACK_USE_DHCP_CLIENT
+		
+	#endif // WF_CS_TRIS
 
 
 	#if defined(STACK_USE_DHCP_CLIENT) && !defined(WF_CS_TRIS)
@@ -341,9 +367,9 @@ void StackTask(void)
 	#endif
 	
 
-    #if defined (STACK_USE_AUTO_IP)
-    AutoIPTasks();
-    #endif
+	#if defined (STACK_USE_AUTO_IP)
+	AutoIPTasks();
+	#endif
 
 	#if defined(STACK_USE_TCP)
 	// Perform all TCP time related tasks (retransmit, send acknowledge, close connection, etc)
@@ -431,7 +457,7 @@ void StackTask(void)
 					if( (tempLocalIP.Val == AppConfig.MyIPAddr.Val) ||
 						(tempLocalIP.Val == 0xFFFFFFFF) ||
 #if defined(STACK_USE_ZEROCONF_LINK_LOCAL) || defined(STACK_USE_ZEROCONF_MDNS_SD)
-                                                (tempLocalIP.Val == 0xFB0000E0) ||
+												(tempLocalIP.Val == 0xFB0000E0) ||
 #endif
 						(tempLocalIP.Val == ((AppConfig.MyIPAddr.Val & AppConfig.MyMask.Val) | ~AppConfig.MyMask.Val)))
 					{
@@ -505,6 +531,11 @@ void StackApplications(void)
 	DiscoveryTask();
 	#endif
 	
+	#if defined (STACK_USE_MQTT_CLIENT)
+	MQTTTask();
+	MQTTClientTask();
+	#endif
+
 	#if defined(STACK_USE_NBNS)
 	NBNSTask();
 	#endif
@@ -549,6 +580,13 @@ void StackApplications(void)
 	UART2TCPBridgeTask();
 	#endif
 	
+	#if defined(STACK_USE_WGET)
+		do_wget();
+	#endif
+	#if defined(STACK_USE_WGET_FSIO)
+		do_wget_fsio();
+	#endif
+
 	// If the local IP address has changed (ex: due to DHCP lease change)
 	// write the new IP address to the LCD display, UART, and Announce 
 	// service
@@ -586,7 +624,7 @@ void StackdeInit(void) {
 
 	#if defined(WF_CS_TRIS) && defined(STACK_USE_EZ_CONFIG) && !defined(__18CXX)
 		WFEasyConfigdeInit();
-	#endif    
+	#endif
 
 	ARPdeInit();
 
@@ -642,11 +680,15 @@ void StackdeInit(void) {
 #if defined(WF_CS_TRIS) && defined(STACK_USE_DHCP_CLIENT)
 void RenewDhcp(void)
 {
-    g_DhcpRenew = TRUE;
-    SetDhcpProgressState();
-}    
-    
+	g_DhcpRenew = TRUE;
+	SetDhcpProgressState();
+}
+
 #endif
 
 
-
+void isr_Stack_1ms(void) {
+	#if defined (STACK_USE_MQTT_CLIENT)
+		isr_mqttclient_1ms();
+	#endif
+}

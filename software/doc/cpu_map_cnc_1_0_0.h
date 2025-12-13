@@ -120,7 +120,7 @@
 		#define DEFAULT_Z_ACCELERATION (200.0*60*60) // 200*60*60 mm/min^2 = 200 mm/sec^2
 		#define DEFAULT_X_MAX_TRAVEL 395.0 // mm NOTE: Must be a positive value.
 		#define DEFAULT_Y_MAX_TRAVEL 294.0 // mm NOTE: Must be a positive value.
-		#define DEFAULT_Z_MAX_TRAVEL 98.7 // mm NOTE: Must be a positive value.
+		#define DEFAULT_Z_MAX_TRAVEL 97.0 // mm NOTE: Must be a positive value.
 
 		#define DEFAULT_SPINDLE_ALGORITHM 3
 		#define DEFAULT_SPINDLE_A (-0.000000000008)

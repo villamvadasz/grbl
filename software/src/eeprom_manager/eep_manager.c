@@ -19,10 +19,32 @@
 #define EEPMANAGER_ADDR_DATA_START	(EEPROM_START_ADDR + EEPMANAGER_ADDR_OFFSET)
 #define EEPMANAGER_ADDR_DATA_END	(EEPROM_START_ADDR + EEPROM_SIZE)
 
-typedef enum _EEP_MANAGER_WRITE_ALL_TRIGGER_ENUM {
+//0x000
+//0x001
+//0x002 EEPMANAGER_ADDR_VERSION_ADDR
+//0x003
+//0x004	EEPMANAGER_ADDR_PERSISTENT
+//0x005	EEPMANAGER_ADDR_PERSISTENT
+//0x006	EEPMANAGER_ADDR_PERSISTENT
+//0x007	EEPMANAGER_ADDR_PERSISTENT
+//0x008
+//0x009
+//0x00A
+//0x00B
+//0x00C
+//0x00D
+//0x00E
+//0x00F
+//0x010	EEPMANAGER_ADDR_DATA
+//0x011	EEPMANAGER_ADDR_DATA
+//...
+//0x7FF	EEPMANAGER_ADDR_DATA
+
+
+typedef enum _eep_manager_write_trigger_ENUM {
 	EEP_MANAGER_NO_TRIGGER = 0,
 	EEP_MANAGER_TRIGGERED,
-} EEP_MANAGER_WRITE_ALL_TRIGGER_ENUM;
+} eep_manager_write_trigger_ENUM;
 
 //	extern void write_eeprom_char(unsigned char adr,unsigned char data);
 //	extern unsigned char read_eeprom_char(unsigned char adr);
@@ -38,7 +60,7 @@ uint32 eepManagerConfigPersistentValue(void);
 uint32 eep_manager_persistent_config = 0;
 uint32 eep_manager_persistent_eeprom = 0;
 uint32 eep_manager_persistent_eeprom_2 = 0;
-EEP_MANAGER_WRITE_ALL_TRIGGER_ENUM eep_manager_write_all_trigger[EepManager_Items_LastItem];
+eep_manager_write_trigger_ENUM eep_manager_write_trigger[EepManager_Items_LastItem];
 volatile uint8 do_eep_manager_1ms = 0;
 uint32 eep_manager_debug_address[EepManager_Items_LastItem];
 
@@ -46,8 +68,8 @@ void init_eep_manager(void) {
 	eep_manager_ReadAll();
 	{
 		uint32 x = 0;
-		for (x = 0; x < (sizeof(eep_manager_write_all_trigger) / sizeof(*eep_manager_write_all_trigger)); x++) {
-			eep_manager_write_all_trigger[x] = EEP_MANAGER_NO_TRIGGER;
+		for (x = 0; x < (sizeof(eep_manager_write_trigger) / sizeof(*eep_manager_write_trigger)); x++) {
+			eep_manager_write_trigger[x] = EEP_MANAGER_NO_TRIGGER;
 			eep_manager_debug_address[x] = eepManagerFindAddr(x);
 		}
 	}
@@ -64,8 +86,8 @@ void do_eep_manager(void) {
 				static sint32 item = -1;
 				if (item == -1) {
 					uint32 x = 0;
-					for (x = 0; x < (sizeof(eep_manager_write_all_trigger) / sizeof(*eep_manager_write_all_trigger)); x++) {
-						if (eep_manager_write_all_trigger[x] != EEP_MANAGER_NO_TRIGGER) {
+					for (x = 0; x < (sizeof(eep_manager_write_trigger) / sizeof(*eep_manager_write_trigger)); x++) {
+						if (eep_manager_write_trigger[x] != EEP_MANAGER_NO_TRIGGER) {
 							item = x;
 							break;
 						}
@@ -77,12 +99,11 @@ void do_eep_manager(void) {
 				if (item != -1) {
 					if ((item < EepManager_Items_LastItem) && (eepManager_ItemTable[item].variablePtr != NULL)) {
 						if (eepManagerWriteVar_Asynch(item, eepManager_ItemTable[item].size, eepManager_ItemTable[item].variablePtr) != 0) {
-							eep_manager_write_all_trigger[item] = EEP_MANAGER_NO_TRIGGER;
-#warning TODO check mi tortenik ha write all kozben jon a reorg.
+							eep_manager_write_trigger[item] = EEP_MANAGER_NO_TRIGGER;
 							item = -1;
 						}
 					} else {
-						eep_manager_write_all_trigger[item] = EEP_MANAGER_NO_TRIGGER;
+						eep_manager_write_trigger[item] = EEP_MANAGER_NO_TRIGGER;
 						item = -1;
 					}
 				}
@@ -147,8 +168,8 @@ void eep_manager_ReadAll(void) {
 
 void eep_manager_WriteAll_Trigger(void) {
 	uint8 x = 0;
-	for (x = 0; x < sizeof(eep_manager_write_all_trigger) / sizeof(*eep_manager_write_all_trigger); x++) {
-		eep_manager_write_all_trigger[x] = EEP_MANAGER_TRIGGERED;
+	for (x = 0; x < sizeof(eep_manager_write_trigger) / sizeof(*eep_manager_write_trigger); x++) {
+		eep_manager_write_trigger[x] = EEP_MANAGER_TRIGGERED;
 		sleep_SetRequestRunDriver(0);
 	}
 }
@@ -156,9 +177,9 @@ void eep_manager_WriteAll_Trigger(void) {
 void eep_manager_WriteItem_Trigger(int item) {
 	if (
 		(item < EepManager_Items_LastItem) &&
-		(item < sizeof(eep_manager_write_all_trigger) / sizeof(*eep_manager_write_all_trigger))
+		(item < sizeof(eep_manager_write_trigger) / sizeof(*eep_manager_write_trigger))
 	) {
-		eep_manager_write_all_trigger[item] = EEP_MANAGER_TRIGGERED;
+		eep_manager_write_trigger[item] = EEP_MANAGER_TRIGGERED;
 		sleep_SetRequestRunDriver(0);
 	}
 }
@@ -170,8 +191,8 @@ void eep_manager_WriteAllDefault(void) {
 uint8 eep_manager_IsBusy(void) {
 	uint8 result = 0;
 	uint32 x = 0;
-	for (x = 0; x < (sizeof(eep_manager_write_all_trigger) / sizeof(*eep_manager_write_all_trigger)); x++) {
-		if (eep_manager_write_all_trigger[x] != EEP_MANAGER_NO_TRIGGER) {
+	for (x = 0; x < (sizeof(eep_manager_write_trigger) / sizeof(*eep_manager_write_trigger)); x++) {
+		if (eep_manager_write_trigger[x] != EEP_MANAGER_NO_TRIGGER) {
 			result = 1;
 			break;
 		}

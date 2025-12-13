@@ -7,8 +7,8 @@
 uint8 GetUnexpiredPage(void) {
 	uint8 pageCount = 0;
 	uint8 currentPage = 0xFF;
-    // Find unexpired page
-    for (pageCount = 0; pageCount < DEE_PAGE_CNT; pageCount++) {
+	// Find unexpired page
+	for (pageCount = 0; pageCount < DEE_PAGE_CNT; pageCount++) {
 		if (GetPageStatus(pageCount, STATUS_EXPIRED) == PAGE_EXPIRED) {
 			currentPage = pageCount;
 		}
@@ -19,8 +19,8 @@ uint8 GetUnexpiredPage(void) {
 uint8 GetActiveCurrentPage(void) {
 	uint8 pageCount = 0;
 	uint8 currentPage = 0xFF;
-    // Find the active page.
-    for (pageCount = 0; pageCount < DEE_PAGE_CNT; pageCount++) {
+	// Find the active page.
+	for (pageCount = 0; pageCount < DEE_PAGE_CNT; pageCount++) {
 		if (GetPageStatus(pageCount, STATUS_ACTIVE) == PAGE_ACTIVE) {
 			if (GetPageStatus(pageCount, STATUS_CURRENT) == PAGE_CURRENT) {
 				currentPage = pageCount;
@@ -33,8 +33,8 @@ uint8 GetActiveCurrentPage(void) {
 uint8 GetActiveCurrentPageCount(void) {
 	uint8 pageCount = 0;
 	uint8 activePage = 0;
-    // Find the active page.
-    for (pageCount = 0; pageCount < DEE_PAGE_CNT; pageCount++) {
+	// Find the active page.
+	for (pageCount = 0; pageCount < DEE_PAGE_CNT; pageCount++) {
 		if (GetPageStatus(pageCount, STATUS_ACTIVE) == PAGE_ACTIVE) {
 			activePage++;
 		}
@@ -67,41 +67,37 @@ uint8 GetPreviousPage(uint8 page) {
 }
 
 uint8 GetPageStatus(uint8 page, uint8 field) {
-    uint8 status;
-    Dee_Page_Status_Helper currentStatus;
+	uint8 status;
+	Dee_Page_Status_Helper currentStatus;
 
-    currentStatus.status = dee_page_read_status(page);//read page status completly
+	currentStatus.status = dee_page_read_status(page);//read page status completly
 
-    switch(field) {
-        case STATUS_ACTIVE: {
-            status = currentStatus.status.page_active;
-            break;
+	switch(field) {
+		case STATUS_ACTIVE: {
+			status = currentStatus.status.page_active;
+			break;
 		}
-        case STATUS_CURRENT: {
-            status = currentStatus.status.page_current;
-            break;
+		case STATUS_CURRENT: {
+			status = currentStatus.status.page_current;
+			break;
 		}
-        case STATUS_AVAILABLE: {
-            status = currentStatus.status.page_available;
-            break;
+		case STATUS_EXPIRED: {
+			status = currentStatus.status.page_expired;
+			break;
 		}
-        case STATUS_EXPIRED: {
-            status = currentStatus.status.page_expired;
-            break;
+		default: {
+			status = 0;
+			break;
 		}
-        default: {
-            status = 0;
-            break;
-		}
-    }
-    return(status);
+	}
+	return(status);
 }
 
 uint32 SetPageStatus(uint8 page, uint8 field0, uint8 field1, uint8 field2, uint8 field3, uint32 eraseCounter) {
-    uint32 retCode = 0;
-    Dee_Page_Status_Helper currentStatus;
+	uint32 retCode = 0;
+	Dee_Page_Status_Helper currentStatus;
 	
-    currentStatus.status = dee_page_read_status(page);
+	currentStatus.status = dee_page_read_status(page);
 	
 	{
 		uint8 x = 0;
@@ -132,10 +128,6 @@ uint32 SetPageStatus(uint8 page, uint8 field0, uint8 field1, uint8 field2, uint8
 			switch (actualField) {
 				case STATUS_ACTIVE :  {
 					currentStatus.status.page_active = PAGE_ACTIVE;
-					break;
-				}
-				case STATUS_AVAILABLE :  {
-					currentStatus.status.page_available = PAGE_NOT_AVAILABLE;
 					break;
 				}
 				case STATUS_CURRENT :  {

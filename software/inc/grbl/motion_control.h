@@ -36,7 +36,6 @@
 
 extern void do_motion_control(void);
 extern uint8 isArcGeneratingRunning(void);
-extern uint8 isMc_homing_cycleRunning(void);
 extern uint8 isProbing_cycleRunning(void);
 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
@@ -51,8 +50,6 @@ extern void mc_line(float *target, plan_line_data_t *pl_data);
 extern void mc_arc(float *target, plan_line_data_t *pl_data, float *position, float *offset, float radius,
   uint8 axis_0, uint8 axis_1, uint8 axis_linear, uint8 is_clockwise_arc);
 
-// Perform homing cycle to locate machine zero. Requires limit switches.
-extern void mc_homing_cycle(uint8 cycle_mask);
 
 // Handles updating the override control state.
 extern void mc_override_ctrl_update(uint8 override_state);

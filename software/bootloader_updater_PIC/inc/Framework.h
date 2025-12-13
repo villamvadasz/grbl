@@ -24,27 +24,88 @@
 #ifndef __FRAMEWORK_H__
 #define __FRAMEWORK_H__
 
-#define SOH 01
-#define EOT 04
-#define DLE 16
+	#include "GenericTypeDefs.h"
+	
+	#define REC_FLASHED 0
+	#define REC_NOT_FOUND 1
+	#define REC_FOUND_BUT_NOT_FLASHED 2
 
-#define FRAMEWORK_BUFF_SIZE					1000
+	#define SOH 01
+	#define EOT 04
+	#define DLE 16
 
-#define FRAMEWORK_FrameWorkTask 			FrameWorkTask
-#define FRAMEWORK_BuildRxFrame  			BuildRxFrame
-#define FRAMEWORK_GetTransmitFrame 			GetTransmitFrame
-#define FRAMEWORK_ExitFirmwareUpgradeMode 	ExitFirmwareUpgradeMode
+	#define FRAMEWORK_BUFF_SIZE					1000
 
-// Exported functions
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern void FRAMEWORK_FrameWorkTask(void);
-extern void FRAMEWORK_BuildRxFrame(UINT8 *RxData, INT16 RxLen);
-extern UINT FRAMEWORK_GetTransmitFrame(UINT8* Buff);
-extern BOOL FRAMEWORK_ExitFirmwareUpgradeMode(void);
-#ifdef __cplusplus
-}
-#endif
+	typedef enum _T_COMMANDS {
+		READ_BOOT_INFO = 1,
+		ERASE_FLASH, 
+		PROGRAM_FLASH,
+		READ_CRC,
+		JMP_TO_APP,
+		WRITE_CRYPTO_SIGNATURE,
+		READ_SERIAL_NUMBER,
+		WRITE_SERIAL_NUMBER,
+		WRITE_CRYPTO_KEY
+	} T_COMMANDS;
+
+	typedef struct _T_FRAME {
+		UINT Len;
+		UINT8 Data[FRAMEWORK_BUFF_SIZE];
+
+	} T_FRAME;
+
+	typedef struct _T_HEX_RECORD {
+		UINT8 RecDataLen;
+		DWORD_VAL Address;
+		UINT8 RecType;
+		UINT8* Data;
+		UINT8 CheckSum;
+		DWORD_VAL ExtSegAddress;
+		DWORD_VAL ExtLinAddress;
+	} T_HEX_RECORD;
+
+
+	typedef struct _T_REC {
+		UINT8 *start;
+		UINT8 len;
+		UINT8 status;
+	} T_REC;
+
+
+	extern void FrameWorkInit(UINT val);
+	extern void FrameWorkTask(void);
+	extern void FrameWorkClose(void);
+	extern BOOL ExitFirmwareUpgradeMode(void);
+	
+
+	extern void HandleCommand_crypto(void);
+	extern void HandleCommand_SDCARD(void);
+	extern void HandleCommand_USB(void);
+	
+	extern UINT GetTransmitFrame(UINT8* Buff);
+	extern void BuildRxFrame(UINT8 *RxData, INT16 RxLen);
+
+
+	extern const UINT8 BootInfo[2];
+	extern BOOL ValidAppPresent(void);
+	extern unsigned int Framework_EraseFlash(void);
+	extern void Framework_WriteKeyToFlash(void* address, unsigned char *key);
+	extern void Framework_WriteSerialToFlash(void* address, unsigned char *serial);
+	extern unsigned int WriteHexRecord2Flash(UINT8* HexRecord, UINT totalRecLen);
+	extern UINT16 CalculateCrc(UINT8 *data, UINT32 len);
+	#ifdef BOOTLOADER_WITH_DEE
+		extern UINT16 CalculateCrc_WithoutEeprom(UINT8 *data, UINT32 len);
+	#endif
+	
+	extern void CryptoSignatureSet(unsigned char *ptr);
+	extern void CryptoKeySet(unsigned char *ptr);
+	extern unsigned int CryptoKeyIsWritten(void);
+	extern void CryptoSignatureCheck_reset(void);
+	extern void CryptoSignatureCheck_add(void * add, unsigned char data);
+	
+
+	extern unsigned int CryptoSignatureCheck_check(void);
+	extern void RunApplicationSet(void);
+	extern void DisableAutoRunDelay(void);
 
 #endif

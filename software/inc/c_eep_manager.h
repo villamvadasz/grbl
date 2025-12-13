@@ -7,7 +7,7 @@
 	//Use 0xFF to disable version check
 	//#define EEPROM_VERSION 0xFF
 
-	#define EEPROM_VERSION 0x0A
+	#define EEPROM_VERSION 0x0B
 	//#define EEPROM_INVALIDATE_OLD
 
 	typedef enum _EepManager_Item {
@@ -26,6 +26,8 @@
 		EepManager_Items_Tool_Length_1,
 		EepManager_Items_Tool_Length_2,
 		EepManager_Items_Coordinates_Teached,
+		EepManager_Items_SerialNumber,
+		EepManager_Items_RFE,
 		EepManager_Items_LastItem,
 	} EepManager_Item;
 

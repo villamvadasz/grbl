@@ -21,8 +21,12 @@ typedef union _Dee_Page {
 	Dee_Type type;
 } Dee_Page;
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-braces"
 const Dee_Page dee_page[DEE_PAGE_CNT] __attribute__ (( address(EEPROM_FLASH_ADDR), aligned(NUMBER_OF_BYTES_IN_PAGE) )) = {0};
+#ifdef DEE_USE_STATIC_PAGE
+const uint32 dee_page_static[NUMBER_OF_BYTES_IN_PAGE / 4] __attribute__ (( address(EEPROM_FLASH_ADDR + (sizeof(Dee_Page) * DEE_PAGE_CNT)), aligned(NUMBER_OF_BYTES_IN_PAGE) )) = {0};
+#endif
 #pragma GCC diagnostic pop
 
 Dee_Page *read_dee_page;

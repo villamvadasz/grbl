@@ -66,9 +66,10 @@
 // characters. In future versions, this will be increased, when we know how much extra
 // memory space we can invest into here or we re-write the g-code parser not to have this
 // buffer.
-#define LINE_BUFFER_SIZE 80
+#define GRBL_LINE_BUFFER_SIZE 128
+#define GRBL_RX_LEN_PROTOCOL 256
 
-extern char line_buffer[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated. 
+extern char grbl_report_failed_line_buffer[GRBL_LINE_BUFFER_SIZE];
 
 extern void init_protocol_main_loop(void);
 

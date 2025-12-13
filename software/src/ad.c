@@ -6,23 +6,33 @@
 
 #include "mal.h"
 
+#if defined (__32MX440F256H__) || defined (__32MX440F512H__) || defined (__32MX470F512H__) || defined (__32MX460F512L__)  || defined (__32MX470F512L__)  || defined (__32MX795F512H__)   || defined (__32MX440F256H__) || defined (__32MZ2048ECG144__)
+#else
+	#error TODO Implement
+#endif
+
 uint16 adResults[AD_CHANNEL_NUM];
 
-uint8 doAd100ms = 0;
+uint8 doAdTrigger = 0;
+
+void ad_configure_conversion(unsigned int ad_currentChannel);
+void ad_start_conversion(void);
+unsigned int ad_is_conversion_finished(void);
+unsigned int ad_read_out_value(void);
 
 void init_ad(void) {
 	memset(adResults, 0x00, sizeof(adResults));
 	//V_BAT
 	TRISBbits.TRISB12 = 1;
-	#ifdef __32MX440F256H__
+
+	#if defined(__32MX440F256H__) || defined(__32MX440F512H__) || defined(__32MX460F512L__) || defined(__32MX795F512H__)
 		AD1PCFGbits.PCFG12 = 0;
-	#else
+	#endif
+
 	#ifdef __32MX470F512H__
 	    ANSELBbits.ANSB12 = 1;
-	#else
-	#ifdef __32MX460F512L__
-		AD1PCFGbits.PCFG12 = 0;
-	#else
+	#endif
+
 	#ifdef __32MX470F512L__
 		ANSELA = 0;
 		ANSELB = 0;
@@ -31,15 +41,6 @@ void init_ad(void) {
 		ANSELE = 0;
 		ANSELF = 0;
 		ANSELG = 0;
-	#else
-	#ifdef __32MZ2048ECG144__
-		
-	#else
-		#error TODO Implement
-	#endif
-	#endif
-	#endif
-	#endif
 	#endif
 
 	#ifndef __32MZ2048ECG144__
@@ -56,25 +57,23 @@ void init_ad(void) {
 }
 
 void do_ad(void) {
-	if (doAd100ms) {
-		doAd100ms = 0;
-		{
-			#ifndef __32MZ2048ECG144__
-				if ((AD1CON1bits.SAMP == 0) && (AD1CON1bits.DONE == 1)) {
-					adResults[0] = ADC1BUF0;                // result stored in ADC1BUF0
-					AD1CON1bits.SAMP = 1;           // Begin sampling
-				}
-			#endif
+	if (doAdTrigger) {
+		if (ad_is_conversion_finished()) {
+			doAdTrigger = 0;
+			adResults[0] = ad_read_out_value();
 		}
 	}
 }
 
 void isr_ad_1ms(void) {
-	static uint8 doAd100msCnt = 0;
-	doAd100msCnt ++;
-	if (doAd100msCnt >= 100) {
-		doAd100msCnt = 0;
-		doAd100ms = 1;
+	static uint8 doAdTriggerCnt = 0;
+	doAdTriggerCnt ++;
+	if (doAdTriggerCnt >= AD_CONVERSION_TIME) {
+		doAdTriggerCnt = 0;
+		doAdTrigger = 1;
+		
+		ad_configure_conversion(12);
+		ad_start_conversion();
 	}
 }
 
@@ -83,5 +82,37 @@ uint16 getAd(unsigned char ch) {
 	if (ch < AD_CHANNEL_NUM) {
 		result = adResults[ch];
 	}
+	return result;
+}
+
+void ad_configure_conversion(unsigned int ad_currentChannel) {
+	#ifndef __32MZ2048ECG144__
+		AD1CHSbits.CH0SA = ad_currentChannel;
+	#endif
+}
+
+void ad_start_conversion(void) {
+	#ifndef __32MZ2048ECG144__
+		if ((AD1CON1bits.SAMP == 0) && (AD1CON1bits.DONE == 1)) {
+			AD1CON1bits.SAMP = 1;           // Begin sampling
+		}
+	#endif
+}
+
+unsigned int ad_is_conversion_finished(void) {
+	int result = 0;
+	#ifndef __32MZ2048ECG144__
+		if ((AD1CON1bits.SAMP == 0) && (AD1CON1bits.DONE == 1)) {
+			result = 1;
+		}
+	#endif
+	return result;
+}
+
+unsigned int ad_read_out_value(void) {
+	unsigned int result = 0;
+	#ifndef __32MZ2048ECG144__
+		result = ADC1BUF0;
+	#endif
 	return result;
 }

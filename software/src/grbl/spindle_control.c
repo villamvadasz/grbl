@@ -28,7 +28,7 @@
 #include "k_stdtype.h"
 #include "pwm.h"
 
-
+float spindle_debug_last_pwm_val = 0.0f;
 #ifndef VARIABLE_SPINDLE_OC
 	float pwm_dummy_value = 0.0f;
 #endif
@@ -173,6 +173,7 @@ void spindle_set_state(uint8 state, float rpm) {
 	#else
 		pwm_dummy_value = pwm_value;
 	#endif
+	spindle_debug_last_pwm_val = pwm_value;
 
 	#ifdef SPINDLE_DIRECTION_PORT
 		if (state != SPINDLE_ENABLE_LASTW) {

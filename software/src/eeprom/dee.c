@@ -64,7 +64,6 @@ uint32 MassErasePage(uint8 page);
 uint32 DataEEWrite(uint32 data, uint32 addr, uint8 packOperation);
 uint32 DataEERead(uint32 *data, uint32 addr);
 uint32 PackEE(void);
-uint32 PackEE_synch(void);
 sint32 PackEE_async(void);
 uint32 Dee_CloseCurrentPage(uint8 currentPage, uint8 nextPage);
 unsigned int NVMWriteWord(void* address, unsigned int data);
@@ -340,7 +339,7 @@ void init_dee(void) {
 		ErasePage(nextPage); // Erase the page after the current page
 
 		if (GetIndexOfEmptyDataElement(currentPage) == -1) {//Page full
-			PackEE_synch();
+			dee_pack_triggered = 1;
 		}
 	} else if (activePages > 0) {//If some active pages, do nothing
 	} else {
@@ -598,7 +597,7 @@ uint32 DataEEWrite(uint32 data, uint32 addr, uint8 packOperation) {
 		} else if ( (addrIndex >= (DEE_NUMBER_OF_DATA_ELEMENTS * 80 / 100)) && (activePages == (DEE_PAGE_CNT - 1) ) ) { // both active pages are full then pack the page.
 			dee_pack_triggered = 1;
 		} else if ( (addrIndex == (DEE_NUMBER_OF_DATA_ELEMENTS - 1)) && (activePages == (DEE_PAGE_CNT - 1) ) ) { // both active pages are full then pack the page.
-			PackEE_synch();
+			dee_pack_triggered = 1;
 		}
 	} else {
 		if ( (addrIndex == (DEE_NUMBER_OF_DATA_ELEMENTS - 1)) && (activePages < (DEE_PAGE_CNT - 1) ) ) {
@@ -726,19 +725,6 @@ uint8 dee_is_pack_running(void) {
 	
 	result = dee_pack_running;
 	
-	return result;
-}
-
-uint32 PackEE_synch(void) {
-	uint32 result = 0;
-	sint32 PackEE_async_result = -1;
-	while (1) {
-		PackEE_async_result = PackEE_async();
-		if (PackEE_async_result != -1) {
-			result = PackEE_async_result;
-			break;
-		}
-	}
 	return result;
 }
 

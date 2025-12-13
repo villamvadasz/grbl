@@ -22,7 +22,9 @@
 #define grbl_h
 
 
-	//#include "grbl.h"
+	#include <string.h>
+	#include <stdio.h>
+	#include <math.h>
 	#include "k_stdtype.h"
 	#include "cpu_map.h"
 	#include "c_grbl_config.h"
@@ -36,7 +38,7 @@
 	#include "settings.h"
 	#include "stepper.h"
 	#include "grbl_limits.h"
-	#include "report.h"
+	#include "grbl_report.h"
 	#include "planner.h"
 	#include "grbl_gcode.h"
 	#include "coolant_control.h"
@@ -51,6 +53,7 @@
 	#include "grbl_protocol.h"
 	#include "grbl_toolchange.h"
 	#include "grbl_bootloader.h"
+	#include "grbl_homing.h"
 	
 	
 	// Grbl versioning system

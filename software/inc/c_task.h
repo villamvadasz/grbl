@@ -5,7 +5,7 @@
 	//#define TASK_LOOP_UNTIL_FIRST_HIT
 	//#define TASK_LOOP_UNTIL_ALL
 
-	#define TASKLISTCNT 32
+	#define TASKLISTCNT 4
 	#define taskShortageCallout()	;
 	#define taskSwitchStartCall(a)	;
 	#define taskSwitchStopCall(a)	;

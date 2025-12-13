@@ -42,10 +42,10 @@ void bootloader_reset(void) {
 
 void bootloader_write_mac(unsigned char *data) {
 	if (data != NULL) {
-		bootloader_MAC[6] == 0x00;
-		bootloader_MAC[7] == 0x00;
+		bootloader_MAC[6] = 0x00;
+		bootloader_MAC[7] = 0x00;
 		memcpy((unsigned char *)bootloader_MAC, data, 6);
-		bootloader_MAC[6] == 0xCA;
-		bootloader_MAC[7] == 0xFE;
+		bootloader_MAC[6] = 0xCA;
+		bootloader_MAC[7] = 0xFE;
 	}
 }

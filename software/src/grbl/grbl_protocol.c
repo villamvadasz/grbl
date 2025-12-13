@@ -28,7 +28,6 @@
 #include "ringBuffer.h"
 #include "ethernet.h"
 
-#define RX_LEN_GRBL_PROTOCOL 128
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
 #define LINE_FLAG_COMMENT_PARENTHESES bit(1)
@@ -45,7 +44,7 @@ typedef enum _grbl_line_sm_states {
 	sm_synch_motion,
 } grbl_line_sm_states;
 
-char line_buffer[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
+char line_buffer[GRBL_LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
 grbl_line_sm_states lineStateMachine = sm_processing_chars;
 
 uint8 requestSynchMotion = 0;
@@ -57,10 +56,10 @@ sint16 protocol_execute_line_status = 0;
 float protocol_set_requestDwell_dwellTime = 0.0f;
 
 RingBuffer myRingBuffer_grbl_protocol_rx;
-unsigned char grbl_protocol_rx[RX_LEN_GRBL_PROTOCOL];
+unsigned char grbl_protocol_rx[GRBL_RX_LEN_PROTOCOL];
 unsigned long missedRxChar_Grbl_Protocol = 0;
 uint8 grbl_protocol_line_flags = 0;
-uint8 grbl_protocol_char_counter = 0;
+uint16 grbl_protocol_char_counter = 0;
 
 uint8 process_single_char_command(uint8 data);
 uint8 process_multi_char_command(uint8 data, char *line);
@@ -104,15 +103,23 @@ void do_protocol_main_loop(void) {
 	}
 	switch (lineStateMachine) {
 		case sm_processing_chars : {
-			int ch = getChar_grbl_protocol();
+			volatile int ch = getChar_grbl_protocol();
 			if (ch != -1) {
-				uint8 dataCh = ch;
-				if (process_multi_char_command(dataCh, line_buffer) != 0) {
-					//Found a Jog or G Line
-					if (line_buffer[0] == '$') {
+				volatile uint8 dataCh = ch;
+				switch (process_multi_char_command(dataCh, line_buffer)) {
+					case 0 : {
+						//Stay in this state for more, since no full line received
+						break;
+					}
+					case '$' : {
+						//Jog line received, go to jog line processing
 						lineStateMachine = sm_line_found_jog_wait_for_processed;
-					} else {
+						break;
+					}
+					default : {
+						//Line received, go to processing
 						lineStateMachine = sm_line_found_pre_sync_check;
+						break;
 					}
 				}
 			}			
@@ -150,7 +157,7 @@ void do_protocol_main_loop(void) {
 			} else {
 				// Parse and execute jog block.
 				protocol_execute_line_status = protocol_execute_line(line_buffer, &jog_line_number);
-				if (isMc_homing_cycleRunning()) {
+				if (grbl_homing_mc_homing_cycle_running()) {
 					lineStateMachine = sm_line_wait_home_end;
 				} else {
 					if (protocol_execute_line_status != STATUS_ASYNCH_OK) {
@@ -162,7 +169,7 @@ void do_protocol_main_loop(void) {
 			break;
 		}
 		case sm_line_wait_home_end : {
-			if (isMc_homing_cycleRunning()) {
+			if (grbl_homing_mc_homing_cycle_running()) {
 			} else {
 				report_status_message(protocol_execute_line_status, 0);
 				system_set_sys_state(STATE_IDLE); // Set to IDLE when complete.
@@ -180,9 +187,9 @@ void do_protocol_main_loop(void) {
 				//wait until dwell is finished
 			} else if (isArcGeneratingRunning() != 0) {
 				//wait until arc generator is finished
-			} else if (isLimits_go_homeRunning() != 0) {
+			//} else if (grbl_homing_go_home_running() != 0) {//TODO Removed because next one is doing the same
 				//wait until Limit Home generator is finished
-			} else if (isMc_homing_cycleRunning() != 0) {
+			} else if (grbl_homing_mc_homing_cycle_running() != 0) {
 				//wait until Mc Home is finished
 			} else if (st_isDelayRunning() != 0) {
 				//wait until delay is done
@@ -375,7 +382,7 @@ uint8 process_single_char_command(uint8 data) {
 
 uint8 process_multi_char_command(uint8 data, char *line) {
 	uint8 result = 0;
-	uint8 strlen_line = 0;
+	uint16 strlen_line = 0;
 	char c = data;
 
 	if (grbl_protocol_line_flags & LINE_FLAG_COMMENT_PARENTHESES) {
@@ -391,6 +398,10 @@ uint8 process_multi_char_command(uint8 data, char *line) {
 		}
 		if (grbl_protocol_line_flags == 0) {
 			if ((c == '\n') || (c == '\r')) { // End of line reached
+				
+				if (grbl_protocol_char_counter >= GRBL_LINE_BUFFER_SIZE) {
+					grbl_protocol_char_counter = GRBL_LINE_BUFFER_SIZE - 1;
+				}
 				line[grbl_protocol_char_counter] = 0; // Set string termination character.
 				strlen_line = grbl_protocol_char_counter;
 				grbl_protocol_char_counter = 0;
@@ -403,7 +414,7 @@ uint8 process_multi_char_command(uint8 data, char *line) {
 					// Report line overflow error.
 					report_status_message(STATUS_OVERFLOW, 0);
 					// Reset tracking data for next line.
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				}
 				grbl_protocol_line_flags = 0;
 				
@@ -411,39 +422,44 @@ uint8 process_multi_char_command(uint8 data, char *line) {
 					// Empty or comment line. For syncing purposes.
 					report_status_message(STATUS_OK, 0);
 					// Reset tracking data for next line.
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				} else if ( (strlen("BOOTLOADER") <= strlen_line) && (strcmp(line, "BOOTLOADER") == 0) ) {
 					grbl_bootloader_trigger(1);
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				} else if ( (strlen("RESET1701") <= strlen_line) && (strcmp(line, "RESET1701") == 0) ) {
 					grbl_bootloader_trigger(0);
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				} else if ( (strlen("DUMPEEPROM") <= strlen_line) && (strcmp(line, "DUMPEEPROM") == 0) ) {
 					grbl_report_dump_eeprom();
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				} else if ( (strlen("GETEEPROM:aaaaaaaa") <= strlen_line) && (strncmp(line, "GETEEPROM:", 10) == 0) ) {
 					grbl_eeprom_get_eeprom((unsigned char *)&line[10]);
 					report_status_message(STATUS_OK, 0);
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				} else if ( (strlen("SETEEPROM:aaaaaaaa:dddddddd") <= strlen_line) && (strncmp(line, "SETEEPROM:", 10) == 0) ) {
 					grbl_eeprom_set_eeprom((unsigned char *)&line[10]);
 					report_status_message(STATUS_OK, 0);
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				} else if ( (strlen("MAC:xx-xx-xx-xx-xx-xx") <= strlen_line) && (strncmp(line, "MAC:", 4) == 0) ) {
 					ethernet_set_mac_address((unsigned char *)&line[4]);
 					grbl_eeprom_trigger();
 					report_status_message(STATUS_OK, 0);
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
+				} else if ( (strlen("SETSERIALNUMBER:CA123456") <= strlen_line) && (strncmp(line, "SETSERIALNUMBER:", 14) == 0) ) {
+					grbl_set_serial_number((unsigned char *)&line[16]);
+					grbl_eeprom_trigger();
+					report_status_message(STATUS_OK, 0);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				} else if (line[0] == '$') {
 					// Grbl '$' system command
-					result = 1;
+					result = '$';
 				} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
 					// Everything else is gcode. Block if in alarm or jog mode.
 					report_status_message(STATUS_SYSTEM_GC_LOCK, 0);
 					// Reset tracking data for next line.
-					memset(line, 0, LINE_BUFFER_SIZE);
+					memset(line, 0, GRBL_LINE_BUFFER_SIZE);
 				} else if (line[0] == '\n') {
-					result = 1;
+					result = '\n';
 				} else if (line[0] == '\r') {
 					//Skip empty line
 				} else {
@@ -464,7 +480,7 @@ uint8 process_multi_char_command(uint8 data, char *line) {
 				} else if (c == ';') {
 					// NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
 					grbl_protocol_line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-				} else if (grbl_protocol_char_counter >= (LINE_BUFFER_SIZE - 1) ) {
+				} else if (grbl_protocol_char_counter >= GRBL_LINE_BUFFER_SIZE) {
 					// Detect line buffer overflow and set flag.
 					grbl_protocol_line_flags |= LINE_FLAG_OVERFLOW;
 				} else if (c >= 'a' && c <= 'z') { // Upcase lowercase
@@ -521,9 +537,24 @@ sint16 protocol_execute_line(char *line, int32_t *number) {
 			return(gc_execute_line(line, number)); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
 			break;
 		}
-		case '$': case 'G': case 'C': case 'X': case 'D': {
+		case '$': case 'G': case 'C': case 'X': case 'D': case 'W': {
 			if ( line[2] != 0 ) {
 				switch( line[1] ) {
+					#ifdef USE_P256_M
+						case 'C' : {
+							if (line[2] == '2') {
+								report_grbl_crypto_2();//shared
+							} else if (line[2] == '1') {
+								report_grbl_crypto_1();//private key
+							} else if (line[2] == '0') {
+								report_grbl_crypto_0();//public key
+							} else {
+								report_grbl_crypto_0();
+							}
+							return (STATUS_ASYNCH_OK);
+							break;
+						}
+					#endif
 					case 'D' : {
 						if (line[2] == '1') {
 							report_grbl_debug_1();
@@ -531,6 +562,14 @@ sint16 protocol_execute_line(char *line, int32_t *number) {
 							report_grbl_debug_0();
 						} else {
 							report_grbl_debug_0();
+						}
+						return (STATUS_ASYNCH_OK);
+						break;
+					}
+					case 'W' : {
+						if (line[2] == '1') {
+							extern volatile uint32 tmr_stop_watchdog_triggering;
+							tmr_stop_watchdog_triggering = 1;
 						}
 						return (STATUS_ASYNCH_OK);
 						break;

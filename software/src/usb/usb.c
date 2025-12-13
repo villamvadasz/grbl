@@ -43,6 +43,10 @@ void init_usb(void) {
     tris_self_power = INPUT_PIN;	// See HardwareProfile.h
     #endif
 	#if defined(USB_INTERRUPT)
+		#if defined (__32MX470F512H__) || defined (__32MX460F512L__) || defined (__32MX470F512L__) || defined (__32MX440F256H__) || defined (__32MX795F512H__)
+		#else
+			#error TODO Implement
+		#endif
 		#ifdef __32MX470F512H__
 			IPC7bits.USBIS = 0;
 			IPC7bits.USBIP = ISR_IPLV_USB;
@@ -52,6 +56,14 @@ void init_usb(void) {
 			IPC7bits.USBIP = ISR_IPLV_USB;
 		#endif
 		#ifdef __32MX440F256H__
+			IPC11bits.USBIS = 0;
+			IPC11bits.USBIP = ISR_IPLV_USB;
+		#endif
+		#ifdef __32MX460F512L__
+			IPC11bits.USBIS = 0;
+			IPC11bits.USBIP = ISR_IPLV_USB;
+		#endif
+		#ifdef __32MX795F512H__
 			IPC11bits.USBIS = 0;
 			IPC11bits.USBIP = ISR_IPLV_USB;
 		#endif

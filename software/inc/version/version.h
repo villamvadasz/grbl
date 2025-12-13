@@ -29,6 +29,7 @@
 		TYPE_OLIMEX_WS2812B_TESTING = 0x0028,
 		TYPE_OLIMEX_MOD_RTC2 = 0x0029,
 		TYPE_OLIMEX_LORA = 0x002A,
+		TYPE_JUPITER = 0x002B,
 	} SoftwareType;
 
 	typedef struct _SoftwareIdentification {
@@ -45,5 +46,10 @@
 	extern const char VERSION_TIME[];
 	extern const char VERSION_ID_FIX[];
 	extern const char VERSION_MAKEFILE_NAME[];
+
+	extern const unsigned char VERSION_APP_KEY_ROM[];
+	extern const unsigned char VERSION_APP_KEY_BOOT[];
+	extern const unsigned char VERSION_APP_KEY_BOOT_MAC[];
+	extern const unsigned int VERSION_APP_SERIAL_NUMBER;
 
 #endif

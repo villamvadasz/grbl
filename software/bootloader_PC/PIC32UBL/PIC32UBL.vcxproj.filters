@@ -6,20 +6,20 @@
       <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Source Files\MFC">
-      <UniqueIdentifier>{0a0d056c-7af6-4946-8b64-a134add520a3}</UniqueIdentifier>
+      <UniqueIdentifier>{4ed300e5-72cc-4378-a977-92afb24d614d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Bootloader">
-      <UniqueIdentifier>{b760491d-1631-42e8-a8f4-ecb8a9e0fa99}</UniqueIdentifier>
+      <UniqueIdentifier>{f302acb8-6287-4cbf-b353-e921f124281a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="Header Files\MFC">
-      <UniqueIdentifier>{9a12ae62-4f69-4a07-84b4-22b45c215bd0}</UniqueIdentifier>
+      <UniqueIdentifier>{b924b14b-dfab-46c8-95fa-e47f33a28793}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Bootloader">
-      <UniqueIdentifier>{847bdf38-5230-4c29-b7ab-01d0e92871ab}</UniqueIdentifier>
+      <UniqueIdentifier>{d544b07d-0313-4b60-af28-fba7a305fe20}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -51,6 +51,15 @@
     <ClCompile Include="USB_HID.cpp">
       <Filter>Source Files\Bootloader</Filter>
     </ClCompile>
+    <ClCompile Include="HexEnc.cpp">
+      <Filter>Source Files\Bootloader</Filter>
+    </ClCompile>
+    <ClCompile Include="aes_tiny.cpp">
+      <Filter>Source Files\Bootloader</Filter>
+    </ClCompile>
+    <ClCompile Include="FileLoader.cpp">
+      <Filter>Source Files\Bootloader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PIC32UBL.h">
@@ -78,6 +87,12 @@
       <Filter>Header Files\Bootloader</Filter>
     </ClInclude>
     <ClInclude Include="USB_HID.h">
+      <Filter>Header Files\Bootloader</Filter>
+    </ClInclude>
+    <ClInclude Include="HexEnc.h">
+      <Filter>Header Files\Bootloader</Filter>
+    </ClInclude>
+    <ClInclude Include="FileLoader.h">
       <Filter>Header Files\Bootloader</Filter>
     </ClInclude>
   </ItemGroup>

@@ -20,6 +20,9 @@ call :makecall_internal
 set CPU_TARGET=470F512L
 set SYS_TARGET=80MHZ
 call :makecall_internal
+set CPU_TARGET=795F512H
+set SYS_TARGET=80MHZ
+call :makecall_internal
 
 
 

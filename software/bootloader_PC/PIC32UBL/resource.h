@@ -33,6 +33,11 @@
 #define IDC_CHECK_ETH_ENABLE            1026
 #define IDC_EDIT1                       1027
 #define IDC_SOCKET                      1027
+#define IDC_EDIT_CRYPTO_SIGNATURE       1028
+#define IDC_CHECK_CRYPTO_ENABLE         1029
+#define IDC_CHECK_CRYPTO_ENABLE2        1029
+#define IDC_BUTTON1                     1030
+#define IDC_BUTTON2                     1031
 
 // Next default values for new objects
 // 
@@ -40,7 +45,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_CONTROL_VALUE         1032
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

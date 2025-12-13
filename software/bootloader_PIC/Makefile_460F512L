@@ -9,39 +9,59 @@ LD = xc32-ld.exe
 AR = xc32-ar.exe
 HX = xc32-bin2hex.exe
 RM = del
+PIC_TYPE=32MX460F512L
+MAKEFILENAME=-DMAKEFILE_NAME=\""Makefile_795F512H\""
+DEFAULTDEFINE=-DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING $(CFLAGS)
+INCLUDEPATH=-I".\inc" -I".\inc\mal"
+RESULT_FILE_NAME=USBHIDBootloader
 
-all: ./output/USBHIDBootloader.hex
+all: ./output/$(RESULT_FILE_NAME).hex
 
-./output/USBHIDBootloader.hex : ./output/USBHIDBootloader.elf
-	$(HX) ".\output\USBHIDBootloader.elf"
+./output/$(RESULT_FILE_NAME).hex : ./output/$(RESULT_FILE_NAME).elf
+	$(HX) ".\output\$(RESULT_FILE_NAME).elf"
 
-./output/USBHIDBootloader.elf : output/BootLoader.o output/Framework.o output/NVMem.o output/usb_descriptors.o output/usb_device.o output/usb_function_hid.o output/Usb_HID_tasks.o output/int_tbl_lib.o
-	$(CC) -mprocessor=32MX460F512L "output\BootLoader.o" "output\Framework.o" "output\NVMem.o" "output\usb_descriptors.o" "output\usb_device.o" "output\usb_function_hid.o" "output\Usb_HID_tasks.o" "output\int_tbl_lib.o" -o".\output\USBHIDBootloader.elf" -Wl,--script="lkr\btl_32MX440F256H_generic.ld",--defsym=__MPLAB_BUILD=1,-Map=".\output\USBHIDBootloader.map"
+./output/$(RESULT_FILE_NAME).elf : output/BootLoader.o output/Framework.o output/NVMem.o output/usb_descriptors.o output/usb_device.o output/usb_function_hid.o output/Usb_HID_tasks.o output/int_tbl_lib.o output/aes_tiny.o output/Framework_usb.o output/Framework_crypto.o output/Framework_flash.o
+	$(CC) -mprocessor=$(PIC_TYPE) "output\BootLoader.o" "output\Framework.o" "output\NVMem.o" "output\usb_descriptors.o" "output\usb_device.o" "output\usb_function_hid.o" "output\Usb_HID_tasks.o" "output\int_tbl_lib.o" "output\aes_tiny.o" "output\Framework_usb.o" "output\Framework_crypto.o" "output\Framework_flash.o" -o".\output\$(RESULT_FILE_NAME).elf" -Wl,--script="lkr\btl_$(PIC_TYPE)_generic.ld",--defsym=__MPLAB_BUILD=1,-Map=".\output\$(RESULT_FILE_NAME).map"
 
-output/BootLoader.o : src/BootLoader.c inc/GenericTypeDefs.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/Bootloader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h
-	$(CC) -mprocessor=32MX460F512L -x c -c "src\BootLoader.c" -o".\output\BootLoader.o" -MMD -MF".\output\BootLoader.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+output/BootLoader.o : src/BootLoader.c inc/GenericTypeDefs.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/Bootloader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/mal/fixedmemoryaddress.h
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\BootLoader.c" -o".\output\BootLoader.o" -MMD -MF".\output\BootLoader.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
 
-output/Framework.o : src/Framework.c inc/c_bootloader.h inc/GenericTypeDefs.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/BootLoader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h inc/NVMem.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h
-	$(CC) -mprocessor=32MX460F512L -x c -c "src\Framework.c" -o".\output\Framework.o" -MMD -MF".\output\Framework.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+output/Framework.o : src/Framework.c inc/c_bootloader.h inc/GenericTypeDefs.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/BootLoader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h inc/NVMem.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/aes_tiny.h
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\Framework.c" -o".\output\Framework.o" -MMD -MF".\output\Framework.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
 
 output/NVMem.o : src/NVMem.c inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/GenericTypeDefs.h inc/BootLoader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h inc/NVMem.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h
-	$(CC) -mprocessor=32MX460F512L -x c -c "src\NVMem.c" -o".\output\NVMem.o" -MMD -MF".\output\NVMem.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\NVMem.c" -o".\output\NVMem.o" -MMD -MF".\output\NVMem.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
 
 output/usb_descriptors.o : src/usb_descriptors.c inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/usb_function_hid.h
-	$(CC) -mprocessor=32MX460F512L -x c -c "src\usb_descriptors.c" -o".\output\usb_descriptors.o" -MMD -MF".\output\usb_descriptors.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\usb_descriptors.c" -o".\output\usb_descriptors.o" -MMD -MF".\output\usb_descriptors.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
 
 output/usb_device.o : src/usb_device.c inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/usb_device_local.h
-	$(CC) -mprocessor=32MX460F512L -x c -c "src\usb_device.c" -o".\output\usb_device.o" -MMD -MF".\output\usb_device.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\usb_device.c" -o".\output\usb_device.o" -MMD -MF".\output\usb_device.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
 
 output/usb_function_hid.o : src/usb_function_hid.c inc/GenericTypeDefs.h inc/Compiler.h inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/usb_function_hid.h
-	$(CC) -mprocessor=32MX460F512L -x c -c "src\usb_function_hid.c" -o".\output\usb_function_hid.o" -MMD -MF".\output\usb_function_hid.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\usb_function_hid.c" -o".\output\usb_function_hid.o" -MMD -MF".\output\usb_function_hid.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
 
 output/Usb_HID_tasks.o : src/Usb_HID_tasks.c inc/my_plib.h inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h inc/usb.h inc/GenericTypeDefs.h inc/Compiler.h inc/my_plib.h inc/usb_config.h inc/usb_config_device.h inc/usb_common.h inc/usb_ch9.h inc/usb_device.h inc/usb_hal.h inc/usb_hal_pic32.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h inc/usb_function_hid.h inc/BootLoader.h inc/c_bootloader.h inc/Usb_Tasks.h inc/Framework.h
-	$(CC) -mprocessor=32MX460F512L -x c -c "src\Usb_HID_tasks.c" -o".\output\Usb_HID_tasks.o" -MMD -MF".\output\Usb_HID_tasks.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\Usb_HID_tasks.c" -o".\output\Usb_HID_tasks.o" -MMD -MF".\output\Usb_HID_tasks.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
 
 output/int_tbl_lib.o : src/int_tbl_lib.c inc/int.h inc/int_3xx_4xx.h inc/int_3xx_4xx_legacy.h inc/int_legacy.h src/int_tbl_3xx_4xx_lib.c
-	$(CC) -mprocessor=32MX460F512L -x c -c "src\int_tbl_lib.c" -o".\output\int_tbl_lib.o" -MMD -MF".\output\int_tbl_lib.d" -I".\inc" -g -DTRANSPORT_LAYER_USB -D_SUPPRESS_PLIB_WARNING -DDEMO_BOARD_OLIMEX -Os
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\int_tbl_lib.c" -o".\output\int_tbl_lib.o" -MMD -MF".\output\int_tbl_lib.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
+
+output/aes_tiny.o : src/aes_tiny.c inc/aes_tiny.h
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\aes_tiny.c" -o".\output\aes_tiny.o" -MMD -MF".\output\aes_tiny.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
+
+output/Framework_sdcard.o : src/Framework_sdcard.c inc/c_bootloader.h inc/Framework.h inc/GenericTypeDefs.h inc/FSIO.h inc/FSconfig.h inc/HardwareProfile.h inc/c_bootloader.h inc/HardwareProfile_PIC32MX_Olimex.h inc/FSDefs.h inc/SD-SPI.h
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\Framework_sdcard.c" -o".\output\Framework_sdcard.o" -MMD -MF".\output\Framework_sdcard.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
+
+output/Framework_usb.o : src/Framework_usb.c inc/c_bootloader.h inc/Framework.h inc/GenericTypeDefs.h inc/mal/fixedmemoryaddress.h
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\Framework_usb.c" -o".\output\Framework_usb.o" -MMD -MF".\output\Framework_usb.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
+
+output/Framework_crypto.o : src/Framework_crypto.c inc/c_bootloader.h inc/Framework.h inc/GenericTypeDefs.h inc/aes_tiny.h inc/mal/fixedmemoryaddress.h
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\Framework_crypto.c" -o".\output\Framework_crypto.o" -MMD -MF".\output\Framework_crypto.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
+
+output/Framework_flash.o : src/Framework_flash.c inc/c_bootloader.h inc/Framework.h inc/GenericTypeDefs.h inc/NVMem.h inc/my_plib.h inc/int.h inc/int_5xx_6xx_7xx.h inc/int_legacy.h inc/BootLoader.h inc/c_bootloader.h inc/mal/fixedmemoryaddress.h inc/Usb_Tasks.h inc/HardwareProfile.h inc/HardwareProfile_PIC32MX_Olimex.h
+	$(CC) -mprocessor=$(PIC_TYPE) -x c -c "src\Framework_flash.c" -o".\output\Framework_flash.o" -MMD -MF".\output\Framework_flash.d" $(INCLUDEPATH) -g $(DEFAULTDEFINE) -Os
 
 clean : 
-	$(RM) "output\BootLoader.o" "output\Framework.o" "output\NVMem.o" "output\usb_descriptors.o" "output\usb_device.o" "output\usb_function_hid.o" "output\Usb_HID_tasks.o" "output\int_tbl_lib.o" ".\output\USBHIDBootloader.elf" ".\output\USBHIDBootloader.hex"
+	$(RM) "output\BootLoader.o" "output\Framework.o" "output\NVMem.o" "output\usb_descriptors.o" "output\usb_device.o" "output\usb_function_hid.o" "output\Usb_HID_tasks.o" "output\int_tbl_lib.o" "output\aes_tiny.o" "output\Framework_usb.o"  "output\Framework_crypto.o" "output\Framework_flash.o" ".\output\$(RESULT_FILE_NAME).elf" ".\output\$(RESULT_FILE_NAME).hex"
 

@@ -6,6 +6,8 @@
 #include "Ethernet.h"
 #include "USB_HID.h"
 #include "Hex.h"
+#include "HexEnc.h"
+#include "FileLoader.h"
 #include "BootLoader.h"
 #include "PIC32UBL.h"
 #include "PIC32UBLDlg.h"
@@ -76,8 +78,10 @@ CPIC32UBLDlg::CPIC32UBLDlg(CWnd* pParent /*=NULL*/)
 	, stringEditBoxUSBVID(_T(""))
 	, stringEditBoxUSBPID(_T(""))
 	, boolCheckEthEnable(FALSE)
+	, boolCheckCryptoEnable(TRUE)
 	, ip_value(0)
 	, valEditBoxSocket(0)
+	, stringEditBoxCRYPTO_SIGNATURE(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -108,10 +112,14 @@ void CPIC32UBLDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_USB_PID, stringEditBoxUSBPID);
 	DDX_Control(pDX, IDC_CHECK_ETH_ENABLE, ctrlCheckBoxEthEnable);
 	DDX_Check(pDX, IDC_CHECK_ETH_ENABLE, boolCheckEthEnable);
+	DDX_Check(pDX, IDC_CHECK_CRYPTO_ENABLE, boolCheckCryptoEnable);
 	DDX_IPAddress(pDX, IDC_IP_ADDRESS, ip_value);
 	DDX_Text(pDX, IDC_SOCKET, valEditBoxSocket);
 	DDX_Control(pDX, IDC_IP_ADDRESS, ctrlEditBoxIPaddress);
 	DDX_Control(pDX, IDC_SOCKET, ctrlEditBoxSocketaddress);
+
+	DDX_Control(pDX, IDC_EDIT_CRYPTO_SIGNATURE, ctrlEditBoxCRYPTO_SIGNATURE);
+	DDX_Text(pDX, IDC_EDIT_CRYPTO_SIGNATURE, stringEditBoxCRYPTO_SIGNATURE);
 }
 
 BEGIN_MESSAGE_MAP(CPIC32UBLDlg, CDialog)
@@ -137,6 +145,9 @@ BEGIN_MESSAGE_MAP(CPIC32UBLDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHECK_ETH_ENABLE, OnBnClickedCheckEthEnable)
 	ON_WM_DEVICECHANGE()
 	ON_WM_DEVMODECHANGE()
+	ON_BN_CLICKED(IDC_CHECK_CRYPTO_ENABLE2, &CPIC32UBLDlg::OnBnClickedCheckCryptoEnable2)
+	ON_BN_CLICKED(IDC_BUTTON1, &CPIC32UBLDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON2, &CPIC32UBLDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 
@@ -352,6 +363,7 @@ void CPIC32UBLDlg::ExtraInitialization()
 	char baud[5][10] = {"9600", "19200", "38400", "57600", "115200"};
 
 	EraseProgVer = false;
+	CryptoSignature_send = false;
 
 	// Fill Com Port Combo Box with "COM1, COM2 ........, COM9"	
 	for(int i = 8; i >= 0; i--)
@@ -381,21 +393,24 @@ void CPIC32UBLDlg::ExtraInitialization()
 	ConnectionEstablished = false;
 
 	// Display default VID and PID in edit box. This is default value for Microchip device to work.
+	stringEditBoxCRYPTO_SIGNATURE = "00112233445566778899AABBCCDDEEFF";
+	// Display default VID and PID in edit box. This is default value for Microchip device to work.
 	stringEditBoxUSBVID = "0x4D8";
 	stringEditBoxUSBPID = "0x03C";
 	// Select communication "Com Port" by default.
 	//boolCheckComEnable = 1;
-	boolCheckUsbEnable = 1;
-	PortSelected = USB;
+	//boolCheckUsbEnable = 1;
+	boolCheckEthEnable = 1;
+	PortSelected = ETH;
 	// Diasble serial port selection and baud rate selection.
-	ctrlComboBoxBaudRate.EnableWindow(TRUE);
-	ctrlComboBoxComPort.EnableWindow(TRUE);
+	ctrlComboBoxBaudRate.EnableWindow(FALSE);
+	ctrlComboBoxComPort.EnableWindow(FALSE);
 	// Enable USB VID and PID edit boxes.
 	ctrlEditBoxUSBVID.EnableWindow(FALSE);
 	ctrlEditBoxUSBPID.EnableWindow(FALSE);
 	// Enable IP Address and Socket 
-	ctrlEditBoxIPaddress.EnableWindow(FALSE);
-	ctrlEditBoxSocketaddress.EnableWindow(FALSE);
+	ctrlEditBoxIPaddress.EnableWindow(TRUE);
+	ctrlEditBoxSocketaddress.EnableWindow(TRUE);
 
 
 	
@@ -491,7 +506,6 @@ void CPIC32UBLDlg::OnBnClickedButtonLoadhex()
 	}	
 }
 
-
 /****************************************************************************
  * This function is invoked when there is a response from the device.
  Process the response based on the command.
@@ -500,97 +514,167 @@ void CPIC32UBLDlg::OnBnClickedButtonLoadhex()
  *****************************************************************************/
 LRESULT CPIC32UBLDlg::OnReceiveResponse(WPARAM cmd, LPARAM RxDataPtrAdrs)
 {
-	char MajorVer;// = RxData[3];
-	char MinorVer ;//= RxData[4];
 	char *RxData;
 	CString string;
-	unsigned short crc_received;
-	unsigned short crc_calculated;
 
 	RxData = (char *)RxDataPtrAdrs;
-	MajorVer = RxData[0];
-	MinorVer = RxData[1];
 
 	switch(cmd)
 	{
-	case READ_BOOT_INFO:
-		if(ConnectionEstablished == false)
-		{
-			// New connection.
-			ClearKonsole();
-			string.FormatMessage("Device connected"); 
+		case READ_BOOT_INFO: {
+			char MajorVer = 0;
+			char MinorVer = 0;
+			MajorVer = RxData[0];
+			MinorVer = RxData[1];
+			if(ConnectionEstablished == false)
+			{
+				// New connection.
+				ClearKonsole();
+				string.FormatMessage("Device connected"); 
+				PrintKonsole(string);
+			}
+			string.FormatMessage("Bootloader Firmware Version: %1!d!.%2!d!", MajorVer, MinorVer);
+			PrintKonsole(string);		
+			// Enable only load hex, Disconnect and erase buttons for next operation.
+			ctrlButtonLoadHex.EnableWindow(true);
+			ctrlButtonErase.EnableWindow(true);
+			// Change the connect button to disconnect.
+			ConnectionEstablished = true;
+			ctrlButtonConnectDevice.SetWindowText("Disconnect");
+			// Disable baud rate and com port combo boxes.
+			ctrlComboBoxBaudRate.EnableWindow(false);
+			ctrlComboBoxComPort.EnableWindow(false);
+			// Disable USB VID and PID boxes.
+			ctrlEditBoxUSBVID.EnableWindow(false);
+			ctrlEditBoxUSBPID.EnableWindow(false);
+
+			// Also enable bootloader version info.
+			ctrlButtonBootloaderVer.EnableWindow(true);
+			ctrlButtonRunApplication.EnableWindow(true);
+			mBootLoader.SendCommand(READ_SERIAL_NUMBER, 3, 5000);// 5 second delay
+
+			break;
+		}
+		case ERASE_FLASH: {
+			PrintKonsole("Flash Erased");
+			if(EraseProgVer)// Operation Erase->Program->Verify
+			{
+				if (CryptoSignature_send) {
+					// Erase completed. Next operation is send crypto signature.
+					mBootLoader.SendCommand(WRITE_CRYPTO_SIGNATURE, 3, 500); // 500ms delay	
+				} else {
+					// Erase completed. Next operation is programming.
+					mBootLoader.SendCommand(PROGRAM_FLASH, 3, 500); // 500ms delay	
+				}
+			}
+			// Restore button status to allow further operations.
+			RestoreButtonStatus();
+			break;
+		}
+		case PROGRAM_FLASH: {
+			PrintKonsole("Programming completed");
+			// Restore button status to allow further operations.
+			RestoreButtonStatus();
+			ctrlButtonVerify.EnableWindow(true);
+			ctrlButtonRunApplication.EnableWindow(true);
+
+			if(EraseProgVer)// Operation Erase->Program->Verify
+			{
+				// Programming completed. Next operation is verification.
+				mBootLoader.SendCommand(READ_CRC, 3, 5000);// 5 second delay
+			}
+			break;
+		}
+		case READ_CRC: {
+			unsigned short crc_received = 0;
+			unsigned short crc_calculated = 0;
+			unsigned char key_stored[16];
+			CString hex_print_received;
+			CString hex_print_calculated;
+			crc_received = ((RxData[1] << 8) & 0xFF00) | (RxData[0] & 0x00FF);
+
+			mBootLoader.GetCryptoSignature(key_stored);
+
+			crc_calculated = mBootLoader.CalculateFlashCRC(key_stored);
+
+			hex_print_received.Format(_T("%X"), crc_received);
+			hex_print_calculated.Format(_T("%X"), crc_calculated);
+			PrintKonsole(hex_print_received);
+			PrintKonsole(hex_print_calculated);
+		
+			if(crc_received == crc_calculated)
+			{
+				PrintKonsole("Verification successfull");
+			}
+			else
+			{
+				PrintKonsole("Verification failed");
+			}
+			// Reset erase->program-verify operation.
+			EraseProgVer = false;
+			CryptoSignature_send = false;
+			// Restore button status to allow further operations.
+			RestoreButtonStatus();
+			ctrlButtonVerify.EnableWindow(true);
+			ctrlButtonRunApplication.EnableWindow(true);
+			break;
+		}
+		case WRITE_CRYPTO_SIGNATURE: {
+			string.FormatMessage("Bootloader Crypto Signature written");
 			PrintKonsole(string);
+			if (CryptoSignature_send) {
+				// Signatur sent. Next operation is programming.
+				mBootLoader.SendCommand(PROGRAM_FLASH, 3, 500); // 500ms delay	
+			}
+			break;
 		}
-		string.FormatMessage("Bootloader Firmware Version: %1!d!.%2!d!", MajorVer, MinorVer);
-		PrintKonsole(string);		
-		// Enable only load hex, Disconnect and erase buttons for next operation.
-		ctrlButtonLoadHex.EnableWindow(true);
-		ctrlButtonErase.EnableWindow(true);
-		// Change the connect button to disconnect.
-		ConnectionEstablished = true;
-		ctrlButtonConnectDevice.SetWindowText("Disconnect");
-		// Disable baud rate and com port combo boxes.
-		ctrlComboBoxBaudRate.EnableWindow(false);
-		ctrlComboBoxComPort.EnableWindow(false);
-		// Disable USB VID and PID boxes.
-		ctrlEditBoxUSBVID.EnableWindow(false);
-		ctrlEditBoxUSBPID.EnableWindow(false);
-
-		// Also enable bootloader version info.
-		ctrlButtonBootloaderVer.EnableWindow(true);
-		break;
-
-	case ERASE_FLASH:
-		PrintKonsole("Flash Erased");
-		if(EraseProgVer)// Operation Erase->Program->Verify
-		{
-			// Erase completed. Next operation is programming.
-			mBootLoader.SendCommand(PROGRAM_FLASH, 3, 500); // 500ms delay	
+		case READ_SERIAL_NUMBER: {
+			unsigned int serial_number = 0;
+			serial_number = (unsigned char)RxData[3] & 0xFF;
+			serial_number <<= 8;
+			serial_number += (unsigned char)RxData[2] & 0xFF;
+			serial_number <<= 8;
+			serial_number += (unsigned char)RxData[1] & 0xFF;
+			serial_number <<= 8;
+			serial_number += (unsigned char)RxData[0] & 0xFF;
+			string.FormatMessage("Bootloader Serial Number: 0x%1!X!", serial_number);
+			PrintKonsole(string);
+			break;
 		}
-		// Restore button status to allow further operations.
-		RestoreButtonStatus();
-		break;
-
-	case PROGRAM_FLASH:
-		PrintKonsole("Programming completed");
-		// Restore button status to allow further operations.
-		RestoreButtonStatus();
-		ctrlButtonVerify.EnableWindow(true);
-		ctrlButtonRunApplication.EnableWindow(true);
-
-		if(EraseProgVer)// Operation Erase->Program->Verify
-		{
-			// Programming completed. Next operation is verification.
-			mBootLoader.SendCommand(READ_CRC, 3, 5000);// 5 second delay
+		case WRITE_SERIAL_NUMBER: {
+			unsigned int serial_number = 0;
+			serial_number = (unsigned char)RxData[3] & 0xFF;
+			serial_number <<= 8;
+			serial_number += (unsigned char)RxData[2] & 0xFF;
+			serial_number <<= 8;
+			serial_number += (unsigned char)RxData[1] & 0xFF;
+			serial_number <<= 8;
+			serial_number += (unsigned char)RxData[0] & 0xFF;
+			string.FormatMessage("Bootloader Write Serial Number: 0x%1!X!", serial_number);
+			PrintKonsole(string);
+			break;
 		}
-		break;
+		case WRITE_CRYPTO_KEY : {
+			unsigned int crypto_key_part = 0;
+			crypto_key_part = (unsigned char)RxData[3] & 0xFF;
+			crypto_key_part <<= 8;
+			crypto_key_part += (unsigned char)RxData[2] & 0xFF;
+			crypto_key_part <<= 8;
+			crypto_key_part += (unsigned char)RxData[1] & 0xFF;
+			crypto_key_part <<= 8;
+			crypto_key_part += (unsigned char)RxData[0] & 0xFF;
+			string.FormatMessage("Write Crypto Key: 0x%1!X!", crypto_key_part);
+			PrintKonsole(string);
 
-	case READ_CRC:
-		CString hex_print_received;
-		CString hex_print_calculated;
-		crc_received = ((RxData[1] << 8) & 0xFF00) | (RxData[0] & 0x00FF);
-		crc_calculated = mBootLoader.CalculateFlashCRC();
-		
-		hex_print_received.Format(_T("%X"), crc_received);
-		hex_print_calculated.Format(_T("%X"), crc_calculated);
-		PrintKonsole(hex_print_received);
-		PrintKonsole(hex_print_calculated);
-		
-		if(crc_received == crc_calculated)
-		{
-			PrintKonsole("Verification successfull");
+
+			if (RxData[0] != 0) {
+				string.FormatMessage("Write Crypto Key Success");
+			} else {
+				string.FormatMessage("Write Crypto Key Failed");
+			}
+			PrintKonsole(string);
+			break;
 		}
-		else
-		{
-			PrintKonsole("Verification failed");
-		}
-		// Reset erase->program-verify operation.
-		EraseProgVer = false;
-		// Restore button status to allow further operations.
-		RestoreButtonStatus();
-		ctrlButtonVerify.EnableWindow(true);
-		ctrlButtonRunApplication.EnableWindow(true);
-		break;
 	}
 	
 	if(!ConnectionEstablished)
@@ -612,12 +696,17 @@ LRESULT CPIC32UBLDlg::OnTransmitFailure(WPARAM cmd, LPARAM)
 	CString string;
 	
 	EraseProgVer = false;
+	CryptoSignature_send = false;
 	switch(cmd)
 	{
 	case READ_BOOT_INFO:		
 	case ERASE_FLASH:
 	case PROGRAM_FLASH:
 	case READ_CRC:
+	case WRITE_CRYPTO_SIGNATURE:
+	case READ_SERIAL_NUMBER:
+	case WRITE_SERIAL_NUMBER:
+	case WRITE_CRYPTO_KEY:
 		PrintKonsole("No Response from the device. Operation failed");
 		RestoreButtonStatus();
 		break;
@@ -663,6 +752,46 @@ void CPIC32UBLDlg::OnBnClickedButtonVerify()
 	mBootLoader.SendCommand(READ_CRC, 3, 5000);
 }
 
+void CPIC32UBLDlg::StoreSignature()
+{
+	PTSTR pszText = stringEditBoxCRYPTO_SIGNATURE.GetBuffer();   // get a pointer to the text
+	unsigned char pBytes_converted[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	int size = _tcslen(pszText) * sizeof(TCHAR);  // length in bytes
+	if ((size == 32) || (size == 8))
+	{
+		unsigned char* pBytes = (unsigned char*)(pszText);  // pointer to the byte array
+
+		for (int i = 0; i < size; i += 2)
+		{
+			unsigned char byte = 0;
+			// get each byte and display in hex
+			if ((pBytes[i] >= 'A') && (pBytes[i] <= 'F')) {
+				byte = 0x0A + pBytes[i] - 'A';
+			} else if ((pBytes[i] >= 'a') && (pBytes[i] <= 'f')) {
+				byte = 0x0A + pBytes[i] - 'a';
+			} else if ((pBytes[i] >= '0') && (pBytes[i] <= '9')) {
+				byte = 0x00 + pBytes[i] - '0';
+			} else {
+
+			}
+			byte *= 16;
+			if ((pBytes[i+1] >= 'A') && (pBytes[i+1] <= 'F')) {
+				byte += 0x0A + pBytes[i+1] - 'A';
+			} else if ((pBytes[i+1] >= 'a') && (pBytes[i+1] <= 'f')) {
+				byte += 0x0A + pBytes[i+1] - 'a';
+			} else if ((pBytes[i+1] >= '0') && (pBytes[i+1] <= '9')) {
+				byte += 0x00 + pBytes[i+1] - '0';
+			} else {
+			}
+
+			pBytes_converted[i / 2] = byte;
+		}
+		mBootLoader.SetCryptoSignature(pBytes_converted);
+	}
+	else
+	{
+	}
+}
 
 /****************************************************************************
  * This function is invoked when button Erase-Program-Verify is clicked
@@ -671,6 +800,7 @@ void CPIC32UBLDlg::OnBnClickedButtonVerify()
  *****************************************************************************/
 void CPIC32UBLDlg::OnBnClickedButtonEraseProgVerify()
 {
+	UpdateData(TRUE);
 	// TODO: Add your control notification handler code here
 	// Save button status.
 	SaveButtonStatus();
@@ -678,6 +808,16 @@ void CPIC32UBLDlg::OnBnClickedButtonEraseProgVerify()
 	EnableAllButtons(false);
 
 	EraseProgVer = true;
+
+	StoreSignature();
+
+	
+	if (boolCheckCryptoEnable) {
+		CryptoSignature_send = true;
+	} else {
+		CryptoSignature_send = false;
+	}
+
 	// Start with erase. Rest is automatically handled by state machine.
 	mBootLoader.SendCommand(ERASE_FLASH, 3, 5000); // 5s delay
 
@@ -909,4 +1049,33 @@ void CPIC32UBLDlg::OnDevModeChange(LPTSTR lpDeviceName)
 	CDialog::OnDevModeChange(lpDeviceName);
 
 	// TODO: Add your message handler code here
+}
+
+
+void CPIC32UBLDlg::OnBnClickedCheckCryptoEnable2()
+{
+	if (boolCheckCryptoEnable) {
+		boolCheckCryptoEnable = FALSE;
+	} else {
+		boolCheckCryptoEnable = TRUE;
+	}
+	// TODO: Add your control notification handler code here
+	UpdateData(TRUE);
+	UpdateData(FALSE);
+}
+
+
+void CPIC32UBLDlg::OnBnClickedButton1()
+{
+	UpdateData(TRUE);
+	StoreSignature();
+	mBootLoader.SendCommand(WRITE_SERIAL_NUMBER, 5, 2000);
+}
+
+
+void CPIC32UBLDlg::OnBnClickedButton2()
+{
+	UpdateData(TRUE);
+	StoreSignature();
+	mBootLoader.SendCommand(WRITE_CRYPTO_KEY, 5, 2000);
 }

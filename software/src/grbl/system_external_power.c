@@ -18,12 +18,16 @@ void system_init_exteral_power(void) {
 		#warning TODO Feature is not implemented yet for external power
 		EXTERNAL_POWER_PORT_CN = 1;
 	#endif
-	system_external_power_counter = SYSTEM_EXTERNAL_POWER_LIMIT;
-	system_external_power_alarm_state = 1;
-	system_set_exec_alarm(EXEC_ALARM_EXTERNAL_POWER_MISSING);
 }
 
 void do_system_exteral_power(void) {
+	static unsigned char do_system_exteral_power_singleshhot = 1;
+	if (do_system_exteral_power_singleshhot) {
+		do_system_exteral_power_singleshhot = 0;
+		system_external_power_counter = SYSTEM_EXTERNAL_POWER_LIMIT;
+		system_external_power_alarm_state = 1;
+		system_set_exec_alarm(EXEC_ALARM_EXTERNAL_POWER_MISSING);
+	}
 	if (do_system_exteral_power_1ms) {
 		do_system_exteral_power_1ms = 0;
 		{

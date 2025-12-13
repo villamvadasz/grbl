@@ -45,7 +45,7 @@
 
 
 const UINT countPerMicroSec = ((SYS_FREQ/1000000)/2);
-#define NVMIsError()    (NVMCON & (_NVMCON_WRERR_MASK | _NVMCON_LVDERR_MASK))
+#define NVMemIsError()    (NVMCON & (_NVMCON_WRERR_MASK | _NVMCON_LVDERR_MASK))
 
 /********************************************************************
 * Function: 	delay_us()
@@ -93,7 +93,7 @@ void delay_us(UINT us)
 
 
 /********************************************************************
-* Function: 	NVMOperation()
+* Function: 	NVMemOperation()
 *
 * Precondition: 
 *
@@ -109,7 +109,7 @@ void delay_us(UINT us)
 *			
 * Note:		 	None.
 ********************************************************************/
-UINT __attribute__((nomips16)) NVMOperation(UINT nvmop)
+UINT __attribute__((nomips16)) NVMemOperation(UINT nvmop)
 {
     int	int_status;
     int	susp;
@@ -148,7 +148,7 @@ UINT __attribute__((nomips16)) NVMOperation(UINT nvmop)
 	#endif // _DMAC
 
 	// Return Error Status
-    return(NVMIsError());
+    return(NVMemIsError());
 }
 
 
@@ -166,9 +166,9 @@ UINT __attribute__((nomips16)) NVMOperation(UINT nvmop)
  *
  * Output:          '0' if operation completed successfully.
  *
- * Example:         NVMErasePage((void*) 0xBD000000)
+ * Example:         NVMemErasePage((void*) 0xBD000000)
  ********************************************************************/
-UINT NVMErasePage(void* address)
+UINT NVMemErasePage(void* address)
 {
     UINT res;
 
@@ -176,7 +176,7 @@ UINT NVMErasePage(void* address)
 	NVMADDR = KVA_TO_PA((unsigned int)address);
 
 	// Unlock and Erase Page
-	res = NVMOperation(NVMOP_PAGE_ERASE);
+	res = NVMemOperation(NVMOP_PAGE_ERASE);
 
 	// Return WRERR state.
 	return res;
@@ -200,7 +200,7 @@ UINT NVMErasePage(void* address)
  *
  * Example:         NVMWriteWord((void*) 0xBD000000, 0x12345678)
  ********************************************************************/
-UINT NVMWriteWord(void* address, UINT data)
+UINT NVMemWriteWord(void* address, UINT data)
 {
     UINT res;
 
@@ -210,7 +210,7 @@ UINT NVMWriteWord(void* address, UINT data)
     NVMDATA = data;
 
     // Unlock and Write Word
-    res = NVMOperation(NVMOP_WORD_PGM);
+    res = NVMemOperation(NVMOP_WORD_PGM);
 
 	return res;
 }
@@ -235,7 +235,7 @@ UINT NVMWriteWord(void* address, UINT data)
  *
  * Example:         NVMWriteRow((void*) 0xBD000000, (void*) 0xA0000000)
  ********************************************************************/
-UINT NVMWriteRow(void* address, void* data)
+UINT NVMemWriteRow(void* address, void* data)
 {
     unsigned int res;
 
@@ -246,7 +246,7 @@ UINT NVMWriteRow(void* address, void* data)
     NVMSRCADDR = KVA_TO_PA((unsigned int)data);
 
     // Unlock and Write Row
-    res = NVMOperation(NVMOP_ROW_PGM);
+    res = NVMemOperation(NVMOP_ROW_PGM);
 
     return res;
 }
@@ -266,11 +266,11 @@ UINT NVMWriteRow(void* address, void* data)
  *
  * Example:			NMVClearError()
  ********************************************************************/
-UINT NVMClearError(void)
+UINT NVMemClearError(void)
 {
     unsigned int res;
 
-    res = NVMOperation(NVMOP_NOP);
+    res = NVMemOperation(NVMOP_NOP);
 
     return res;
 }

@@ -54,7 +54,11 @@
 	#ifdef TCP_IP_USE_THING
 		#include "TCPIP_ENC28_PIC32_OLIMEX_THING.h"
 	#else
-		#include "TCPIP_ENC28_PIC32_OLIMEX.h"
+		#ifdef TCP_IP_USE_MQTT
+			#include "TCPIP_ENC28_PIC32_OLIMEX_MQTT.h"
+		#else
+			#include "TCPIP_ENC28_PIC32_OLIMEX.h"
+		#endif
 	#endif
 
 #endif

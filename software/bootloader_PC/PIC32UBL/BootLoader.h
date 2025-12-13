@@ -15,8 +15,11 @@ typedef enum
 	ERASE_FLASH, 
 	PROGRAM_FLASH,
 	READ_CRC,
-	JMP_TO_APP
-	
+	JMP_TO_APP,
+	WRITE_CRYPTO_SIGNATURE,
+	READ_SERIAL_NUMBER,
+	WRITE_SERIAL_NUMBER,
+	WRITE_CRYPTO_KEY
 }T_COMMANDS;	
 
 typedef enum
@@ -46,11 +49,15 @@ private:
 	unsigned int TxState;
 	unsigned short MaxRetry;
 	unsigned short TxRetryDelay;
+	EFileLoaderType FileLoaderType;
+	CFileLoader FileLoader;
 	CHexManager HexManager;
+	CHexEncManager HexEncManager;
 	bool ResetHexFilePtr;
 	UINT PortSelected;
 	void WritePort(char *buffer, int bufflen);
 	unsigned short ReadPort(char *buffer, int bufflen);
+	unsigned char CryptoSignatureHexManager[16];
 	
 
 public:
@@ -90,15 +97,20 @@ public:
 	void GetRxData(char *buff);
 	void GetProgress(int *Lower, int *Upper);
 	void HandleNoResponse(void);
-	unsigned short CalculateFlashCRC(void);
+	unsigned short CalculateFlashCRC(unsigned char *key_stored);
 	bool LoadHexFile(void);
+	unsigned short GetNextPartOfFile(char *HexRec, unsigned int BuffLen);
+	bool ResetFilePointer(void);
+	int GetProgressLower(void);
+	int GetProgressUpper(void);
+	void VerifyFlash(unsigned int* StartAdress, unsigned int* ProgLen, unsigned short* crc);
 	void OpenPort(UINT portType, UINT comport, UINT baud, UINT vid, UINT pid, USHORT skt, ULONG ip, HWND hwnd);
 	BOOL GetPortOpenStatus(UINT PortType);
 	void ClosePort(UINT PortType);
 	BOOL NotifyDeviceChange(UINT portType, char *devPath); 
 	
-
-	
+	void GetCryptoSignature(unsigned char* CryptoSignature);
+	void SetCryptoSignature(unsigned char* CryptoSignature);
 };
 
 extern unsigned short CalculateCrc(char *data, unsigned int len);

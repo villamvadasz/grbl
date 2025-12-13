@@ -4,6 +4,7 @@
 #include "grbl_eep_export.h"
 #include "TCPIP_ENC28_PIC32_OLIMEX.h"
 #include "ethernet.h"
+#include "app_rfe.h"
 
 const unsigned char default_eep_settings_version = SETTINGS_VERSION;
 const settings_t default_eep_settings = {
@@ -55,7 +56,7 @@ const float default_eep_coord_data[N_COORDINATE_SYSTEM_VAR][N_AXIS] = { {0.0f, 0
 																		{0.0f, 0.0f, 0.0f}, //G57
 																		{0.0f, 0.0f, 0.0f}, //G58
 																		{0.0f, 0.0f, 0.0f}, //G59
-																		{-58.0, -19.0, 27}, //G28
+																		{0.0f, 0.0f, 0.0f}, //G28
 																		{0.0f, 0.0f, 0.0f}, //G30
 																		{0.0f, 0.0f, 0.0f}, //Reserve 
 																		{0.0f, 0.0f, 0.0f}, //Reserve
@@ -67,7 +68,7 @@ const float default_eep_coord_data[N_COORDINATE_SYSTEM_VAR][N_AXIS] = { {0.0f, 0
 																		{0.0f, 0.0f, 0.0f}, //G57
 																		{0.0f, 0.0f, 0.0f}, //G58
 																		{0.0f, 0.0f, 0.0f}, //G59
-																		{-231.0, -172.0, 94}, //G28
+																		{0.0f, 0.0f, 0.0f}, //G28
 																		{0.0f, 0.0f, 0.0f}, //G30
 																		{0.0f, 0.0f, 0.0f}, //Reserve 
 																		{0.0f, 0.0f, 0.0f}, //Reserve
@@ -95,6 +96,11 @@ const uint32 default_grbl_running_spindle_running_minutes = 0;
 const unsigned char default_SerializedMACAddress[6] = {MY_DEFAULT_MAC_BYTE1, MY_DEFAULT_MAC_BYTE2, MY_DEFAULT_MAC_BYTE3, MY_DEFAULT_MAC_BYTE4, MY_DEFAULT_MAC_BYTE5, MY_DEFAULT_MAC_BYTE6};
 const float default_grbl_Tool_Length_1 = 0.0f;
 const float default_grbl_Tool_Length_2 = 0.0f;
+const uint32 default_grbl_serial_number = 0xFFFFFFFF;
+
+__attribute__(( weak )) unsigned char app_rfe_last_raw_packet[APP_RFE_PACKET_RAW_SIZE] = {0};
+
+const unsigned char default_app_rfe_last_raw_packet[APP_RFE_PACKET_RAW_SIZE] = {0};
 
 //Strict order of items. Must mach to Enum!
 EepManager_ItemTable eepManager_ItemTable[EepManager_Items_LastItem] = {
@@ -113,4 +119,6 @@ EepManager_ItemTable eepManager_ItemTable[EepManager_Items_LastItem] = {
 	{EepManager_Items_Tool_Length_1,		sizeof(grbl_Tool_Length_1),						&grbl_Tool_Length_1,					(void *)&default_grbl_Tool_Length_1,					EEP_USE_CRC,	EEP_HAVE_BACKUP},
 	{EepManager_Items_Tool_Length_2,		sizeof(grbl_Tool_Length_2),						&grbl_Tool_Length_2,					(void *)&default_grbl_Tool_Length_2,					EEP_USE_CRC,	EEP_HAVE_BACKUP},
 	{EepManager_Items_Coordinates_Teached,	sizeof(eep_coord_teached),						eep_coord_teached,						(void *)default_eep_coord_teached,						EEP_USE_CRC,	EEP_HAVE_BACKUP},
+	{EepManager_Items_SerialNumber,			sizeof(grbl_serial_number),						&grbl_serial_number,					(void *)&default_grbl_serial_number,					EEP_USE_CRC,	EEP_HAVE_BACKUP},
+	{EepManager_Items_RFE,					sizeof(app_rfe_last_raw_packet),				app_rfe_last_raw_packet,				(void *)&default_app_rfe_last_raw_packet,				EEP_USE_CRC,	EEP_HAVE_BACKUP},
 };

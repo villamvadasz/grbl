@@ -7,6 +7,11 @@ del /q .\output\*.o
 del /q .\output\*.map
 
 
+set CURDIR=%CD%
+set TEMP=%CURDIR%\output
+set TMP=%CURDIR%\output
+
+
 set CPU_TARGET=440F256H
 set SYS_TARGET=80MHZ
 call :makecall_internal
@@ -19,87 +24,38 @@ call :makecall_internal
 set CPU_TARGET=470F512L
 set SYS_TARGET=80MHZ
 call :makecall_internal
+set CPU_TARGET=795F512H
+set SYS_TARGET=80MHZ
+call :makecall_internal
+
+set CPU_TARGET=795F512H
+set SYS_TARGET=80MHZ
+call :makecall_internal_sdcard
+
+set CPU_TARGET=440F256H
+set SYS_TARGET=80MHZ
+call :makecall_internal_eth
+set CPU_TARGET=470F512H
+set SYS_TARGET=80MHZ
+call :makecall_internal_eth
+set CPU_TARGET=460F512L
+set SYS_TARGET=80MHZ
+call :makecall_internal_eth
+set CPU_TARGET=470F512L
+set SYS_TARGET=80MHZ
+call :makecall_internal_eth
+set CPU_TARGET=795F512H
+set SYS_TARGET=80MHZ
+call :makecall_internal_eth
+
+set CPU_TARGET=795F512H
+set SYS_TARGET=80MHZ
+call :makecall_internal_eth_decrypt
 
 
-
-
-
-rem set CPU_TARGET=440F256H
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=80MHZ
-rem call :makecall_external
-rem set CPU_TARGET=440F256H
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=80MHZ
-rem call :makecall_external
-rem set CPU_TARGET=440F256H
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=40MHZ
-rem call :makecall_external
-rem set CPU_TARGET=440F256H
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=40MHZ
-rem call :makecall_external
-rem set CPU_TARGET=440F256H
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=20MHZ
-rem call :makecall_external
-rem set CPU_TARGET=440F256H
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=20MHZ
-rem call :makecall_external
-rem 
-rem 
-rem set CPU_TARGET=470F512H
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=80MHZ
-rem call :makecall_external
-rem set CPU_TARGET=470F512H
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=80MHZ
-rem call :makecall_external
-rem set CPU_TARGET=470F512H
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=40MHZ
-rem call :makecall_external
-rem set CPU_TARGET=470F512H
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=40MHZ
-rem call :makecall_external
-rem 
-rem set CPU_TARGET=460F512L
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=80MHZ
-rem call :makecall_external
-rem set CPU_TARGET=460F512L
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=80MHZ
-rem call :makecall_external
-rem set CPU_TARGET=460F512L
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=40MHZ
-rem call :makecall_external
-rem set CPU_TARGET=460F512L
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=40MHZ
-rem call :makecall_external
-rem 
-rem set CPU_TARGET=470F512L
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=80MHZ
-rem call :makecall_external
-rem set CPU_TARGET=470F512L
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=80MHZ
-rem call :makecall_external
-rem set CPU_TARGET=470F512L
-rem set XTAL_TARGET=8MHZ
-rem set SYS_TARGET=40MHZ
-rem call :makecall_external
-rem set CPU_TARGET=470F512L
-rem set XTAL_TARGET=20MHZ
-rem set SYS_TARGET=40MHZ
-rem call :makecall_external
+set CPU_TARGET=795F512H
+set SYS_TARGET=80MHZ
+call :makecall_internal_sdcard_usb
 
 
 
@@ -127,6 +83,52 @@ copy .\output\USBHIDBootloader.map .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8
 del /q .\output\USBHIDBootloader.map
 del /q .\output\USBHIDBootloader.map
 goto :eof
+
+:makecall_internal_sdcard
+del /q .\output\USBHIDBootloader_%CPU_TARGET%.hex
+.\make\make.exe -f Makefile_%CPU_TARGET%_sdcard clean
+.\make\make.exe -f Makefile_%CPU_TARGET%_sdcard all -j8 CFLAGS="-DTRANSPORT_LAYER_SD_CARD -DOSC_USER_DEFINE -DXTAL_8MHZ -DINT_OSC_8MHZ -DSYS_FREQ_%SYS_TARGET%"
+copy .\output\USBHIDBootloader.hex .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8_F%SYS_TARGET%_sdcard.hex
+copy .\output\USBHIDBootloader.map .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8_F%SYS_TARGET%_sdcard.map
+.\make\make.exe -f Makefile_%CPU_TARGET%_sdcard clean
+del /q .\output\USBHIDBootloader.map
+del /q .\output\USBHIDBootloader.map
+goto :eof
+
+
+:makecall_internal_eth
+del /q .\output\USBHIDBootloader_%CPU_TARGET%.hex
+.\make\make.exe -f Makefile_%CPU_TARGET%_eth clean
+.\make\make.exe -f Makefile_%CPU_TARGET%_eth all -j8 CFLAGS="-DTRANSPORT_LAYER_ETH -DOSC_USER_DEFINE -DXTAL_8MHZ -DINT_OSC_8MHZ -DSYS_FREQ_%SYS_TARGET%"
+copy .\output\USBHIDBootloader.hex .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8_F%SYS_TARGET%_eth.hex
+copy .\output\USBHIDBootloader.map .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8_F%SYS_TARGET%_eth.map
+.\make\make.exe -f Makefile_%CPU_TARGET%_eth clean
+del /q .\output\USBHIDBootloader.map
+del /q .\output\USBHIDBootloader.map
+goto :eof
+
+:makecall_internal_eth_decrypt
+del /q .\output\USBHIDBootloader_%CPU_TARGET%.hex
+.\make\make.exe -f Makefile_%CPU_TARGET%_eth clean
+.\make\make.exe -f Makefile_%CPU_TARGET%_eth all -j8 CFLAGS="-DBOOTLOADER_DECRYPT -DTRANSPORT_LAYER_ETH -DOSC_USER_DEFINE -DXTAL_8MHZ -DINT_OSC_8MHZ -DSYS_FREQ_%SYS_TARGET%"
+copy .\output\USBHIDBootloader.hex .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8_F%SYS_TARGET%_eth_decrypt.hex
+copy .\output\USBHIDBootloader.map .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8_F%SYS_TARGET%_eth_decrypt.map
+.\make\make.exe -f Makefile_%CPU_TARGET%_eth clean
+del /q .\output\USBHIDBootloader.map
+del /q .\output\USBHIDBootloader.map
+goto :eof
+
+:makecall_internal_sdcard_usb
+del /q .\output\USBHIDBootloader_%CPU_TARGET%.hex
+.\make\make.exe -f Makefile_%CPU_TARGET%_sdcard clean
+.\make\make.exe -f Makefile_%CPU_TARGET%_sdcard all -j8 CFLAGS="-DBOOTLOADER_DECRYPT -DTRANSPORT_LAYER_USB -DTRANSPORT_LAYER_SD_CARD -DOSC_USER_DEFINE -DXTAL_8MHZ -DINT_OSC_8MHZ -DSYS_FREQ_%SYS_TARGET%"
+copy .\output\USBHIDBootloader.hex .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8_F%SYS_TARGET%_sdcard_usb.hex
+copy .\output\USBHIDBootloader.map .\output\USBHIDBootloader_%CPU_TARGET%_RCINT8_F%SYS_TARGET%_sdcard_usb.map
+.\make\make.exe -f Makefile_%CPU_TARGET%_sdcard clean
+del /q .\output\USBHIDBootloader.map
+del /q .\output\USBHIDBootloader.map
+goto :eof
+
 
 :end
 del /q .\output\*.d

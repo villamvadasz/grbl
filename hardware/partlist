@@ -1,122 +1,161 @@
 Partlist
 
-Exported from cnc_1_0_0.sch at 12.04.2020 00:22:26
+Exported from cnc_1_0_0.sch at 24.06.2024 18:46:48
 
 EAGLE Version 6.2.0 Copyright (c) 1988-2012 CadSoft
 
 Assembly variant: 
 
-Part     Value              Device                                       Package                           Library            Sheet
-R79      50                 R-EU_R0603                                   R0603                             rcl                5		CRCW060350R0FKEA
-R80      50                 R-EU_R0603                                   R0603                             rcl                5
-R81      50                 R-EU_R0603                                   R0603                             rcl                5
-R82      50                 R-EU_R0603                                   R0603                             rcl                5
+Part     Value              Device                                       Package                           Library                 Sheet
+R19      0                  R-EU_R0805                                   R0805                             rcl                     4		710-560112120002
 
-R10      330                R-EU_R0805                                   R0805                             rcl                5		CMP0603AFX-3300ELF
-R11      330                R-EU_R0805                                   R0805                             rcl                5
+R79      50                 R-EU_R0603                                   R0603                             rcl                     6		CRCW060350R0FKEA
+R80      50                 R-EU_R0603                                   R0603                             rcl                     6
+R81      50                 R-EU_R0603                                   R0603                             rcl                     6
+R82      50                 R-EU_R0603                                   R0603                             rcl                     6
 
-R1       1k                 R-EU_R0805                                   R0805                             rcl                4		71-CRCW08051K00FKEAC
-R2       1k                 R-EU_R0805                                   R0805                             rcl                4
-R3       1k                 R-EU_R0805                                   R0805                             rcl                4
-R4       1k                 R-EU_R0805                                   R0805                             rcl                4
-R5       1k                 R-EU_R0805                                   R0805                             rcl                4
-R6       1k                 R-EU_R0805                                   R0805                             rcl                4
-R8       1k                 R-EU_R0805                                   R0805                             rcl                4
-R12      1k                 R-EU_R0805                                   R0805                             rcl                4
-R13      1k                 R-EU_R0805                                   R0805                             rcl                4
-R14      1k                 R-EU_R0805                                   R0805                             rcl                4
-R76      1k                 R-EU_R0805                                   R0805                             rcl                3
-R77      1k                 R-EU_R0805                                   R0805                             rcl                3
+R1       300                R-EU_R0805                                   R0805                             rcl                     5		CMP0603AFX-3300ELF
+R8       300                R-EU_R0805                                   R0805                             rcl                     5
+R10      330                R-EU_R0805                                   R0805                             rcl                     6
+R11      330                R-EU_R0805                                   R0805                             rcl                     6
+R15      300                R-EU_R0805                                   R0805                             rcl                     5
 
-R7       2K32               R-EU_R0805                                   R0805                             rcl                5		ERJ-6ENF2321V
+R2       1k                 R-EU_R0805                                   R0805                             rcl                     5		71-CRCW08051K00FKEAC
+R3       1k                 R-EU_R0805                                   R0805                             rcl                     5
+R4       1k                 R-EU_R0805                                   R0805                             rcl                     5
+R5       1k                 R-EU_R0805                                   R0805                             rcl                     5
+R6       1k                 R-EU_R0805                                   R0805                             rcl                     5
+R12      1k                 R-EU_R0805                                   R0805                             rcl                     5
+R13      1k                 R-EU_R0805                                   R0805                             rcl                     5
+R14      1k                 R-EU_R0805                                   R0805                             rcl                     5
+R16      1k                 R-EU_R0805                                   R0805                             rcl                     5
+R17      1k                 R-EU_R0805                                   R0805                             rcl                     4
+R18      1k                 R-EU_R0805                                   R0805                             rcl                     4
+R20      1k                 R-EU_R0805                                   R0805                             rcl                     4
+R21      1k                 R-EU_R0805                                   R0805                             rcl                     7
+R22      1k                 R-EU_R0805                                   R0805                             rcl                     7
 
-R9       10K                R-EU_R0805                                   R0805                             rcl                5		CRCW080510K0FKEAC
-R124     10K                R-EU_R0805                                   R0805                             rcl                5
+R7       2K32               R-EU_R0805                                   R0805                             rcl                     6		ERJ-6ENF2321V
 
-L1                          L-USL1812                                    L1812                             rcl                2		81-LQH43PH101M26L
+R9       10K                R-EU_R0805                                   R0805                             rcl                     6		CRCW080510K0FKEAC
+R124     10K                R-EU_R0805                                   R0805                             rcl                     6
 
-L4                          INDUCTOR0603                                 0603                              SparkFun           5		875-HI0603P600R-10
+R23      1M                 R-EU_R0805                                   R0805                             rcl                     1		71-RCS08051M00JNEA
 
-C1       12pF               C-EUC0805K                                   C0805K                            rcl                2		603-CC0805JRNPOBB120
-C6       12pF               C-EUC0805K                                   C0805K                            rcl                2
-C11      12pF               C-EUC0805K                                   C0805K                            rcl                2
-C14      12pF               C-EUC0805K                                   C0805K                            rcl                2
-C19      12pF               C-EUC0805K                                   C0805K                            rcl                4
+L1                          L-USL1812                                    L1812                             rcl                     1		81-LQH43PH101M26L
 
-C24      22pF               C-EUC0603                                    C0603                             rcl                5		710-885012006053
-C26      22pF               C-EUC0603                                    C0603                             rcl                5
+L2       22uH               L-USL1812                                    L1812                             rcl                     1		T70-IHLP4040DZR220M5A
 
-C2       100nF              C-EUC0805K                                   C0805K                            rcl                2		710-885012207098
-C5       100nF              C-EUC0805K                                   C0805K                            rcl                2
-C10      100nF              C-EUC0805K                                   C0805K                            rcl                2
-C12      100nF              C-EUC0805K                                   C0805K                            rcl                3
-C13      100nF              C-EUC0805K                                   C0805K                            rcl                3
-C15      100nF              C-EUC0805K                                   C0805K                            rcl                2
-C17      100nF              C-EUC0805K                                   C0805K                            rcl                3
-C18      100nF              C-EUC0805K                                   C0805K                            rcl                3
-C20      100nF              C-EUC0805K                                   C0805K                            rcl                3
-C21      100nF              C-EUC0805K                                   C0805K                            rcl                3
-C22      100nF              C-EUC0805K                                   C0805K                            rcl                4
-C25      100nF              C-EUC0805K                                   C0805K                            rcl                4
+L4                          INDUCTOR0603                                 0603                              SparkFun                6		875-HI0603P600R-10
 
-C28      100n               C-EUC0603                                    C0603                             rcl                5		710-885012206071
-C29      100n               C-EUC0603                                    C0603                             rcl                5
-C30      100n               C-EUC0603                                    C0603                             rcl                5
-C31      100n               C-EUC0603                                    C0603                             rcl                5
-C32      100n               C-EUC0603                                    C0603                             rcl                5
-C33      100n               C-EUC0603                                    C0603                             rcl                5
-C34      100n               C-EUC0603                                    C0603                             rcl                5
+C24      22pF               C-EUC0603                                    C0603                             rcl                     6		710-885012006053
+C26      22pF               C-EUC0603                                    C0603                             rcl                     6
 
-C3       1uF                C-EUC0805K                                   C0805K                            rcl                2		80-C0805C105M8RAUTO
-C4       1uF                C-EUC0805K                                   C0805K                            rcl                2
-C7       1uF                C-EUC0805K                                   C0805K                            rcl                3
-C8       1uF                C-EUC0805K                                   C0805K                            rcl                3
-C9       1uF                C-EUC0805K                                   C0805K                            rcl                2
-C16      1uF                C-EUC0805K                                   C0805K                            rcl                2
-C23      1uF                C-EUC0805K                                   C0805K                            rcl                4
+C28      100nF              C-EUC0603                                    C0603                             rcl                     6		710-885012206071
+C29      100nF              C-EUC0603                                    C0603                             rcl                     6
+C30      100nF              C-EUC0603                                    C0603                             rcl                     6
+C31      100nF              C-EUC0603                                    C0603                             rcl                     6
+C32      100nF              C-EUC0603                                    C0603                             rcl                     6
+C33      100nF              C-EUC0603                                    C0603                             rcl                     6
+C34      100nF              C-EUC0603                                    C0603                             rcl                     6
 
-C27      10uF               C-EUC0805K                                   C0805K                            rcl                5		963-TMK212BBJ106MGHT
+C1       12pF               C-EUC0805K                                   C0805K                            rcl                     1		603-CC0805JRNPOBB120
+C6       12pF               C-EUC0805K                                   C0805K                            rcl                     1
+C11      12pF               C-EUC0805K                                   C0805K                            rcl                     1
+C14      12pF               C-EUC0805K                                   C0805K                            rcl                     1
+C19      12pF               C-EUC0805K                                   C0805K                            rcl                     5
 
-IC1      7805DT             7805DT                                       TO252                             linear             2		621-AS7805ADTR-G1
+C2       100nF              C-EUC0805K                                   C0805K                            rcl                     1		710-885012207098
+C5       100nF              C-EUC0805K                                   C0805K                            rcl                     1
+C8       100nF              C-EUC0805K                                   C0805K                            rcl                     7
+C10      100nF              C-EUC0805K                                   C0805K                            rcl                     1
+C12      100nF              C-EUC0805K                                   C0805K                            rcl                     4
+C13      100nF              C-EUC0805K                                   C0805K                            rcl                     4
+C15      100nF              C-EUC0805K                                   C0805K                            rcl                     1
+C17      100nF              C-EUC0805K                                   C0805K                            rcl                     4
+C18      100nF              C-EUC0805K                                   C0805K                            rcl                     4
+C20      100nF              C-EUC0805K                                   C0805K                            rcl                     4
+C21      100nF              C-EUC0805K                                   C0805K                            rcl                     4
+C22      100nF              C-EUC0805K                                   C0805K                            rcl                     5
+C25      100nF              C-EUC0805K                                   C0805K                            rcl                     5
+C35      100nF              C-EUC0805K                                   C0805K                            rcl                     4
+C37      100nF              C-EUC0805K                                   C0805K                            rcl                     7
 
-IC5      7810               7805DT                                       TO252                             linear             2		755-BA17810FP-E2
+C3       1uF                C-EUC0805K                                   C0805K                            rcl                     1		80-C0805C105M8RAUTO
+C4       1uF                C-EUC0805K                                   C0805K                            rcl                     1
+C7       1uF                C-EUC0805K                                   C0805K                            rcl                     4
+C9       1uF                C-EUC0805K                                   C0805K                            rcl                     1
+C16      1uF                C-EUC0805K                                   C0805K                            rcl                     1
+C23      1uF                C-EUC0805K                                   C0805K                            rcl                     5
+C36      1uF                C-EUC0805K                                   C0805K                            rcl                     4
+C38      1uF                C-EUC0805K                                   C0805K                            rcl                     7
+C39      1uF                C-EUC0805K                                   C0805K                            rcl                     7
 
-IC2      4504D              4504D                                        SO16                              45xx               3		595-CD4504BM96E4
-IC3      4504D              4504D                                        SO16                              45xx               3
-IC4      4504D              4504D                                        SO16                              45xx               3
+C27      10uF               C-EUC0805K                                   C0805K                            rcl                     6		963-TMK212BBJ106MGHT
+C40      10uF               C-EUC0805K                                   C0805K                            rcl                     1
+C41      10uF               C-EUC0805K                                   C0805K                            rcl                     1
 
-OK4      TLP283-4           TLP283-4                                     MINI-FLAT-16                      optocoupler        4		757-TLP2914GB-TPE
+D1       BAV103             DIODE-MINIMELF                               MINIMELF                          diode                   7
+D2       BAV103             DIODE-MINIMELF                               MINIMELF                          diode                   7
 
-IC6      IL1212S            IL0512S                                      SIL4                              IsolatedDCDC       4		209-IL1212S
+Q4       BCW33SMD           BCW33SMD                                     SOT23-BEC                         transistor-npn          7		771-BCW33215
+Q5       BCW33SMD           BCW33SMD                                     SOT23-BEC                         transistor-npn          7
 
-IC7      74AC244DW          74AC244DW                                    SO20W                             74xx-eu            4		863-MC74AC244DWR2G
+Q7       BSS84              BSS84                                        SOT23                             transistor-small-signal 1		755-BSS84T116
 
-Q2       25MHz              CRYSTAL5X3                                   CRYSTAL-SMD-5X3                   SparkFun           5		520-250-20-30B-AGLT
+IC1      7805DT             7805DT                                       TO252                             linear                  1		621-AS7805ADTR-G1
 
-U2       ENC28J60-SSOP      ENC28J60-SSOP                                SSOP28                            microchip-enc28j60 5		579-ENC28J60-I/SS 
+IC5      7810               7805DT                                       TO252                             linear                  1		755-BA17810FP-E2
 
-SJ1                         SJ                                           SJ                                jumper             5		Solder short
-		
-JP1                         PINHD-1X8                                    1X08                              pinhead            2		Do not fit
+IC2      4504D              4504D                                        SO16                              45xx                    4		595-CD4504BM96E4
+IC3      4504D              4504D                                        SO16                              45xx                    4
+IC4      4504D              4504D                                        SO16                              45xx                    4
 
-JP2                         PINHD-1X2                                    1X02                              pinhead            2		Do not fit
+OK4      TLP283-4           TLP283-4                                     MINI-FLAT-16                      optocoupler             5		757-TLP2914GB-TPE
 
-JP20                        PINHD-1X2                                    1X02                              pinhead            2		Do not fit
-JP21                        PINHD-1X2                                    1X02                              pinhead            2		Do not fit
+IC6      IL1212S            IL0512S                                      SIL4                              IsolatedDCDC            5		209-IL1212S
 
-JP3                         PINHD-1X1                                    1X01                              pinhead            4		Do not fit
-JP39                        PINHD-1X1                                    1X01                              pinhead            3		Do not fit
-JP40                        PINHD-1X1                                    1X01                              pinhead            3		Do not fit
+IC7      74AC244DW          74AC244DW                                    SO20W                             74xx-eu                 5		863-MC74AC244DWR2G
 
-SV1                         MA20-1                                       MA20-1                            con-lstb           1		200-SSW12001TSLL, 200-BCS120LSTE 
-SV2                         MA20-1                                       MA20-1                            con-lstb           1
+IC8      OPA344N-SOT23      OPA344N-SOT23                                SOT23-5                           linear                  4		595-OPA344NA/3K
 
-U$15     LMJ2018811130DL3T1 AMPHENOL-LMJ2018814100DL2T1B_LMJ2018814100DL AMPHENOL-LMJ2018814100DL2T1B_RJ45 Controller2        5		TME:LMJ2018811130DL3T1
+Q2       25MHz              CRYSTAL5X3                                   CRYSTAL-SMD-5X3                   SparkFun                6		520-250-20-30B-AGLT
 
-X1                          F25HP                                        F25HP                             con-subd           1		587-622-025-260-042 
+U2       ENC28J60-SSOP      ENC28J60-SSOP                                SSOP28                            microchip-enc28j60      6		579-ENC28J60-I/SS
 
-X2       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508    2		649-220110-H021A01LF
-X3       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508    3		710-691351500002
-X4       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508    4
+SJ1                         SJ                                           SJ                                jumper                  6		Solder short
+SJ2                         SJ                                           SJ                                jumper                  3
+SJ3                         SJ                                           SJ                                jumper                  3
+SJ4                         SJ                                           SJ                                jumper                  3
+SJ5                         SJ                                           SJ                                jumper                  3
 
-UEXT     BH10S              ML10                                         ML10-MALE                         con-harting-ml     1		200-SSW10501TD 
+JP1                         PINHD-1X8                                    1X08                              pinhead                 1		Do not fit
+
+JP2                         PINHD-1X2                                    1X02                              pinhead                 1		Do not fit
+JP20                        PINHD-1X2                                    1X02                              pinhead                 1		Do not fit
+JP21                        PINHD-1X2                                    1X02                              pinhead                 1		Do not fit
+
+JP3                         PINHD-1X1                                    1X01                              pinhead                 5		Do not fit
+JP39                        PINHD-1X1                                    1X01                              pinhead                 4		Do not fit
+JP40                        PINHD-1X1                                    1X01                              pinhead                 4		Do not fit
+
+K1       G2R2               G2R2                                         G2R2                              relay                   7		653-G2R-2-DC12
+K2       G2R2               G2R2                                         G2R2                              relay                   7
+
+SV1                         MA20-1                                       MA20-1                            con-lstb                3		200-SSW12001TSLL, 200-BCS120LSTE
+SV2                         MA20-1                                       MA20-1                            con-lstb                3
+
+U$15     LMJ2018811130DL3T1 AMPHENOL-LMJ2018814100DL2T1B_LMJ2018814100DL AMPHENOL-LMJ2018814100DL2T1B_RJ45 Controller2             6		TME:LMJ2018811130DL3T1
+
+IC9      TR10               TR10                                         TR10                              cnc                     1		209-TR10S05
+
+X1                          F25HP                                        F25HP                             con-subd                2		587-622-025-260-042
+
+X2       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508         1		649-220110-H021A01LF
+X3       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508         4		710-691351500002
+X4       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508         5
+X5       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508         5
+X6       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508         7
+X7       MSTBA2             MSTBA2                                       MSTBA2                            con-phoenix-508         7
+
+UEXT     BH10S              ML10                                         ML10-MALE                         con-harting-ml          3		200-SSW10501TD

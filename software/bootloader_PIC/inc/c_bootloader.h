@@ -29,11 +29,17 @@
 		#define SYS_FREQ 			(80000000L)
 		#define PB_DIV         		2
 	#endif
-
+	
+	#define GetSystemClock()		SYS_FREQ
+	#define GetInstructionClock()	(GetSystemClock()/1)
+	#define GetPeripheralClock()	(GetSystemClock()/PB_DIV)
+	
 	//#define BOOTLOADER_IS_AN_UPDATER_APPLICATION
 	#define BOOTLOADER_DELAYED_AUTOAPPLICATION
+	#define BOOTLOADER_DELAY_TIME 0xFFFFF
 	//#define BOOTLOADER_SWITCH_TRIGGER
 	#define BOOTLOADER_WITH_DEE
 	#define USE_GRBL_STUFFS
+	//#define BOOTLOADER_DECRYPT
 
 #endif

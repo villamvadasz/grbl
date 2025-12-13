@@ -23,6 +23,7 @@
 
 #include "k_stdtype.h"
 #include "tmr.h"
+#include "grbl_gcode_external.h"
 
 typedef enum _grbl_system_sm_states {
 	sm_init = 0,
@@ -45,6 +46,8 @@ Timer system_suspendTime;
 float restore_spindle_speed = 0.0f;
 uint8 restore_condition = 0;
 uint8 system_lastState = 0;
+
+uint32 grbl_serial_number = 0xFFFFFFF0;
 
 void system_exec_rt_system_alarm(void);
 void system_exec_rt_system_state(void);
@@ -80,7 +83,9 @@ void system_init(unsigned int alarm_supress) {
 	// Initialize system state.
 	// Force Grbl into an ALARM state upon a power-cycle or hard reset.
 	if (alarm_supress == 0) {
-		system_set_sys_state(STATE_ALARM);
+		#ifndef _ISSUE_TESTING_
+			system_set_sys_state(STATE_ALARM);
+		#endif
 	}
 
 	// Check for power-up and set system alarm if homing is enabled to force homing cycle
@@ -92,7 +97,9 @@ void system_init(unsigned int alarm_supress) {
 	// things uncontrollably. Very bad.
 	if (bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE)) {
 		if (alarm_supress == 0) {
-			system_set_sys_state(STATE_ALARM);
+			#ifndef _ISSUE_TESTING_
+				system_set_sys_state(STATE_ALARM);
+			#endif
 		}
 	}
 
@@ -377,7 +384,7 @@ void system_exec_rt_system_state(void) {
 				// NOTE: Safety door differs from feed holds by stopping everything no matter state, disables powered
 				// devices (spindle/coolant), and blocks resuming until switch is re-engaged.
 				if (rt_exec & EXEC_SAFETY_DOOR) {
-					limits_EXEC_SAFETY_DOOR_event();
+					grbl_homing_EXEC_SAFETY_DOOR_event();
 					report_feedback_message(MESSAGE_SAFETY_DOOR_AJAR);
 					// If jogging, block safety door methods until jog cancel is complete. Just flag that it happened.
 					if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
@@ -463,7 +470,7 @@ void system_exec_rt_system_state(void) {
 		}
 	
 		if (rt_exec & EXEC_CYCLE_STOP) {
-			limits_EXEC_CYCLE_STOP_event();
+			grbl_homing_EXEC_CYCLE_STOP_event();
 			// Reinitializes the cycle plan and stepper system after a feed hold for a resume. Called by
 			// realtime command execution in the main program, ensuring that the planner re-plans safely.
 			// NOTE: Bresenham algorithm variables are still maintained through both the planner and stepper
@@ -519,11 +526,10 @@ void system_exec_rt_system_state(void) {
 			system_clear_exec_state_flag(EXEC_ABORT);
 		}
 		if (rt_exec & EXEC_CLEAR_ALARM) {
-			if 	(
-					(stepper_enable_emergency_stop_cleared(3) == 0) ||
-					(system_get_external_power_disengage_alarm() == 0)
-				) {
-				report_feedback_message(MESSAGE_ALARM_UNLOCK_FAILED);
+			if (stepper_enable_emergency_stop_cleared(3) == 0) {
+				report_feedback_message(MESSAGE_ALARM_UNLOCK_FAILED_EMERGENCYSTOP);
+			} else if (system_get_external_power_disengage_alarm() == 0) {
+				report_feedback_message(MESSAGE_ALARM_UNLOCK_FAILED_POWER);
 			} else {
 				report_feedback_message(MESSAGE_ALARM_UNLOCK);
 				system_log_unlock();
@@ -765,6 +771,21 @@ void protocol_exec_rt_suspend_async(void) {
 					sys.step_control &= ~(STEP_CONTROL_UPDATE_SPINDLE_PWM);
 				}
 			}
+		}
+	}
+}
+
+
+void grbl_set_serial_number(unsigned char *str) {
+	if (str != NULL) {
+		unsigned int value = hexStringToInt(&str[0]);
+		if (
+			(grbl_serial_number == 0xFFFFFFFF) ||
+			((grbl_serial_number & 0xFF000000)== 0xFF000000) ||
+			((grbl_serial_number & 0xFF000000)== 0x1F000000) ||
+			((grbl_serial_number & 0xFF000000)== 0x3F000000)
+		) {
+			grbl_serial_number = value;
 		}
 	}
 }

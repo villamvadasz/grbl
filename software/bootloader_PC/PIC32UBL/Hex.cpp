@@ -3,16 +3,14 @@
 #include "ComPort.h"
 #include "USB_HID.h"
 #include "Hex.h"
+#include "HexEnc.h"
+#include "FileLoader.h"
 #include "BootLoader.h"
 #include "PIC32UBL.h"
 #include "PIC32UBLDlg.h"
 #include ".\pic32ubldlg.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+#define __32MX440F256H__
+#include ".\mal\fixedmemoryaddress.h"
 
 // Virtual Flash.
 #define KB (1024)
@@ -31,7 +29,6 @@ static unsigned char VirtualFlash[5*MB];
 #define EXT_SEG_ADRS_RECORD 2
 #define EXT_LIN_ADRS_RECORD 4
 
-
 /****************************************************************************
  * Loads hex file
  *
@@ -40,23 +37,13 @@ static unsigned char VirtualFlash[5*MB];
  * \param 
  * \return  true if hex file loads successfully      
  *****************************************************************************/
-bool CHexManager::LoadHexFile(void)
+bool CHexManager::LoadHexFile(CString FilePath)
 {
 	int iRet;
 	char HexRec[255];
 		
-
-	CFileDialog fileDialog(TRUE,NULL,NULL,OFN_OVERWRITEPROMPT,"Hex File (*.hex)|*.hex|");
-	iRet = fileDialog.DoModal();
-	if(iRet != 1)
-	{
-		return false;
-	}
-    
-    HexFilePath = fileDialog.GetPathName();
-	
 	// Open file
-	HexFilePtr = fopen(HexFilePath, "r");
+	HexFilePtr = fopen(FilePath, "r");
 
 	if(HexFilePtr == NULL)
 	{
@@ -87,9 +74,9 @@ bool CHexManager::LoadHexFile(void)
  * \param 
  * \return Length of the hex record in bytes.  
  *****************************************************************************/
-static char Ascii[1000];
 unsigned short CHexManager::GetNextHexRecord(char *HexRec, unsigned int BuffLen)
 {
+	char Ascii[1000];
 	unsigned short len = 0;
 	
 	if(!feof(HexFilePtr))
@@ -189,7 +176,7 @@ void CHexManager::VerifyFlash(unsigned int* StartAdress, unsigned int* ProgLen, 
 	T_HEX_RECORD HexRecordSt;
 	unsigned int VirtualFlashAdrs;
 	unsigned int ProgAddress;
-	
+
 	// Virtual Flash Erase (Set all bytes to 0xFF)
 	memset((void*)VirtualFlash, 0xFF, sizeof(VirtualFlash));
 
@@ -202,7 +189,7 @@ void CHexManager::VerifyFlash(unsigned int* StartAdress, unsigned int* ProgLen, 
 	HexRecordSt.MaxAddress = 0;
 	HexRecordSt.MinAddress = 0xFFFFFFFF;
 
-    while((HexRecLen = GetNextHexRecord(&HexRec[0], 255)) != 0)
+	while((HexRecLen = GetNextHexRecord(&HexRec[0], 255)) != 0)
 	{
 		HexRecordSt.RecDataLen = HexRec[0];
 		HexRecordSt.RecType = HexRec[3];	
@@ -219,7 +206,7 @@ void CHexManager::VerifyFlash(unsigned int* StartAdress, unsigned int* ProgLen, 
 
 				if(ProgAddress < BOOT_SECTOR_BEGIN) // Make sure we are not writing boot sector.
 				{
-					if ((ProgAddress >= 0x9d030000) && (ProgAddress < 0x9d030000 + 0x9000)) //Skip eeprom
+					if ((ProgAddress >= ADDRESS_BOOTLOADER_SKIP_ERASE_START) && (ProgAddress < (ADDRESS_BOOTLOADER_SKIP_ERASE_END))) //Skip eeprom
 					{
 					} else {
 						if(HexRecordSt.MaxAddress < (ProgAddress + HexRecordSt.RecDataLen))
@@ -264,7 +251,6 @@ void CHexManager::VerifyFlash(unsigned int* StartAdress, unsigned int* ProgLen, 
 	*ProgLen = HexRecordSt.MaxAddress - HexRecordSt.MinAddress;
 	*StartAdress = HexRecordSt.MinAddress;
 	VirtualFlashAdrs = PA_TO_VFA(HexRecordSt.MinAddress);
-	*crc = CalculateCrc((char*)&VirtualFlash[VirtualFlashAdrs], *ProgLen);	
-}
 
-/********************End of file************************************************/
+	*crc = CalculateCrc((char*)&VirtualFlash[VirtualFlashAdrs], *ProgLen);
+}

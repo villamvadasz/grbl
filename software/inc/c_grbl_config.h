@@ -28,9 +28,10 @@
 #ifndef c_grbl_config_h
 #define c_grbl_config_h
 
-#if (defined(DEFAULTS_PIC32_MX_ARDUINO) || defined(DEFAULTS_PIC32_MX_CNC_1_0_0_SIMULATOR)||	defined(DEFAULTS_PIC32_MX_CNC_1_0_0_OLD_GRBL)|| defined(DEFAULTS_PIC32_MZ_CNC_1_0_0_MZ)|| defined(DEFAULTS_PIC32_MX_CNC_1_0_2_SIMULATOR) || defined(DEFAULTS_PIC32_MX_CNC_1_0_2) || defined(DEFAULTS_PIC32_MX_CNC_1_0_0_DEBUG))
+#if (defined(DEFAULTS_PIC32_MX_CNC_1_0_0) || defined(DEFAULTS_PIC32_MX_ARDUINO) || defined(DEFAULTS_PIC32_MX_CNC_1_0_0_SIMULATOR)|| defined(DEFAULTS_PIC32_MX_CNC_1_0_0_OLD_GRBL)|| defined(DEFAULTS_PIC32_MZ_CNC_1_0_0_MZ)|| defined(DEFAULTS_PIC32_MX_CNC_1_0_2_SIMULATOR) || defined(DEFAULTS_PIC32_MX_CNC_1_0_2) || defined(DEFAULTS_PIC32_MX_CNC_1_0_0_DEBUG))
 
 #else
+	#error Defaults not defined
 	// Define CPU pin map and default settings.
 	// NOTE: OEMs can avoid the need to maintain/update the defaults.h and cpu_map.h files and use only
 	// one configuration file by placing their specific defaults and pin map at the bottom of this file.

@@ -51,7 +51,6 @@
 
 #include "GenericTypeDefs.h"
 #include "ethernet_compiler.h"
-#define GENERATED_BY_TCPIPCONFIG "Version 1.0.3383.23374"
 
 // =======================================================================
 //   Application Options
@@ -92,6 +91,9 @@
 #define STACK_USE_BERKELEY_API			// Berekely Sockets APIs are available
 //#define STACK_USE_ZEROCONF_LINK_LOCAL	// Zeroconf IPv4 Link-Local Addressing
 //#define STACK_USE_ZEROCONF_MDNS_SD		// Zeroconf mDNS and mDNS service discovery
+//#define STACK_USE_MQTT_CLIENT
+//#define STACK_USE_WGET
+//#define STACK_USE_WGET_FSIO
 
 
 // =======================================================================

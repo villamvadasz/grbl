@@ -2,5 +2,6 @@
 #define _C_AD_H_
 
 	#define AD_CHANNEL_NUM 1
+	#define AD_CONVERSION_TIME 1
 
 #endif

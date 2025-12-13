@@ -105,6 +105,9 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="aes_tiny.cpp" />
+    <ClCompile Include="FileLoader.cpp" />
+    <ClCompile Include="HexEnc.cpp" />
     <ClCompile Include="PIC32UBL.cpp" />
     <ClCompile Include="PIC32UBLDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -118,6 +121,8 @@
     <ClCompile Include="USB_HID.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FileLoader.h" />
+    <ClInclude Include="HexEnc.h" />
     <ClInclude Include="PIC32UBL.h" />
     <ClInclude Include="PIC32UBLDlg.h" />
     <ClInclude Include="Resource.h" />

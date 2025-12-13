@@ -72,8 +72,40 @@
 #include "k_stdtype.h"
 #include "tmr.h"
 
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+
 // Make sure that this hardware profile has an ENC28J60 in it
 #if defined(ENC_CS_TRIS)
+
+#ifdef ENC_IN_SPI1
+	#include "c_spi1.h"
+	#include "spi1.h"
+	#define SPI_USER_ENC SPI1_USER_ENC
+	#define SPI_StateEnum SPI1_StateEnum
+	#define spi_calculate_BRG spi1_calculate_BRG
+	#define spi_lock spi1_lock
+	#define spi_unlock spi1_unlock
+	#define spi_reconfigure spi1_reconfigure
+	#define spi_readWrite_synch spi1_readWrite_synch
+	#define spi_mode8 spi1_mode8
+	#define spi_mode16 spi1_mode16
+	#define spi_mode32 spi1_mode32
+#endif
+#ifdef ENC_IN_SPI2
+	#include "c_spi2.h"
+	#include "spi2.h"
+	#define SPI_USER_ENC SPI2_USER_ENC
+	#define SPI_StateEnum SPI2_StateEnum
+	#define spi_calculate_BRG spi2_calculate_BRG
+	#define spi_lock spi2_lock
+	#define spi_unlock spi2_unlock
+	#define spi_reconfigure spi2_reconfigure
+	#define spi_readWrite_synch spi2_readWrite_synch
+	#define spi_mode8 spi2_mode8
+	#define spi_mode16 spi2_mode16
+	#define spi_mode32 spi2_mode32
+#endif
 
 #include "TCPIP.h"
 
@@ -105,12 +137,6 @@
 #define SR  ((0x7<<5) | 0x1F)   // System Reset command does not use an address.
                                 //   It requires 0x1F, however.
 
-// Maximum SPI frequency specified in data sheet
-//#define ENC_MAX_SPI_FREQ    (20000000ul)    // Hz
-#define ENC_MAX_SPI_FREQ    (10000000ul)    // Hz
-//#define ENC_MAX_SPI_FREQ    (5000000ul)    // Hz
-//#define ENC_MAX_SPI_FREQ    (1000000ul)    // Hz
-
 #define ETHER_IP    (0x00u)
 #define ETHER_ARP   (0x06u)
 
@@ -126,15 +152,6 @@ typedef struct  __attribute__((aligned(2), packed))
 } ENC_PREAMBLE;
 
 
-#define ClearSPIDoneFlag()
-static inline __attribute__((__always_inline__)) void WaitForDataByte( void )
-{
-	while (!ENC_SPISTATbits.SPITBE || !ENC_SPISTATbits.SPIRBF);
-}
-
-#define SPI_ON_BIT          (ENC_SPICON1bits.ON)
-
-
 // Prototypes of functions intended for MAC layer use only.
 static void BankSel(WORD Register);
 static REG ReadETHReg(BYTE Address);
@@ -144,6 +161,8 @@ static void BFCReg(BYTE Address, BYTE Data);
 static void BFSReg(BYTE Address, BYTE Data);
 //static void SendSystemReset(void);
 static unsigned int SendSystemReset_Async(void);
+unsigned int enc28j60_readWrite_helper(unsigned int sendByte, unsigned int spi_mode);
+
 
 // Internal MAC level variables and flags.
 static WORD_VAL NextPacketLocation;
@@ -177,14 +196,18 @@ unsigned int enc28j60_spi_corruption1_cnt = 0;
 unsigned int enc28j60_spi_corruption2_cnt = 0;
 
 unsigned int enc28j60_spi_corruption_reinit_state = 0;
-volatile BYTE enc28j60_Dummy = 0;
 Timer enc28j60_timer;
 
+unsigned char ENC28J60_SMP = 1;
+unsigned char ENC28J60_CKP = 0;
+unsigned char ENC28J60_CKE = 1;
+unsigned int ENC28J60_BRG = 0;
 
-uint16 ENC28J60_CalculateBRG(uint32 spi_clk);
+
 
 void init_enc28j60(void) {
 	init_timer(&enc28j60_timer);
+	ENC28J60_BRG = spi_calculate_BRG(ENC_MAX_SPI_FREQ);
 	enc28j60_spi_corruption_reinit_state = 0;
 }
 
@@ -201,40 +224,49 @@ void do_enc28j60(void) {
 			ENC28J60_ECON1 = ReadETHReg(ECON1).Val;
 
 			BankSel(ERXFCON);
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_ERXFCON = ReadETHReg(ERXFCON).Val;
 			#pragma GCC diagnostic pop
 			
 			BankSel(MICMD);
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_MICMD = ReadETHReg(MICMD).Val;
 			#pragma GCC diagnostic pop
 
 			BankSel(EBSTCON);
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_EBSTCON = ReadETHReg(EBSTCON).Val;
 			#pragma GCC diagnostic pop
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_MISTAT = ReadETHReg(MISTAT).Val;
 			#pragma GCC diagnostic pop
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_ECOCON = ReadETHReg(ECOCON).Val;
 			#pragma GCC diagnostic pop
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_EFLOCON = ReadETHReg(EFLOCON).Val;
 			#pragma GCC diagnostic pop
 
 			BankSel(MACON1);
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_MACON1 = (ReadETHReg(MACON1).Val);
 			#pragma GCC diagnostic pop
 
 			BankSel(MACON3);
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_MACON3 = (ReadETHReg(MACON3).Val);
 			#pragma GCC diagnostic pop
 
 			BankSel(MACON4);
+			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Woverflow"
 			ENC28J60_MACON4 = (ReadETHReg(MACON4).Val);
 			#pragma GCC diagnostic pop
@@ -245,214 +277,8 @@ void do_enc28j60(void) {
 	if (do_enc28j60_1ms) {
 		do_enc28j60_1ms = 0;
 		if (enc28j60_spi_corruption_reinit) {
-			switch (enc28j60_spi_corruption_reinit_state) {
-				case 0 : {
-					// Set up the SPI module on the PIC for communications with the ENC28J60
-					ENC_CS_IO = 1;
-					MAL_SYNC();
-					ENC_CS_TRIS = 0;        // Make the Chip Select pin an output
-					MAL_SYNC();
-
-					// If the RESET pin is connected, take the chip out of reset
-				#if defined(ENC_RST_IO)
-					ENC_RST_IO      = 1;
-					MAL_SYNC();
-					ENC_RST_TRIS    = 0;
-					MAL_SYNC();
-				#endif
-
-					// Set up SPI
-					ClearSPIDoneFlag();
-					
-					ENC_SPIBRG = ENC28J60_CalculateBRG(ENC_MAX_SPI_FREQ);
-					ENC_SPICON1bits.SMP = 1;	// Delay SDI input sampling (PIC perspective) by 1/2 SPI clock
-					ENC_SPICON1bits.CKE = 1;
-					ENC_SPICON1bits.MSTEN = 1;
-					ENC_SPICON1bits.ON = 1;
-					enc28j60_spi_corruption_reinit_state++;
-					break;
-				}
-				case 1 : {
-					// RESET the entire ENC28J60, clearing all registers
-					// Also wait for CLKRDY to become set.
-					// Bit 3 in ESTAT is an unimplemented bit.  If it reads out as '1' that
-					// means the part is in RESET or there is something wrong with the SPI
-					// connection.  This loop makes sure that we can communicate with the
-					// ENC28J60 before proceeding.
-
-					// Note: The power save feature may prevent the reset from executing, so
-					// we must make sure that the device is not in power save before issuing
-					// a reset.
-					BFCReg(ECON2, ECON2_PWRSV);
-					enc28j60_spi_corruption_reinit_state++;
-					break;
-				}
-				case 2 : {
-					//This is the 1 ms delay needed
-					enc28j60_spi_corruption_reinit_state++;
-					break;
-				}
-				case 3 : {
-					// Execute the System Reset command
-					ENC_CS_IO = 0;
-					MAL_SYNC();
-					ClearSPIDoneFlag();
-					ENC_SSPBUF = SR;
-					WaitForDataByte();      // Wait until the command is transmitted.
-					enc28j60_Dummy = ENC_SSPBUF;
-					ENC_CS_IO = 1;
-					MAL_SYNC();
-					enc28j60_spi_corruption_reinit_state++;
-					break;
-				}
-				case 4 : {
-					// Wait for the oscillator start up timer and PHY to become ready
-					//This is the 1 ms delay needed
-					enc28j60_spi_corruption_reinit_state++;
-					break;
-				}
-				case 5 : {
-					BYTE i;
-
-					i = ReadETHReg(ESTAT).Val;
-					if ( (i & 0x08) || (~i & ESTAT_CLKRDY) ) {
-						enc28j60_spi_corruption_reinit_state = 1;
-					} else {
-						enc28j60_spi_corruption_reinit_state++;
-					}
-					break;
-				}
-				case 6 : {
-					// Start up in Bank 0 and configure the receive buffer boundary pointers
-					// and the buffer write protect pointer (receive buffer read pointer)
-					WasDiscarded = TRUE;
-					NextPacketLocation.Val = RXSTART;
-
-					WriteReg(ERXSTL, LOW(RXSTART));
-					WriteReg(ERXSTH, HIGH(RXSTART));
-					WriteReg(ERXRDPTL, LOW(RXSTOP));    // Write low byte first
-					WriteReg(ERXRDPTH, HIGH(RXSTOP));   // Write high byte last
-					WriteReg(ERXNDL, LOW(RXSTOP));
-					WriteReg(ERXNDH, HIGH(RXSTOP));
-					WriteReg(ETXSTL, LOW(TXSTART));
-					WriteReg(ETXSTH, HIGH(TXSTART));
-
-					// Write a permanant per packet control byte of 0x00
-					WriteReg(EWRPTL, LOW(TXSTART));
-					WriteReg(EWRPTH, HIGH(TXSTART));
-					MACPut(0x00);
-
-
-					// Enter Bank 1 and configure Receive Filters
-					// (No need to reconfigure - Unicast OR Broadcast with CRC checking is
-					// acceptable)
-					// Write ERXFCON_CRCEN only to ERXFCON to enter promiscuous mode
-
-					// Promiscious mode example:
-					//BankSel(ERXFCON);
-					//WriteReg((BYTE)ERXFCON, ERXFCON_CRCEN);
-
-					// Enter Bank 2 and configure the MAC
-					BankSel(MACON1);
-
-					// Enable the receive portion of the MAC
-					WriteReg((BYTE)MACON1, MACON1_TXPAUS | MACON1_RXPAUS | MACON1_MARXEN);
-
-					// Pad packets to 60 bytes, add CRC, and check Type/Length field.
-				#if defined(FULL_DUPLEX)
-					WriteReg((BYTE)MACON3, MACON3_PADCFG0 | MACON3_TXCRCEN | MACON3_FRMLNEN | MACON3_FULDPX);
-					WriteReg((BYTE)MABBIPG, 0x15);
-				#else
-					WriteReg((BYTE)MACON3, MACON3_PADCFG0 | MACON3_TXCRCEN | MACON3_FRMLNEN);
-					WriteReg((BYTE)MABBIPG, 0x12);
-				#endif
-
-					// Allow infinite deferals if the medium is continuously busy
-					// (do not time out a transmission if the half duplex medium is
-					// completely saturated with other people's data)
-					WriteReg((BYTE)MACON4, MACON4_DEFER);
-
-					// Late collisions occur beyond 63+8 bytes (8 bytes for preamble/start of frame delimiter)
-					// 55 is all that is needed for IEEE 802.3, but ENC28J60 B5 errata for improper link pulse
-					// collisions will occur less often with a larger number.
-					WriteReg((BYTE)MACLCON2, 63);
-
-					// Set non-back-to-back inter-packet gap to 9.6us.  The back-to-back
-					// inter-packet gap (MABBIPG) is set by MACSetDuplex() which is called
-					// later.
-					WriteReg((BYTE)MAIPGL, 0x12);
-					WriteReg((BYTE)MAIPGH, 0x0C);
-
-					// Set the maximum packet size which the controller will accept
-					WriteReg((BYTE)MAMXFLL, LOW(6+6+2+1500+4));  // 1518 is the IEEE 802.3 specified limit
-					WriteReg((BYTE)MAMXFLH, HIGH(6+6+2+1500+4)); // 1518 is the IEEE 802.3 specified limit
-
-					// Enter Bank 3 and initialize physical MAC address registers
-					BankSel(MAADR1);
-					WriteReg((BYTE)MAADR1, AppConfig.MyMACAddr.v[0]);
-					WriteReg((BYTE)MAADR2, AppConfig.MyMACAddr.v[1]);
-					WriteReg((BYTE)MAADR3, AppConfig.MyMACAddr.v[2]);
-					WriteReg((BYTE)MAADR4, AppConfig.MyMACAddr.v[3]);
-					WriteReg((BYTE)MAADR5, AppConfig.MyMACAddr.v[4]);
-					WriteReg((BYTE)MAADR6, AppConfig.MyMACAddr.v[5]);
-
-					// Disable the CLKOUT output to reduce EMI generation
-					WriteReg((BYTE)ECOCON, 0x00);   // Output off (0V)
-					//WriteReg((BYTE)ECOCON, 0x01); // 25.000MHz
-					//WriteReg((BYTE)ECOCON, 0x03); // 8.3333MHz (*4 with PLL is 33.3333MHz)
-
-					// Get the Rev ID so that we can implement the correct errata workarounds
-					ENCRevID = ReadETHReg((BYTE)EREVID).Val;
-
-					// Disable half duplex loopback in PHY.  Bank bits changed to Bank 2 as a
-					// side effect.
-					WritePHYReg(PHCON2, PHCON2_HDLDIS);
-
-					// Configure LEDA to display LINK status, LEDB to display TX/RX activity
-					SetLEDConfig(0x3472);
-
-					// Set the MAC and PHY into the proper duplex state
-				#if defined(FULL_DUPLEX)
-					WritePHYReg(PHCON1, PHCON1_PDPXMD);
-				#elif defined(HALF_DUPLEX)
-					WritePHYReg(PHCON1, 0x0000);
-				#else
-					// Use the external LEDB polarity to determine weather full or half duplex
-					// communication mode should be set.
-					{
-						REG Register;
-						PHYREG PhyReg;
-
-						// Read the PHY duplex mode
-						PhyReg = ReadPHYReg(PHCON1);
-						DuplexState = PhyReg.PHCON1bits.PDPXMD;
-
-						// Set the MAC to the proper duplex mode
-						BankSel(MACON3);
-						Register = ReadMACReg((BYTE)MACON3);
-						Register.MACON3bits.FULDPX = PhyReg.PHCON1bits.PDPXMD;
-						WriteReg((BYTE)MACON3, Register.Val);
-
-						// Set the back-to-back inter-packet gap time to IEEE specified
-						// requirements.  The meaning of the MABBIPG value changes with the duplex
-						// state, so it must be updated in this function.
-						// In full duplex, 0x15 represents 9.6us; 0x12 is 9.6us in half duplex
-						WriteReg((BYTE)MABBIPG, PhyReg.PHCON1bits.PDPXMD ? 0x15 : 0x12);
-					}
-				#endif
-
-					BankSel(ERDPTL);        // Return to default Bank 0
-
-					// Enable packet reception
-					BFSReg(ECON1, ECON1_RXEN);
-					enc28j60_spi_corruption_reinit_state++;
-					break;
-				}
-				default : {
-					enc28j60_spi_corruption_reinit_state = 0;
-					enc28j60_spi_corruption_reinit = 0;
-					break;
-				}
+			if (MACInit_Async() != 0) {
+				enc28j60_spi_corruption_reinit = 0;
 			}
 		}
 	}
@@ -503,33 +329,31 @@ void MACInit(void) {
 unsigned int MACInit_Async(void) {
 	unsigned int result = 0;
 	static unsigned int MACInit_Async_sm = 0;
+
 	switch (MACInit_Async_sm) {
 		case 0 : {
-
-			// Set up the SPI module on the PIC for communications with the ENC28J60
-			ENC_CS_IO = 1;
-			MAL_SYNC();
-			ENC_CS_TRIS = 0;        // Make the Chip Select pin an output
-			MAL_SYNC();
-
-			// If the RESET pin is connected, take the chip out of reset
-			#if defined(ENC_RST_IO)
-				ENC_RST_IO      = 1;
-				MAL_SYNC();
-				ENC_RST_TRIS    = 0;
-				MAL_SYNC();
-			#endif
-
-			// Set up SPI
-			ClearSPIDoneFlag();
-			
-			ENC_SPIBRG = ENC28J60_CalculateBRG(ENC_MAX_SPI_FREQ);
-			ENC_SPICON1bits.SMP = 1;	// Delay SDI input sampling (PIC perspective) by 1/2 SPI clock
-			ENC_SPICON1bits.CKE = 1;
-			ENC_SPICON1bits.MSTEN = 1;
-			ENC_SPICON1bits.ON = 1;
-
-			MACInit_Async_sm = 1;
+			if (spi2_islocked() == 0) {
+				if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+					// Set up the SPI module on the PIC for communications with the ENC28J60
+					ENC_CS_IO = 1;
+					MAL_SYNC();
+					ENC_CS_TRIS = 0;        // Make the Chip Select pin an output
+					MAL_SYNC();
+	
+					// If the RESET pin is connected, take the chip out of reset
+					#if defined(ENC_RST_IO)
+						ENC_RST_IO      = 1;
+						MAL_SYNC();
+						ENC_RST_TRIS    = 0;
+						MAL_SYNC();
+					#endif
+					
+					spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
+	
+					MACInit_Async_sm = 1;
+					spi_unlock(SPI_USER_ENC);
+				}
+			}
 			break;
 		}
 		case 1 : {
@@ -539,143 +363,146 @@ unsigned int MACInit_Async(void) {
 			// means the part is in RESET or there is something wrong with the SPI
 			// connection.  This loop makes sure that we can communicate with the
 			// ENC28J60 before proceeding.
-
 			unsigned int SendSystemReset_Async_result = SendSystemReset_Async();
 			if (SendSystemReset_Async_result == 1) {
-				BYTE i = 0;
-				i = ReadETHReg(ESTAT).Val;
-				if ((i & 0x08) || (~i & ESTAT_CLKRDY)) {
-				} else {
-					MACInit_Async_sm = 2;
+				if (spi2_islocked() == 0) {
+					BYTE i = 0;
+					i = ReadETHReg(ESTAT).Val;
+					if ((i & 0x08) || (~i & ESTAT_CLKRDY)) {
+					} else {
+						MACInit_Async_sm = 2;
+					}
 				}
 			}
 			break;
 		}
 		case 2 : {
-			// Start up in Bank 0 and configure the receive buffer boundary pointers
-			// and the buffer write protect pointer (receive buffer read pointer)
-			WasDiscarded = TRUE;
-			NextPacketLocation.Val = RXSTART;
-
-			WriteReg(ERXSTL, LOW(RXSTART));
-			WriteReg(ERXSTH, HIGH(RXSTART));
-			WriteReg(ERXRDPTL, LOW(RXSTOP));    // Write low byte first
-			WriteReg(ERXRDPTH, HIGH(RXSTOP));   // Write high byte last
-			WriteReg(ERXNDL, LOW(RXSTOP));
-			WriteReg(ERXNDH, HIGH(RXSTOP));
-			WriteReg(ETXSTL, LOW(TXSTART));
-			WriteReg(ETXSTH, HIGH(TXSTART));
-
-			// Write a permanant per packet control byte of 0x00
-			WriteReg(EWRPTL, LOW(TXSTART));
-			WriteReg(EWRPTH, HIGH(TXSTART));
-			MACPut(0x00);
-
-
-			// Enter Bank 1 and configure Receive Filters
-			// (No need to reconfigure - Unicast OR Broadcast with CRC checking is
-			// acceptable)
-			// Write ERXFCON_CRCEN only to ERXFCON to enter promiscuous mode
-
-			// Promiscious mode example:
-			//BankSel(ERXFCON);
-			//WriteReg((BYTE)ERXFCON, ERXFCON_CRCEN);
-
-			// Enter Bank 2 and configure the MAC
-			BankSel(MACON1);
-
-			// Enable the receive portion of the MAC
-			WriteReg((BYTE)MACON1, MACON1_TXPAUS | MACON1_RXPAUS | MACON1_MARXEN);
-
-			// Pad packets to 60 bytes, add CRC, and check Type/Length field.
-			#if defined(FULL_DUPLEX)
-				WriteReg((BYTE)MACON3, MACON3_PADCFG0 | MACON3_TXCRCEN | MACON3_FRMLNEN | MACON3_FULDPX);
-				WriteReg((BYTE)MABBIPG, 0x15);
-			#else
-				WriteReg((BYTE)MACON3, MACON3_PADCFG0 | MACON3_TXCRCEN | MACON3_FRMLNEN);
-				WriteReg((BYTE)MABBIPG, 0x12);
-			#endif
-
-			// Allow infinite deferals if the medium is continuously busy
-			// (do not time out a transmission if the half duplex medium is
-			// completely saturated with other people's data)
-			WriteReg((BYTE)MACON4, MACON4_DEFER);
-
-			// Late collisions occur beyond 63+8 bytes (8 bytes for preamble/start of frame delimiter)
-			// 55 is all that is needed for IEEE 802.3, but ENC28J60 B5 errata for improper link pulse
-			// collisions will occur less often with a larger number.
-			WriteReg((BYTE)MACLCON2, 63);
-
-			// Set non-back-to-back inter-packet gap to 9.6us.  The back-to-back
-			// inter-packet gap (MABBIPG) is set by MACSetDuplex() which is called
-			// later.
-			WriteReg((BYTE)MAIPGL, 0x12);
-			WriteReg((BYTE)MAIPGH, 0x0C);
-
-			// Set the maximum packet size which the controller will accept
-			WriteReg((BYTE)MAMXFLL, LOW(6+6+2+1500+4));  // 1518 is the IEEE 802.3 specified limit
-			WriteReg((BYTE)MAMXFLH, HIGH(6+6+2+1500+4)); // 1518 is the IEEE 802.3 specified limit
-
-			// Enter Bank 3 and initialize physical MAC address registers
-			BankSel(MAADR1);
-			WriteReg((BYTE)MAADR1, AppConfig.MyMACAddr.v[0]);
-			WriteReg((BYTE)MAADR2, AppConfig.MyMACAddr.v[1]);
-			WriteReg((BYTE)MAADR3, AppConfig.MyMACAddr.v[2]);
-			WriteReg((BYTE)MAADR4, AppConfig.MyMACAddr.v[3]);
-			WriteReg((BYTE)MAADR5, AppConfig.MyMACAddr.v[4]);
-			WriteReg((BYTE)MAADR6, AppConfig.MyMACAddr.v[5]);
-
-			// Disable the CLKOUT output to reduce EMI generation
-			WriteReg((BYTE)ECOCON, 0x00);   // Output off (0V)
-			//WriteReg((BYTE)ECOCON, 0x01); // 25.000MHz
-			//WriteReg((BYTE)ECOCON, 0x03); // 8.3333MHz (*4 with PLL is 33.3333MHz)
-
-			// Get the Rev ID so that we can implement the correct errata workarounds
-			ENCRevID = ReadETHReg((BYTE)EREVID).Val;
-
-			// Disable half duplex loopback in PHY.  Bank bits changed to Bank 2 as a
-			// side effect.
-			WritePHYReg(PHCON2, PHCON2_HDLDIS);
-
-			// Configure LEDA to display LINK status, LEDB to display TX/RX activity
-			SetLEDConfig(0x3472);
-
-			// Set the MAC and PHY into the proper duplex state
-			#if defined(FULL_DUPLEX)
-				WritePHYReg(PHCON1, PHCON1_PDPXMD);
-			#elif defined(HALF_DUPLEX)
-				WritePHYReg(PHCON1, 0x0000);
-			#else
-				// Use the external LEDB polarity to determine weather full or half duplex
-				// communication mode should be set.
-				{
-					REG Register;
-					PHYREG PhyReg;
-
-					// Read the PHY duplex mode
-					PhyReg = ReadPHYReg(PHCON1);
-					DuplexState = PhyReg.PHCON1bits.PDPXMD;
-
-					// Set the MAC to the proper duplex mode
-					BankSel(MACON3);
-					Register = ReadMACReg((BYTE)MACON3);
-					Register.MACON3bits.FULDPX = PhyReg.PHCON1bits.PDPXMD;
-					WriteReg((BYTE)MACON3, Register.Val);
-
-					// Set the back-to-back inter-packet gap time to IEEE specified
-					// requirements.  The meaning of the MABBIPG value changes with the duplex
-					// state, so it must be updated in this function.
-					// In full duplex, 0x15 represents 9.6us; 0x12 is 9.6us in half duplex
-					WriteReg((BYTE)MABBIPG, PhyReg.PHCON1bits.PDPXMD ? 0x15 : 0x12);
-				}
-			#endif
-
-			BankSel(ERDPTL);        // Return to default Bank 0
-
-			// Enable packet reception
-			BFSReg(ECON1, ECON1_RXEN);
-
-			MACInit_Async_sm = 3;
+			if (spi2_islocked() == 0) {
+				// Start up in Bank 0 and configure the receive buffer boundary pointers
+				// and the buffer write protect pointer (receive buffer read pointer)
+				WasDiscarded = TRUE;
+				NextPacketLocation.Val = RXSTART;
+	
+				WriteReg(ERXSTL, LOW(RXSTART));
+				WriteReg(ERXSTH, HIGH(RXSTART));
+				WriteReg(ERXRDPTL, LOW(RXSTOP));    // Write low byte first
+				WriteReg(ERXRDPTH, HIGH(RXSTOP));   // Write high byte last
+				WriteReg(ERXNDL, LOW(RXSTOP));
+				WriteReg(ERXNDH, HIGH(RXSTOP));
+				WriteReg(ETXSTL, LOW(TXSTART));
+				WriteReg(ETXSTH, HIGH(TXSTART));
+	
+				// Write a permanant per packet control byte of 0x00
+				WriteReg(EWRPTL, LOW(TXSTART));
+				WriteReg(EWRPTH, HIGH(TXSTART));
+				MACPut(0x00);
+	
+	
+				// Enter Bank 1 and configure Receive Filters
+				// (No need to reconfigure - Unicast OR Broadcast with CRC checking is
+				// acceptable)
+				// Write ERXFCON_CRCEN only to ERXFCON to enter promiscuous mode
+	
+				// Promiscious mode example:
+				//BankSel(ERXFCON);
+				//WriteReg((BYTE)ERXFCON, ERXFCON_CRCEN);
+	
+				// Enter Bank 2 and configure the MAC
+				BankSel(MACON1);
+	
+				// Enable the receive portion of the MAC
+				WriteReg((BYTE)MACON1, MACON1_TXPAUS | MACON1_RXPAUS | MACON1_MARXEN);
+	
+				// Pad packets to 60 bytes, add CRC, and check Type/Length field.
+				#if defined(FULL_DUPLEX)
+					WriteReg((BYTE)MACON3, MACON3_PADCFG0 | MACON3_TXCRCEN | MACON3_FRMLNEN | MACON3_FULDPX);
+					WriteReg((BYTE)MABBIPG, 0x15);
+				#else
+					WriteReg((BYTE)MACON3, MACON3_PADCFG0 | MACON3_TXCRCEN | MACON3_FRMLNEN);
+					WriteReg((BYTE)MABBIPG, 0x12);
+				#endif
+	
+				// Allow infinite deferals if the medium is continuously busy
+				// (do not time out a transmission if the half duplex medium is
+				// completely saturated with other people's data)
+				WriteReg((BYTE)MACON4, MACON4_DEFER);
+	
+				// Late collisions occur beyond 63+8 bytes (8 bytes for preamble/start of frame delimiter)
+				// 55 is all that is needed for IEEE 802.3, but ENC28J60 B5 errata for improper link pulse
+				// collisions will occur less often with a larger number.
+				WriteReg((BYTE)MACLCON2, 63);
+	
+				// Set non-back-to-back inter-packet gap to 9.6us.  The back-to-back
+				// inter-packet gap (MABBIPG) is set by MACSetDuplex() which is called
+				// later.
+				WriteReg((BYTE)MAIPGL, 0x12);
+				WriteReg((BYTE)MAIPGH, 0x0C);
+	
+				// Set the maximum packet size which the controller will accept
+				WriteReg((BYTE)MAMXFLL, LOW(6+6+2+1500+4));  // 1518 is the IEEE 802.3 specified limit
+				WriteReg((BYTE)MAMXFLH, HIGH(6+6+2+1500+4)); // 1518 is the IEEE 802.3 specified limit
+	
+				// Enter Bank 3 and initialize physical MAC address registers
+				BankSel(MAADR1);
+				WriteReg((BYTE)MAADR1, AppConfig.MyMACAddr.v[0]);
+				WriteReg((BYTE)MAADR2, AppConfig.MyMACAddr.v[1]);
+				WriteReg((BYTE)MAADR3, AppConfig.MyMACAddr.v[2]);
+				WriteReg((BYTE)MAADR4, AppConfig.MyMACAddr.v[3]);
+				WriteReg((BYTE)MAADR5, AppConfig.MyMACAddr.v[4]);
+				WriteReg((BYTE)MAADR6, AppConfig.MyMACAddr.v[5]);
+	
+				// Disable the CLKOUT output to reduce EMI generation
+				WriteReg((BYTE)ECOCON, 0x00);   // Output off (0V)
+				//WriteReg((BYTE)ECOCON, 0x01); // 25.000MHz
+				//WriteReg((BYTE)ECOCON, 0x03); // 8.3333MHz (*4 with PLL is 33.3333MHz)
+	
+				// Get the Rev ID so that we can implement the correct errata workarounds
+				ENCRevID = ReadETHReg((BYTE)EREVID).Val;
+	
+				// Disable half duplex loopback in PHY.  Bank bits changed to Bank 2 as a
+				// side effect.
+				WritePHYReg(PHCON2, PHCON2_HDLDIS);
+	
+				// Configure LEDA to display LINK status, LEDB to display TX/RX activity
+				SetLEDConfig(0x3472);
+	
+				// Set the MAC and PHY into the proper duplex state
+				#if defined(FULL_DUPLEX)
+					WritePHYReg(PHCON1, PHCON1_PDPXMD);
+				#elif defined(HALF_DUPLEX)
+					WritePHYReg(PHCON1, 0x0000);
+				#else
+					// Use the external LEDB polarity to determine weather full or half duplex
+					// communication mode should be set.
+					{
+						REG Register;
+						PHYREG PhyReg;
+	
+						// Read the PHY duplex mode
+						PhyReg = ReadPHYReg(PHCON1);
+						DuplexState = PhyReg.PHCON1bits.PDPXMD;
+	
+						// Set the MAC to the proper duplex mode
+						BankSel(MACON3);
+						Register = ReadMACReg((BYTE)MACON3);
+						Register.MACON3bits.FULDPX = PhyReg.PHCON1bits.PDPXMD;
+						WriteReg((BYTE)MACON3, Register.Val);
+	
+						// Set the back-to-back inter-packet gap time to IEEE specified
+						// requirements.  The meaning of the MABBIPG value changes with the duplex
+						// state, so it must be updated in this function.
+						// In full duplex, 0x15 represents 9.6us; 0x12 is 9.6us in half duplex
+						WriteReg((BYTE)MABBIPG, PhyReg.PHCON1bits.PDPXMD ? 0x15 : 0x12);
+					}
+				#endif
+	
+				BankSel(ERDPTL);        // Return to default Bank 0
+	
+				// Enable packet reception
+				BFSReg(ECON1, ECON1_RXEN);
+	
+				MACInit_Async_sm = 3;
+			}
 			break;
 		}
 		default : {
@@ -684,33 +511,12 @@ unsigned int MACInit_Async(void) {
 			break;
 		}
 	}
-
 	return result;
 }//end MACInit
 
 void MACdeInit(void) {
 }
 
-uint16 ENC28J60_CalculateBRG(uint32 spi_clk) {
-	uint32 pb_clk = GetPeripheralClock();
-	uint32 brg = 0;
-
-	brg = pb_clk / (2 * spi_clk);
-
-	if(pb_clk % (2 * spi_clk)) {
-		brg++;
-	}
-
-	if(brg > 0x100) {
-		brg = 0x100;
-	}
-
-	if(brg) {
-		brg--;
-	}
-
-	return (uint16) brg;
-}
 
 /******************************************************************************
  * Function:        BOOL MACIsLinked(void)
@@ -1502,22 +1308,22 @@ BYTE MACGet(void)
 {
     BYTE Result;
 
-    ENC_CS_IO = 0;
-	MAL_SYNC();
-	ClearSPIDoneFlag();
+	if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+		spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
+		ENC_CS_IO = 0;
+		MAL_SYNC();
 
-    {
-        // Send the opcode and read a byte in one 16-bit operation
-        ENC_SPICON1bits.MODE16 = 1;
-        ENC_SSPBUF = RBM<<8 | 0x00; // Send Read Buffer Memory command plus 8 dummy bits to generate clocks for the return result
-        WaitForDataByte();          // Wait until WORD is transmitted
-        ENC_SPICON1bits.MODE16 = 0;
-    }
+		// Send the opcode and read a byte in one 16-bit operation
+		spi_mode16(SPI_USER_ENC);
+		unsigned int recVal = enc28j60_readWrite_helper(RBM<<8 | 0x00, 16);
+		spi_mode8(SPI_USER_ENC);
 
-    Result = ENC_SSPBUF;
-    ENC_CS_IO = 1;
-	MAL_SYNC();
-
+		Result = recVal;
+		
+		ENC_CS_IO = 1;
+		MAL_SYNC();
+		spi_unlock(SPI_USER_ENC);
+	}
     return Result;
 }//end MACGet
 
@@ -1547,64 +1353,59 @@ WORD MACGetArray(BYTE *val, WORD len)
 {
     WORD i;
 
-    // Start the burst operation
-    ENC_CS_IO = 0;
-	MAL_SYNC();
-    ClearSPIDoneFlag();
-    ENC_SSPBUF = RBM;       // Send the Read Buffer Memory opcode.
-    i = 0;
-    if(val)
-        val--;
-    WaitForDataByte();      // Wait until opcode/address is transmitted.
-    enc28j60_Dummy = ENC_SSPBUF;
+	if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+		spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
 
-    {
-        DWORD_VAL dwv;
+		ENC_CS_IO = 0;
+		MAL_SYNC();
+		enc28j60_readWrite_helper(RBM, 8);       // Send the Read Buffer Memory opcode.
+		i = 0;
+		if(val) {
+			val--;
+		}
 
-        // Read the data, 4 bytes at a time, for as long as possible
-        if(len >= 4)
-        {
-            ENC_SPICON1bits.MODE32 = 1;
-            while(1)
-            {
-                ENC_SSPBUF = 0x00000000;    // Send a dummy DWORD to generate 32 clocks
-                i += 4;
-                WaitForDataByte();         // Wait until DWORD is transmitted
-                dwv.Val = ENC_SSPBUF;
-                if(val)
-                {
-                    *(++val) = dwv.v[3];
-                    *(++val) = dwv.v[2];
-                    *(++val) = dwv.v[1];
-                    *(++val) = dwv.v[0];
-                }
-                if(len - i < 4)
-                    break;
-            };
-            ENC_SPICON1bits.MODE32 = 0;
-        }
-    }
-    // Read the data
-    while(i<len)
-    {
-        ENC_SSPBUF = 0;     // Send a dummy byte to receive a byte
-        i++;
-        if(val)
-        {
-            val++;
-            WaitForDataByte();  // Wait until byte is received.
-            *val = ENC_SSPBUF;
-        }
-        else
-        {
-            WaitForDataByte();  // Wait until byte is received.
-            enc28j60_Dummy = ENC_SSPBUF;
-        }
-    };
+		{
+			DWORD_VAL dwv;
 
-    // Terminate the burst operation
-    ENC_CS_IO = 1;
-	MAL_SYNC();
+			// Read the data, 4 bytes at a time, for as long as possible
+			if(len >= 4)
+			{
+				spi_mode32(SPI_USER_ENC);
+				while(1)
+				{
+					unsigned int recVal = enc28j60_readWrite_helper(0x00000000, 32);
+					i += 4;
+					dwv.Val = recVal;
+					if(val)
+					{
+						*(++val) = dwv.v[3];
+						*(++val) = dwv.v[2];
+						*(++val) = dwv.v[1];
+						*(++val) = dwv.v[0];
+					}
+					if(len - i < 4)
+						break;
+				};
+				spi_mode8(SPI_USER_ENC);
+			}
+		}
+		// Read the data
+		while(i<len)
+		{
+			unsigned int recVal = enc28j60_readWrite_helper(0, 0);// Send a dummy byte to receive a byte
+			i++;
+			if(val)
+			{
+				val++;
+				*val = recVal;
+			}
+		};
+
+		// Terminate the burst operation
+		ENC_CS_IO = 1;
+		MAL_SYNC();
+		spi_unlock(SPI_USER_ENC);
+	}    // Start the burst operation
 
     return i;
 }//end MACGetArray
@@ -1633,22 +1434,23 @@ WORD MACPut(BYTE val)
 	WORD result = 0;
 
 	if (enc28j60_spi_corruption_reinit == 0) {
-		result = 1;
-		ENC_CS_IO = 0;
-		MAL_SYNC();
-		ClearSPIDoneFlag();
+		if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+			spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
 
-		{
+			result = 1;
+			ENC_CS_IO = 0;
+			MAL_SYNC();
+
 			// Send the Write Buffer Memory and data, in on 16-bit write
-			ENC_SPICON1bits.MODE16 = 1;
-			ENC_SSPBUF = (WBM<<8) | (WORD)val;  // Start sending the WORD
-			WaitForDataByte();                  // Wait until WORD is transmitted
-			ENC_SPICON1bits.MODE16 = 0;
-		}
+			spi_mode16(SPI_USER_ENC);
+			enc28j60_readWrite_helper((WBM<<8) | (WORD)val, 16); // Start sending the WORD
+			spi_mode8(SPI_USER_ENC);
 
-		enc28j60_Dummy = ENC_SSPBUF;
-		ENC_CS_IO = 1;
-		MAL_SYNC();
+			ENC_CS_IO = 1;
+			MAL_SYNC();
+
+			spi_unlock(SPI_USER_ENC);
+		}
 	}
 	return result;
 }//end MACPut
@@ -1682,68 +1484,55 @@ WORD MACPutArray(BYTE *val, WORD len)
 		// with I2C temperature sensor on the same SPI wires
 
 		// Select the chip and send the proper opcode
-		ENC_CS_IO = 0;
-		MAL_SYNC();
-		ClearSPIDoneFlag();
-		ENC_SSPBUF = WBM;       // Send the Write Buffer Memory opcode
-		WaitForDataByte();      // Wait until opcode/constant is transmitted.
-		enc28j60_Dummy = ENC_SSPBUF;
+		if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+			spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
 
-		{
-			DWORD_VAL dwv;
-
-			// Send the data, 4 bytes at a time, for as long as possible
-			if(len >= 4)
+			ENC_CS_IO = 0;
+			MAL_SYNC();
+			
+			enc28j60_readWrite_helper(WBM, 8); // Send the Write Buffer Memory opcode
 			{
-				dwv.v[3] = *val++;
-				dwv.v[2] = *val++;
-				dwv.v[1] = *val++;
-				dwv.v[0] = *val++;
-				ENC_SPICON1bits.MODE32 = 1;
-				while(1)
+				DWORD_VAL dwv;
+
+				// Send the data, 4 bytes at a time, for as long as possible
+				if(len >= 4)
 				{
-					ENC_SSPBUF = dwv.Val;       // Start sending the DWORD
-					len -= 4;
-					if(len < 4)
-						break;
 					dwv.v[3] = *val++;
 					dwv.v[2] = *val++;
 					dwv.v[1] = *val++;
 					dwv.v[0] = *val++;
-					WaitForDataByte();          // Wait until DWORD is transmitted
-					enc28j60_Dummy = ENC_SSPBUF;
-				};
-				WaitForDataByte();              // Wait until DWORD is transmitted
-				enc28j60_Dummy = ENC_SSPBUF;
-				ENC_SPICON1bits.MODE32 = 0;
+					spi_mode32(SPI_USER_ENC);
+					while(1)
+					{
+						enc28j60_readWrite_helper(dwv.Val, 32); // Start sending the DWORD
+						len -= 4;
+						if(len < 4)
+							break;
+						dwv.v[3] = *val++;
+						dwv.v[2] = *val++;
+						dwv.v[1] = *val++;
+						dwv.v[0] = *val++;
+					};
+					spi_mode8(SPI_USER_ENC);
+				}
 			}
+
+			// Send the data, one byte at a time
+			while(len)
+			{
+				enc28j60_readWrite_helper(*val, 8);
+				val++;              // Increment after writing to ENC_SSPBUF to increase speed
+				len--;              // Decrement after writing to ENC_SSPBUF to increase speed
+			};
+
+			// Terminate the burst operation
+			ENC_CS_IO = 1;
+			MAL_SYNC();
+			spi_unlock(SPI_USER_ENC);
 		}
-
-		// Send the data, one byte at a time
-		while(len)
-		{
-			ENC_SSPBUF = *val;  // Start sending the byte
-			val++;              // Increment after writing to ENC_SSPBUF to increase speed
-			len--;              // Decrement after writing to ENC_SSPBUF to increase speed
-			WaitForDataByte();  // Wait until byte is transmitted
-			enc28j60_Dummy = ENC_SSPBUF;
-		};
-
-		// Terminate the burst operation
-		ENC_CS_IO = 1;
-		MAL_SYNC();
 	}
 	return result;
 }//end MACPutArray
-
-/*static void SendSystemReset(void) {
-	while (1) {
-		unsigned int result = SendSystemReset_Async();
-		if (result != 0) {
-			break;
-		}
-	}
-}*/
 
 /******************************************************************************
  * Function:        static void SendSystemReset(void)
@@ -1769,33 +1558,41 @@ static unsigned int SendSystemReset_Async(void)
 	static unsigned int SendSystemReset_Async_sm = 0;
 	switch (SendSystemReset_Async_sm) {
 		case 0 : {
-			// Note: The power save feature may prevent the reset from executing, so
-			// we must make sure that the device is not in power save before issuing
-			// a reset.
-			BFCReg(ECON2, ECON2_PWRSV);
-
-			// Give some opportunity for the regulator to reach normal regulation and
-			// have all clocks running
-			write_timer(&enc28j60_timer, 2);
-
+			if (spi2_islocked() == 0) {
+				// Note: The power save feature may prevent the reset from executing, so
+				// we must make sure that the device is not in power save before issuing
+				// a reset.
+				BFCReg(ECON2, ECON2_PWRSV);
+	
+				// Give some opportunity for the regulator to reach normal regulation and
+				// have all clocks running
+				write_timer(&enc28j60_timer, 2);
+			}	
 			SendSystemReset_Async_sm = 1;
 			break;
 		}
 		case 1 : {
 			if (read_timer(&enc28j60_timer) == 0) {
-				// Execute the System Reset command
-				ENC_CS_IO = 0;
-				MAL_SYNC();
-				ClearSPIDoneFlag();
-				ENC_SSPBUF = SR;
-				WaitForDataByte();      // Wait until the command is transmitted.
-				enc28j60_Dummy = ENC_SSPBUF;
-				ENC_CS_IO = 1;
-				MAL_SYNC();
+				if (spi2_islocked() == 0) {
+					if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+						spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
+	
+						// Execute the System Reset command
+						ENC_CS_IO = 0;
+						MAL_SYNC();
+						
+						enc28j60_readWrite_helper(SR, 8);
+		
+						ENC_CS_IO = 1;
+						MAL_SYNC();
+		
+						// Wait for the oscillator start up timer and PHY to become ready
+						write_timer(&enc28j60_timer, 2);
+						SendSystemReset_Async_sm = 2;
 
-				// Wait for the oscillator start up timer and PHY to become ready
-				write_timer(&enc28j60_timer, 2);
-				SendSystemReset_Async_sm = 2;
+						spi_unlock(SPI_USER_ENC);
+					}
+				}
 			}
 			break;
 		}
@@ -1840,21 +1637,23 @@ static unsigned int SendSystemReset_Async(void)
 static REG ReadETHReg(BYTE Address)
 {
     REG r;
+	r.Val = 0;
 
-    // Select the chip and send the Read Control Register opcode/address
-    ENC_CS_IO = 0;
-	MAL_SYNC();
-    ClearSPIDoneFlag();
-    ENC_SSPBUF = RCR | Address;
+	if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+		spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
 
-    WaitForDataByte();      // Wait until the opcode/address is transmitted
-    r.Val = ENC_SSPBUF;
-    ENC_SSPBUF = 0;         // Send a dummy byte to receive the register
-                            //   contents
-    WaitForDataByte();      // Wait until the register is received
-    r.Val = ENC_SSPBUF;
-    ENC_CS_IO = 1;
-	MAL_SYNC();
+		// Select the chip and send the Read Control Register opcode/address
+		ENC_CS_IO = 0;
+		MAL_SYNC();
+		
+		r.Val = enc28j60_readWrite_helper(RCR | Address, 8);
+		r.Val = enc28j60_readWrite_helper(0, 8);
+
+		ENC_CS_IO = 1;
+		MAL_SYNC();
+
+		spi_unlock(SPI_USER_ENC);
+	}
 
     return r;
 }//end ReadETHReg
@@ -1885,23 +1684,23 @@ static REG ReadETHReg(BYTE Address)
 static REG ReadMACReg(BYTE Address)
 {
     REG r;
+	r.Val = 0;
 
-    ENC_CS_IO = 0;
-	MAL_SYNC();
-    ClearSPIDoneFlag();
-    ENC_SSPBUF = RCR | Address; // Send the Read Control Register opcode and
-                                //   address.
-    WaitForDataByte();          // Wait until opcode/address is transmitted.
-    r.Val = ENC_SSPBUF;
-    ENC_SSPBUF = 0;             // Send a dummy byte
-    WaitForDataByte();          // Wait for the dummy byte to be transmitted
-    r.Val = ENC_SSPBUF;
-    ENC_SSPBUF = 0;             // Send another dummy byte to receive the register
-                                //   contents.
-    WaitForDataByte();          // Wait until register is received.
-    r.Val = ENC_SSPBUF;
-    ENC_CS_IO = 1;
-	MAL_SYNC();
+	if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+		spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
+
+		ENC_CS_IO = 0;
+		MAL_SYNC();
+		
+		r.Val = enc28j60_readWrite_helper(RCR | Address, 8); // Send the Read Control Register opcode and address.
+		r.Val = enc28j60_readWrite_helper(0, 8); // Start sending the WORD
+		r.Val = enc28j60_readWrite_helper(0, 8); // Start sending the WORD
+
+		ENC_CS_IO = 1;
+		MAL_SYNC();
+
+		spi_unlock(SPI_USER_ENC);
+	}
 
     return r;
 }//end ReadMACReg
@@ -1978,44 +1777,44 @@ PHYREG ReadPHYReg(BYTE Register)
  *****************************************************************************/
 static void WriteReg(BYTE Address, BYTE Data)
 {
-    ENC_CS_IO = 0;
-	MAL_SYNC();
-    ClearSPIDoneFlag();
+	if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+		spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
 
-    {
-        // Send the Write Buffer Memory and data, in on 16-bit write
-        ENC_SPICON1bits.MODE16 = 1;
-        ENC_SSPBUF = ((WCR | Address)<<8) | (WORD)Data; // Start sending the WORD
-        WaitForDataByte();                  // Wait until WORD is transmitted
-        ENC_SPICON1bits.MODE16 = 0;
-    }
+		ENC_CS_IO = 0;
+		MAL_SYNC();
 
-    enc28j60_Dummy = ENC_SSPBUF;
+		// Send the Write Buffer Memory and data, in on 16-bit write
+		spi_mode16(SPI_USER_ENC);
+		enc28j60_readWrite_helper(((WCR | Address)<<8) | (WORD)Data, 16); // Start sending the WORD
+		spi_mode8(SPI_USER_ENC);
 
+		// For faster processors (dsPIC), delay for a few clock cycles to ensure 
+		// the MAC/MII register write Chip Select hold time minimum of 210ns is met.
+		#if (GetInstructionClock() > 30000000)
+			Nop();
+			Nop();
+			Nop();
+			Nop();
+		#endif
+		#if (GetInstructionClock() > 40000000)
+			Nop();
+			Nop();
+			Nop();
+			Nop();
+		#endif
+		#if (GetInstructionClock() > 50000000)
+			Nop();
+			Nop();
+			Nop();
+			Nop();
+		#endif
 
-	// For faster processors (dsPIC), delay for a few clock cycles to ensure 
-	// the MAC/MII register write Chip Select hold time minimum of 210ns is met.
-	#if (GetInstructionClock() > 30000000)
-		Nop();
-		Nop();
-		Nop();
-		Nop();
-	#endif
-	#if (GetInstructionClock() > 40000000)
-		Nop();
-		Nop();
-		Nop();
-		Nop();
-	#endif
-	#if (GetInstructionClock() > 50000000)
-		Nop();
-		Nop();
-		Nop();
-		Nop();
-	#endif
+		ENC_CS_IO = 1;
+		MAL_SYNC();
 
-	ENC_CS_IO = 1;
-	MAL_SYNC();
+		spi_unlock(SPI_USER_ENC);
+	}
+
 }//end WriteReg
 
 
@@ -2043,24 +1842,21 @@ static void WriteReg(BYTE Address, BYTE Data)
  *****************************************************************************/
 static void BFCReg(BYTE Address, BYTE Data)
 {
-    ENC_CS_IO = 0;
-	MAL_SYNC();
-    ClearSPIDoneFlag();
-	MAL_SYNC();
-    ENC_SSPBUF = BFC | Address; // Send the opcode and address.
-	MAL_SYNC();
-    WaitForDataByte();          // Wait until opcode/address is transmitted.
-	MAL_SYNC();
-    enc28j60_Dummy = ENC_SSPBUF;
-	MAL_SYNC();
-    ENC_SSPBUF = Data;          // Send the byte to be writen.
-	MAL_SYNC();
-    WaitForDataByte();          // Wait until register is written.
-	MAL_SYNC();
-    enc28j60_Dummy = ENC_SSPBUF;
-	MAL_SYNC();
-    ENC_CS_IO = 1;
-	MAL_SYNC();
+	if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+		spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
+
+		ENC_CS_IO = 0;
+		MAL_SYNC();
+
+		enc28j60_readWrite_helper(BFC | Address, 8); // Send the opcode and address.
+		enc28j60_readWrite_helper(Data, 8); // Send the byte to be writen.
+
+		ENC_CS_IO = 1;
+		MAL_SYNC();
+
+		spi_unlock(SPI_USER_ENC);
+	}
+
 }//end BFCReg
 
 
@@ -2088,24 +1884,21 @@ static void BFCReg(BYTE Address, BYTE Data)
  *****************************************************************************/
 static void BFSReg(BYTE Address, BYTE Data)
 {
+	if (spi_lock(SPI_USER_ENC) == SPI_USER_ENC) {
+		spi_reconfigure(SPI_USER_ENC, ENC28J60_SMP, ENC28J60_CKP, ENC28J60_CKE, ENC28J60_BRG);
 
-    ENC_CS_IO = 0;
-	MAL_SYNC();
-    ClearSPIDoneFlag();
-    ENC_SSPBUF = BFS | Address; // Send the opcode and address.
-	MAL_SYNC();
-    WaitForDataByte();          // Wait until opcode/address is transmitted.
-	MAL_SYNC();
-    enc28j60_Dummy = ENC_SSPBUF;
-	MAL_SYNC();
-    ENC_SSPBUF = Data;          // Send the byte to be writen.
-	MAL_SYNC();
-    WaitForDataByte();          // Wait until register is written.
-	MAL_SYNC();
-    enc28j60_Dummy = ENC_SSPBUF;
-	MAL_SYNC();
-    ENC_CS_IO = 1;
-	MAL_SYNC();
+		ENC_CS_IO = 0;
+		MAL_SYNC();
+		
+		enc28j60_readWrite_helper(BFS | Address, 8);// Send the opcode and address.
+		enc28j60_readWrite_helper(Data, 8);// Send the byte to be writen.
+		
+		ENC_CS_IO = 1;
+		MAL_SYNC();
+		
+		spi_unlock(SPI_USER_ENC);
+	}
+
 }//end BFSReg
 
 
@@ -2514,3 +2307,45 @@ BOOL MACIsAvailable(void) {
 	}
 	return result;
 }
+
+unsigned int enc28j60_readWrite_helper(unsigned int sendByte, unsigned int spi_mode) {
+	unsigned int receivedByte = 0;
+	
+	unsigned char bufferOut[4];
+	unsigned char bufferIn[4];
+
+	uint32 size = 1;
+
+	if (spi_mode == 32) {
+		bufferOut[0] = ((sendByte >> 24) & 0xFF);
+		bufferOut[1] = ((sendByte >> 16) & 0xFF);
+		bufferOut[2] = ((sendByte >> 8) & 0xFF);
+		bufferOut[3] = ((sendByte >> 0) & 0xFF);
+	} else if (spi_mode == 16) {
+		bufferOut[0] = ((sendByte >> 8) & 0xFF);
+		bufferOut[1] = ((sendByte >> 0) & 0xFF);
+	} else {
+		bufferOut[0] = ((sendByte >> 0) & 0xFF);
+	}
+
+	spi_readWrite_synch(SPI_USER_ENC, &bufferOut[0], &bufferIn[0], size);
+
+	if (spi_mode == 32) {
+		receivedByte = bufferIn[3];
+		receivedByte <<= 8;
+		receivedByte += bufferIn[2];
+		receivedByte <<= 8;
+		receivedByte += bufferIn[1];
+		receivedByte <<= 8;
+		receivedByte += bufferIn[0];
+	} else if (spi_mode == 16) {
+		receivedByte = bufferIn[1];
+		receivedByte <<= 8;
+		receivedByte += bufferIn[0];
+	} else {
+		receivedByte = bufferIn[0];
+	}
+	
+	return receivedByte;
+}
+

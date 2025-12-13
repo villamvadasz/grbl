@@ -148,6 +148,9 @@ extern int32_t sys_probe_position[N_AXIS]; // Last probe position in machine coo
 extern volatile uint8 sys_rt_exec_motion_override; // Global realtime executor bitflag variable for motion-based overrides.
 extern volatile uint8 sys_rt_exec_accessory_override; // Global realtime executor bitflag variable for spindle/coolant overrides.
 
+extern uint32 grbl_serial_number;
+extern void grbl_set_serial_number(unsigned char *str);
+
 // Initialize the serial protocol
 void system_init(unsigned int alarm_supress);
 

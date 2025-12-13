@@ -7,6 +7,10 @@
 
 #include "tmr.h"
 #include "fixedmemoryaddress.h"
+#ifdef GRBL_USE_RTC
+	#include "rtc.h"
+#endif
+#include "grbl_gcode_external.h"
 
 #define GCODE_POSITION_SAVE_TIME 500
 
@@ -21,9 +25,12 @@ uint8 grbl_eeprom_triggerWriteAll = 0;
 uint8 grbl_eeprom_triggerWriteSettings = 0;
 uint8 grbl_master_eep_error = 0;
 uint8 grbl_backup_eep_error = 0;
+uint8 grbl_serial_eep_error_type = 0;
+uint8 grbl_serial_eep_error = 0;
 uint8 grbl_critical_eep_error = 0;
 uint8 master_eep_error_single_shoot = 1;
 uint8 backup_eep_error_single_shoot = 1;
+uint8 grbl_serial_eep_error_single_shoot = 1;
 
 uint8 gc_main_eeprom_trigger = 0;
 Timer gcodePositionSave;
@@ -38,11 +45,10 @@ void init_grbl_eeprom(void) {
 	do_grbl_eeprom_1ms = 0;
 	grbl_eeprom_triggerWriteAll = 0;
 	grbl_eeprom_triggerWriteSettings = 0;
-	grbl_master_eep_error = 0;
-	grbl_backup_eep_error = 0;
 	grbl_critical_eep_error = 0;
 	master_eep_error_single_shoot = 1;
 	backup_eep_error_single_shoot = 1;
+	grbl_serial_eep_error_single_shoot = 1;
 
 	gc_main_eeprom_trigger = 0;
 	grbl_eeprom_trigger_prev = 1;
@@ -58,8 +64,10 @@ void init_grbl_eeprom(void) {
 	if (grbl_master_eep_error == 0) {
 		//master is ok no need to check backup
 	} else {
+		grbl_master_eep_error = 0;
 		//master failed, see for back up
 		if (grbl_backup_eep_error) {
+			grbl_backup_eep_error = 0;
 			//panic...
 			grbl_critical_eep_error = 1;
 		} else {
@@ -67,11 +75,35 @@ void init_grbl_eeprom(void) {
 			memcpy(&eep_settings, &eep_settings_backup, sizeof(eep_settings_backup));
 		}
 	}
+	if (grbl_serial_eep_error) {
+	}
 	
 	grbl_eeprom_restorePositionFromNoInit();
 }
 
 void do_grbl_eeprom(void) {
+	if (grbl_serial_eep_error) {
+		if (grbl_serial_eep_error_single_shoot) {
+			grbl_serial_eep_error_single_shoot = 0;
+			{
+				#ifdef GRBL_USE_RTC
+					TimeDate ptr;
+					uint32 ntp_seconds = 0;
+					rtc_LoadCompilerDefaultTime(&ptr);
+					rtc_DateToNtp(&ptr, &ntp_seconds);
+					ntp_seconds &= 0x00FFFFFF;
+					if (grbl_serial_eep_error_type == EEP_MANAGER_LOAD_DEFAULT) {
+						grbl_serial_number = ntp_seconds | 0xFF000000;
+					} else if (grbl_serial_eep_error_type == EEP_MANAGER_LOAD_FAILED) {
+						grbl_serial_number = ntp_seconds | 0x1F000000;
+					} else {
+						grbl_serial_number = ntp_seconds | 0x3F000000;
+					}
+					grbl_eeprom_trigger();
+				#endif
+			}
+		}
+	}
 	if (grbl_master_eep_error) {
 		if (master_eep_error_single_shoot) {
 			master_eep_error_single_shoot = 0;
@@ -185,6 +217,11 @@ void grbl_NotifyUserFailedRead(int item, uint8 type) {
 		if (type == EEP_MANAGER_LOAD_FAILED) {
 			grbl_backup_eep_error = 1;
 		}
+	#ifdef GRBL_USE_SERIAL_NUMBER
+	} else if (item == EepManager_Items_SerialNumber) {
+		grbl_serial_eep_error = 1;
+		grbl_serial_eep_error_type = type;
+	#endif
 	}
 }
 
@@ -203,8 +240,8 @@ unsigned char grbl_eeprom_checkIs(void) {
 		(protocol_get_requestDwell()) ||
 		(isToolChangeRunning()) ||
 		(isArcGeneratingRunning() != 0) ||
-		(isLimits_go_homeRunning() != 0) ||
-		(isMc_homing_cycleRunning() != 0) ||
+		//(grbl_homing_go_home_running() != 0) || //TODO removed because next line is enough
+		(grbl_homing_mc_homing_cycle_running() != 0) ||
 		(st_isDelayRunning() != 0) || 
 		(spindle_get_state() != SPINDLE_STATE_DISABLE)
 	) {
@@ -260,6 +297,7 @@ void grbl_eeprom_restorePositionFromNoInit(void) {
 	plan_sync_position();
 	gc_sync_position();
 }
+
 void grbl_eeprom_get_eeprom(unsigned char *str) {
 	//aaaaaaaa
 	//0123456789

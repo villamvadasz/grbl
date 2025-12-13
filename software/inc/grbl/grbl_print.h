@@ -40,6 +40,7 @@ void print_uint8_base10(uint8 n);
 // Prints an uint8 variable in base 2 with desired number of desired digits.
 void print_uint8_base2_ndigit(uint8 n, uint8 digits);
 
+void printDouble(double n, uint8 decimal_places);
 void printFloat(float n, uint8 decimal_places);
 
 // Floating value printing handlers for special variables types used in Grbl.
@@ -50,5 +51,6 @@ void printFloat_RateValue(float n);
 
 // Debug tool to print free memory in bytes at the called point. Not used otherwise.
 void printFreeMemory();
+void print_lat_long(double lat, double lon);
 
 #endif

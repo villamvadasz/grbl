@@ -16,17 +16,25 @@ typedef struct _Dee_Type {
 } Dee_Type;
 
 typedef union _Dee_Page {
-	uint32 pages[DEE_PAGE_PAGE_SIZE][NUMBER_OF_INSTRUCTIONS_IN_PAGE];
-	uint32 raw[NUMBER_OF_INSTRUCTIONS_IN_PAGE * DEE_PAGE_PAGE_SIZE];
+	uint32 pages[DEE_FLASH_PAGE_CNT][NUMBER_OF_INSTRUCTIONS_IN_PAGE];
+	uint32 raw[NUMBER_OF_INSTRUCTIONS_IN_PAGE * DEE_FLASH_PAGE_CNT];
 	Dee_Type type;
 } Dee_Page;
 
+#pragma GCC diagnostic ignored "-Wmissing-braces"
 const Dee_Page dee_page[DEE_PAGE_CNT] __attribute__ (( address(EEPROM_FLASH_ADDR), aligned(NUMBER_OF_BYTES_IN_PAGE) )) = {0};
+const uint32 dee_page_static[NUMBER_OF_BYTES_IN_PAGE / 4] __attribute__ (( address(EEPROM_FLASH_ADDR + (sizeof(Dee_Page) * DEE_PAGE_CNT)), aligned(NUMBER_OF_BYTES_IN_PAGE) )) = {0};
+#pragma GCC diagnostic pop
+
 Dee_Page *read_dee_page;
 Dee_Page_Status_Helper dee_debug_page_status[DEE_PAGE_CNT];
+unsigned int* read_dee_page_startaddress;
+unsigned int read_dee_page_size;
 
 void init_dee_page(void) {
-    read_dee_page = (Dee_Page *)KVA0_TO_KVA1(dee_page);
+	read_dee_page = (Dee_Page *)KVA0_TO_KVA1(dee_page);
+	read_dee_page_startaddress = KVA0_TO_KVA1(dee_page);
+	read_dee_page_size = sizeof(dee_page);
 	dee_page_update_debug_status();
 }
 
@@ -52,7 +60,7 @@ void dee_page_update_debug_status(void) {
 uint32 dee_page_mass_erase_page(uint32 page) {
 	uint32 result = 0;
 	uint32 i = 0;
-	for (i = 0; i < DEE_PAGE_PAGE_SIZE; i ++ ) {
+	for (i = 0; i < DEE_FLASH_PAGE_CNT; i ++ ) {
 		result = NVMErasePage((void*)dee_page[page].pages[i]);
 		if (result) {
 			break;
@@ -65,7 +73,7 @@ uint32 dee_page_erase_page(uint32 page, uint32 eraseCounter) {
 	uint32 result = 0;
 	uint32 i = 0;
 	uint8 wasClearPagesOk = 1;
-	for (i = 0; i < DEE_PAGE_PAGE_SIZE; i ++ ) {
+	for (i = 0; i < DEE_FLASH_PAGE_CNT; i ++ ) {
 		result = NVMErasePage((void*)dee_page[page].pages[i]);
 		if (result) {
 			wasClearPagesOk = 0;
@@ -78,7 +86,7 @@ uint32 dee_page_erase_page(uint32 page, uint32 eraseCounter) {
 	return result;
 }
 
-uint32 dee_page_read(uint32 page, uint32 row) {
+uint32 dee_page_read_raw(uint32 page, uint32 row) {
 	uint32 result = 0;
 	result = read_dee_page[page].raw[row];
 	return result;
@@ -132,7 +140,7 @@ uint32 dee_page_write_crc(uint32 page, uint32 element, uint32 value) {
 	return result;
 }
 
-void dee_page_read_element(uint8 page, uint32 element, uint32 *data, uint32 *crc, uint32 *address) {
+void dee_page_read_element(uint32 page, uint32 element, uint32 *data, uint32 *crc, uint32 *address) {
 	if (page < DEE_PAGE_CNT) {
 		if (element < DEE_NUMBER_OF_DATA_ELEMENTS) {
 			if (address != NULL) {
@@ -148,7 +156,7 @@ void dee_page_read_element(uint8 page, uint32 element, uint32 *data, uint32 *crc
 	}
 }
 
-uint32 dee_page_write_element(uint8 page, uint32 element, uint32 data, uint32 crc, uint32 address) {
+uint32 dee_page_write_element(uint32 page, uint32 element, uint32 data, uint32 crc, uint32 address) {
 	uint32 retCode = 0;
 	if (page < DEE_PAGE_CNT) {
 		if (element < DEE_NUMBER_OF_DATA_ELEMENTS) {
@@ -178,3 +186,20 @@ uint32 dee_page_write_element(uint8 page, uint32 element, uint32 data, uint32 cr
 	}
 	return retCode;
 }
+
+#ifdef DEE_TESTING_ENABLED
+	uint8 test_erase_pages(void) {
+		uint8 result = 1;
+		//Just like after a flash when eeprom is erased
+		uint32 page = 0;
+		for(page = 0; page < DEE_PAGE_CNT; page++) {
+			uint32 i = 0;
+			for (i = 0; i < DEE_FLASH_PAGE_CNT; i ++ ) {
+				if (NVMErasePage((void*)dee_page[page].pages[i])) {
+					result = 0;
+				}
+			}
+		}
+		return result;
+	}
+#endif

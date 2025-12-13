@@ -145,4 +145,5 @@ extern void StackInit(void);
 void StackTask(void);
 void StackApplications(void);
 extern void StackdeInit(void);
+extern void isr_Stack_1ms(void);
 #endif

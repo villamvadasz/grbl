@@ -160,6 +160,11 @@
 	#error Wrong IPL configured
 #endif
 
+#if defined (__32MX440F256H__) || defined (__32MX440F512H__) || defined (__32MX470F512H__) || defined (__32MX460F512L__)  || defined (__32MX470F512L__)  || defined (__32MX795F512H__)
+#else
+	#error TODO Implement
+#endif
+
 #ifdef __32MX440F256H__
 	#define IFSx_U1 IFS0
 	#define IECx_U1 IEC0
@@ -172,7 +177,20 @@
 	#define _IECx_U1_U1TXIE_MASK _IEC0_U1TXIE_MASK
 	#define _IFSx_U1_U1EIF_POSITION _IFS0_U1EIF_POSITION
 	#define _IFSx_U1_U1RXIF_POSITION _IFS0_U1RXIF_POSITION
-#else
+#endif
+#ifdef __32MX440F512H__
+	#define IFSx_U1 IFS0
+	#define IECx_U1 IEC0
+	#define IFSx_U1CLR	IFS0CLR
+	#define _IFSx_U1_U1EIF_MASK _IFS0_U1EIF_MASK
+	#define _IECx_U1_U1EIE_MASK _IEC0_U1EIE_MASK
+	#define _IFSx_U1_U1RXIF_MASK _IFS0_U1RXIF_MASK
+	#define _IECx_U1_U1RXIE_MASK _IEC0_U1RXIE_MASK
+	#define _IFSx_U1_U1TXIF_MASK _IFS0_U1TXIF_MASK
+	#define _IECx_U1_U1TXIE_MASK _IEC0_U1TXIE_MASK
+	#define _IFSx_U1_U1EIF_POSITION _IFS0_U1EIF_POSITION
+	#define _IFSx_U1_U1RXIF_POSITION _IFS0_U1RXIF_POSITION
+#endif
 #ifdef __32MX470F512H__
 	#define IFSx_U1 IFS1
 	#define IECx_U1 IEC1
@@ -185,7 +203,7 @@
 	#define _IECx_U1_U1TXIE_MASK _IEC1_U1TXIE_MASK
 	#define _IFSx_U1_U1EIF_POSITION _IFS1_U1EIF_POSITION
 	#define _IFSx_U1_U1RXIF_POSITION _IFS1_U1RXIF_POSITION
-#else
+#endif
 #ifdef __32MX460F512L__
 	#define IFSx_U1 IFS0
 	#define IECx_U1 IEC0
@@ -198,7 +216,7 @@
 	#define _IECx_U1_U1TXIE_MASK _IEC0_U1TXIE_MASK
 	#define _IFSx_U1_U1EIF_POSITION _IFS0_U1EIF_POSITION
 	#define _IFSx_U1_U1RXIF_POSITION _IFS0_U1RXIF_POSITION
-#else
+#endif
 #ifdef __32MX470F512L__
 	#define IFSx_U1 IFS1
 	#define IECx_U1 IEC1
@@ -211,11 +229,11 @@
 	#define _IECx_U1_U1TXIE_MASK _IEC1_U1TXIE_MASK
 	#define _IFSx_U1_U1EIF_POSITION _IFS1_U1EIF_POSITION
 	#define _IFSx_U1_U1RXIF_POSITION _IFS1_U1RXIF_POSITION
-#else
+#endif
 #ifdef __32MX795F512H__
-	#define IFSx_U1 IFS1
-	#define IECx_U1 IEC1
-	#define IFSx_U1CLR	IFS1CLR
+	#define IFSx_U1 IFS0
+	#define IECx_U1 IEC0
+	#define IFSx_U1CLR	IFS0CLR
 	#define _IFSx_U1_U1EIF_MASK _IFS0_U1EIF_MASK
 	#define _IECx_U1_U1EIE_MASK _IEC0_U1EIE_MASK
 	#define _IFSx_U1_U1RXIF_MASK _IFS0_U1RXIF_MASK
@@ -224,13 +242,8 @@
 	#define _IECx_U1_U1TXIE_MASK _IEC0_U1TXIE_MASK
 	#define _IFSx_U1_U1EIF_POSITION _IFS0_U1EIF_POSITION
 	#define _IFSx_U1_U1RXIF_POSITION _IFS0_U1RXIF_POSITION
-#else
-	#error TODO Implement
 #endif
-#endif
-#endif
-#endif
-#endif
+
 #ifdef __32MX440F256H__
 	#define IFSx_U2 IFS1
 	#define IECx_U2 IEC1
@@ -243,7 +256,20 @@
 	#define _IECx_U2_U2TXIE_MASK _IEC1_U2TXIE_MASK
 	#define _IFSx_U2_U2EIF_POSITION _IFS1_U2EIF_POSITION
 	#define _IFSx_U2_U2RXIF_POSITION _IFS1_U2RXIF_POSITION
-#else
+#endif
+#ifdef __32MX440F512H__
+	#define IFSx_U2 IFS1
+	#define IECx_U2 IEC1
+	#define IFSx_U2CLR	IFS1CLR
+	#define _IFSx_U2_U2EIF_MASK _IFS1_U2EIF_MASK
+	#define _IECx_U2_U2EIE_MASK _IEC1_U2EIE_MASK
+	#define _IFSx_U2_U2RXIF_MASK _IFS1_U2RXIF_MASK
+	#define _IECx_U2_U2RXIE_MASK _IEC1_U2RXIE_MASK
+	#define _IFSx_U2_U2TXIF_MASK _IFS1_U2TXIF_MASK
+	#define _IECx_U2_U2TXIE_MASK _IEC1_U2TXIE_MASK
+	#define _IFSx_U2_U2EIF_POSITION _IFS1_U2EIF_POSITION
+	#define _IFSx_U2_U2RXIF_POSITION _IFS1_U2RXIF_POSITION
+#endif
 #ifdef __32MX470F512H__
 	#define IFSx_U2 IFS1
 	#define IECx_U2 IEC1
@@ -256,7 +282,7 @@
 	#define _IECx_U2_U2TXIE_MASK _IEC1_U2TXIE_MASK
 	#define _IFSx_U2_U2EIF_POSITION _IFS1_U2EIF_POSITION
 	#define _IFSx_U2_U2RXIF_POSITION _IFS1_U2RXIF_POSITION
-#else
+#endif
 #ifdef __32MX460F512L__
 	#define IFSx_U2 IFS1
 	#define IECx_U2 IEC1
@@ -269,7 +295,7 @@
 	#define _IECx_U2_U2TXIE_MASK _IEC1_U2TXIE_MASK
 	#define _IFSx_U2_U2EIF_POSITION _IFS1_U2EIF_POSITION
 	#define _IFSx_U2_U2RXIF_POSITION _IFS1_U2RXIF_POSITION
-#else
+#endif
 #ifdef __32MX470F512L__
 	#define IFSx_U2 IFS1
 	#define IECx_U2 IEC1
@@ -282,7 +308,7 @@
 	#define _IECx_U2_U2TXIE_MASK _IEC1_U2TXIE_MASK
 	#define _IFSx_U2_U2EIF_POSITION _IFS1_U2EIF_POSITION
 	#define _IFSx_U2_U2RXIF_POSITION _IFS1_U2RXIF_POSITION
-#else
+#endif
 #ifdef __32MX795F512H__
 	#define IFSx_U2 IFS1
 	#define IECx_U2 IEC1
@@ -295,13 +321,7 @@
 	#define _IECx_U2_U2TXIE_MASK _IEC1_U2TXIE_MASK
 	#define _IFSx_U2_U2EIF_POSITION _IFS1_U2EIF_POSITION
 	#define _IFSx_U2_U2RXIF_POSITION _IFS1_U2RXIF_POSITION
-#else
-	#error TODO Implement
 #endif
-#endif
-#endif
-#endif
-	#endif
 
 void __ISR(_TIMER_1_VECTOR, ISR_IPL_TMR1) Timer1Handler(void) {
 	clear_isr(IFS0CLR, _IFS0_T1IF_POSITION);
@@ -508,9 +528,11 @@ void __ISR(_CORE_TIMER_VECTOR, IPL2SOFT) CoreTimerHandler(void) {
 	clear_isr(IFS0CLR, _IFS0_CTIF_POSITION);
 }
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
 void __ISR(_I2C_1_VECTOR, ISR_IPL_I2C1_MASTER) IntI2C1Handler(void) {
+	#pragma GCC diagnostic ignored "-Wunused-variable"
 	unsigned char i2c_interrupt_type = 0;
+
+
 	#ifdef __32MX440F256H__
 		if (IFS0bits.I2C1BIF) {
 			i2c_interrupt_type |= 1;

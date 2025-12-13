@@ -2,9 +2,9 @@
 cls
 call build.bat
 
-cd .\bootloader_ethernet_PIC
-call build.bat
-cd ..
+rem cd .\bootloader_ethernet_PIC
+rem call build.bat
+rem cd ..
 
 cd .\bootloader_PIC
 call build.bat

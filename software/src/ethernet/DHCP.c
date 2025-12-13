@@ -854,7 +854,10 @@ static BYTE _DHCPReceive(void)
 		{
 			UDPSetRxBuffer(16);
 			UDPGetArray((BYTE*)&DHCPClient.tempIPAddress, sizeof(DHCPClient.tempIPAddress));
+			#pragma GCC diagnostic push
+			#pragma GCC diagnostic ignored "-Woverflow"
 			DHCPClient.validValues.bits.IPAddress = 1;
+			#pragma GCC diagnostic pop
 		}
 
 		// Jump to DHCP options (ignore htype, hlen, hops, xid, secs, flags, 
@@ -908,7 +911,10 @@ static BYTE _DHCPReceive(void)
 						else
 						{
 							UDPGetArray((BYTE*)&DHCPClient.tempMask, sizeof(DHCPClient.tempMask));
+							#pragma GCC diagnostic push
+							#pragma GCC diagnostic ignored "-Woverflow"
 							DHCPClient.validValues.bits.Mask = 1;
+							#pragma GCC diagnostic pop
 						}
 					}
 					else
@@ -930,7 +936,10 @@ static BYTE _DHCPReceive(void)
 						else
 						{
 							UDPGetArray((BYTE*)&DHCPClient.tempGateway, sizeof(DHCPClient.tempGateway));
+							#pragma GCC diagnostic push
+							#pragma GCC diagnostic ignored "-Woverflow"
 							DHCPClient.validValues.bits.Gateway = 1;
+							#pragma GCC diagnostic pop
 						}
 					}
 					else
@@ -953,7 +962,10 @@ static BYTE _DHCPReceive(void)
 					if(!DHCPClient.flags.bits.bOfferReceived)
 					{
 						UDPGetArray((BYTE*)&DHCPClient.tempDNS, sizeof(DHCPClient.tempDNS));
+						#pragma GCC diagnostic push
+						#pragma GCC diagnostic ignored "-Woverflow"
 						DHCPClient.validValues.bits.DNS = 1;
+						#pragma GCC diagnostic pop
 						j -= 4;
 					}
 
@@ -964,7 +976,10 @@ static BYTE _DHCPReceive(void)
 						if(!DHCPClient.flags.bits.bOfferReceived)
 						{
 							UDPGetArray((BYTE*)&DHCPClient.tempDNS2, sizeof(DHCPClient.tempDNS2));
+							#pragma GCC diagnostic push
+							#pragma GCC diagnostic ignored "-Woverflow"
 							DHCPClient.validValues.bits.DNS2 = 1;
+							#pragma GCC diagnostic pop
 							j -= 4;
 						}
 					}

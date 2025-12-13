@@ -38,6 +38,7 @@
 #ifndef HARDWARE_PROFILE_H
 #define HARDWARE_PROFILE_H
 
+#include "c_bootloader.h"
 
 //   Part number defining Macro
 #if   (((__PIC32_FEATURE_SET__ >= 100) && (__PIC32_FEATURE_SET__ <= 299)))
@@ -48,25 +49,7 @@
     #error("Controller not supported")
 #endif
 
-// Demo board hardware profiles
-#if defined(DEMO_BOARD_EXPLORER_16)
-	#include "HardwareProfile_PIC32MX_PIM_Explorer_16.h"
-#elif defined(DEMO_BOARD_USB_STARTER_KIT)
-	#include "HardwareProfile_PIC32MX_USB_StarterKit.h"
-#elif defined(DEMO_BOARD_ETH_STARTER_KIT)
-	#include "HardwareProfile_PIC32MX_ETH_StarterKit.h"	
-#elif defined(DEMO_BOARD_OLIMEX)
-	#include "HardwareProfile_PIC32MX_Olimex.h"	
-#else 
-		/* Note ****: User has to define board type depending on the development board. 
-	To do this, in the MPLAB IDE navigate to menu Project->Build Options->Project.
-	Select "MPLAB PIC32 C Compiler" tab. Select categories as "General" from the dropdown list box.
-	Click ADD button and define the DEMO_BOARD under "Preprocessor Macros".*/
-	
-	#error ("Demo board is either not defined or not defined properly. \
-			 Supported values for this macro are BOARD_EXPLORER_16/ BOARD_USB_STARTER_KIT.");
-#endif
-
+#include "HardwareProfile_PIC32MX_Olimex.h"	
 
 
 // Transport layer specific hardware profiles
@@ -81,7 +64,7 @@
 		#error("Either the MAC is not defined or the MAC is not supported")
 	#endif						
 #elif defined(TRANSPORT_LAYER_SD_CARD)	
-	#include "HardwareProfile_PIC32MX_SD_PICtail.h"
+	#include "HardwareProfile_PIC32MX_Olimex.h"
 #elif defined(TRANSPORT_LAYER_USB_HOST)
 	
 	// ******************* MDD File System Required Definitions ********************
@@ -110,8 +93,10 @@
 		#if !defined(__32MX470F512H__)
 			#if !defined(__32MX460F512L__)
 				#if !defined(__32MX470F512L__)
-					#error("If you are compiling this project for a part number other than PIC32MX795F512L, remove the existing linker script file from \
-					the workspace and make sure to add right linker script file for the chosen part from the location ..Firmware\Bootloader\linker_scripts. Later comment this #error.");
+					#if !defined(__32MX795F512H__)
+						#error("If you are compiling this project for a part number other than PIC32MX795F512L, remove the existing linker script file from \
+						the workspace and make sure to add right linker script file for the chosen part from the location ..Firmware\Bootloader\linker_scripts. Later comment this #error.");
+					#endif
 				#endif
 			#endif
 		#endif

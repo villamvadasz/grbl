@@ -23,6 +23,12 @@ del /q .\output\cnc_1_0_0_470F512H.hex
 del /q .\output\cnc_1_0_0_470F512H.map
 del /q .\output\cnc_1_0_0_470F512L.hex
 del /q .\output\cnc_1_0_0_470F512L.map
+del /q .\output\cnc_1_0_0_795F512H.hex
+del /q .\output\cnc_1_0_0_795F512H.map
+del /q .\output\cnc_1_0_0_795F512H_sdcard.hex
+del /q .\output\cnc_1_0_0_795F512H_sdcard.map
+del /q .\output\cnc_1_0_0_795F512H_simulator.hex
+del /q .\output\cnc_1_0_0_795F512H_simulator.map
 del /q .\output\cnc_1_0_0_32MZ2048ECG144.hex
 del /q .\output\cnc_1_0_0_32MZ2048ECG144.map
 del /q .\output\cnc_1_0_0.hex
@@ -35,6 +41,100 @@ copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_440F256H.hex
 copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_440F256H.map
 .\make\make.exe -f Makefile_440F256H clean
 
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_460F512L clean
+.\make\make.exe -f Makefile_460F512L all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_460F512L.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_460F512L.map
+.\make\make.exe -f Makefile_460F512L clean
+
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_470F512H clean
+.\make\make.exe -f Makefile_470F512H all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_470F512H.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_470F512H.map
+.\make\make.exe -f Makefile_470F512H clean
+
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_440F256H_simulator clean
+.\make\make.exe -f Makefile_440F256H_simulator all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_440F256H_simulator.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_440F256H_simulator.map
+.\make\make.exe -f Makefile_440F256H_simulator clean
+
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_440F256H_simulator_1_0_2 clean
+.\make\make.exe -f Makefile_440F256H_simulator_1_0_2 all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_440F256H_simulator_1_0_2.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_440F256H_simulator_1_0_2.map
+.\make\make.exe -f Makefile_440F256H_simulator_1_0_2 clean
+
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_470F512L clean
+.\make\make.exe -f Makefile_470F512L all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_470F512L.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_470F512L.map
+.\make\make.exe -f Makefile_470F512L clean
+
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_32MZ2048ECG144 clean
+.\make\make.exe -f Makefile_32MZ2048ECG144 all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_32MZ2048ECG144.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_32MZ2048ECG144.map
+.\make\make.exe -f Makefile_32MZ2048ECG144 clean
+
+
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_795F512H clean
+.\make\make.exe -f Makefile_795F512H all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_795F512H.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_795F512H.map
+.\make\make.exe -f Makefile_795F512H clean
+
+
+
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_795F512H_sdcard clean
+.\make\make.exe -f Makefile_795F512H_sdcard all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_795F512H_sdcard.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_795F512H_sdcard.map
+.\make\make.exe -f Makefile_795F512H_sdcard clean
+
+
+del /q .\output\cnc_1_0_0.hex
+del /q .\output\cnc_1_0_0.map
+del /q .\output\*.d
+del /q .\output\*.o
+.\make\make.exe -f Makefile_795F512H_simulator clean
+.\make\make.exe -f Makefile_795F512H_simulator all -j8
+copy .\output\cnc_1_0_0.hex .\output\cnc_1_0_0_795F512H_simulator.hex
+copy .\output\cnc_1_0_0.map .\output\cnc_1_0_0_795F512H_simulator.map
+.\make\make.exe -f Makefile_795F512H_simulator clean
+
 
 del /q .\output\cnc_1_0_0.elf
 del /q .\output\cnc_1_0_0.hex
@@ -45,4 +145,6 @@ del /q .\output\*.o
 del /q .\output\*.elf
 del /q .\output\pic_cnc_stepper_1_0_0.hex
 del /q .\output\pic_cnc_stepper_1_0_0.map
+
+call release.bat
 rem pause

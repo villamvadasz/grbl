@@ -24,14 +24,6 @@
 
 #include "k_stdtype.h"
 
-typedef enum _mc_homing_sm {
-	MC_HOMING_IDLE = 0,
-	MC_HOMING_TRIGGERED,
-	MC_HOMING_Z_WAIT,
-	MC_HOMING_Y_WAIT,
-	MC_HOMING_X_WAIT,
-} mc_homing_sm;
-
 volatile uint8 do_ArcGenerating = 0;
 
 float target_buffer[N_AXIS];
@@ -57,10 +49,6 @@ float theta_per_segment;
 float linear_per_segment;
 float center_axis0;
 float center_axis1;
-
-uint8 do_mc_homing_cycle = 0;
-mc_homing_sm mc_homing_state_machine = MC_HOMING_IDLE;
-uint8 cycle_mask_buffer;
 
 void mc_arc_pre(float *target, plan_line_data_t *pl_data, float *position, float *offset, float radius, uint8 axis_0, uint8 axis_1, uint8 axis_linear, uint8 is_clockwise_arc);
 uint8 mc_arc_async(float *target, plan_line_data_t *pl_data, float *position, float *offset, float radius, uint8 axis_0, uint8 axis_1, uint8 axis_linear, uint8 is_clockwise_arc);
@@ -92,9 +80,7 @@ void init_motion_control(void) {
 	center_axis0 = 0.0f;
 	center_axis1 = 0.0f;
 
-	do_mc_homing_cycle = 0;
-	mc_homing_state_machine = MC_HOMING_IDLE;
-	cycle_mask_buffer = 0;
+	init_homing();
 }
 
 void do_motion_control(void) {
@@ -108,78 +94,12 @@ void do_motion_control(void) {
 		}
 	}
 	
-	switch (mc_homing_state_machine) {
-		case MC_HOMING_IDLE : {
-			if (do_mc_homing_cycle) {
-				mc_homing_state_machine = MC_HOMING_TRIGGERED;
-			}
-			break;
-		}
-		case MC_HOMING_TRIGGERED : {
-			limits_disable(); // Disable hard limits pin change register for cycle duration
-
-			// -------------------------------------------------------------------------------------
-			// Perform homing routine. NOTE: Special motion case. Only system reset works.
-
-			// Search to engage all axes limit switches at faster homing seek rate.
-			limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
-			mc_homing_state_machine = MC_HOMING_Z_WAIT;
-			break;
-		}
-		case MC_HOMING_Z_WAIT : {
-			if (isLimits_go_homeRunning() == 0) {
-				#ifdef HOMING_CYCLE_1
-					limits_go_home(HOMING_CYCLE_1);  // Homing cycle 1
-				#endif
-				mc_homing_state_machine = MC_HOMING_Y_WAIT;
-			}
-			break;
-		}
-		case MC_HOMING_Y_WAIT : {
-			if (isLimits_go_homeRunning() == 0) {
-				#ifdef HOMING_CYCLE_2
-					limits_go_home(HOMING_CYCLE_2);  // Homing cycle 2
-				#endif
-				mc_homing_state_machine = MC_HOMING_X_WAIT;
-			}
-			break;
-		}
-		case MC_HOMING_X_WAIT : {
-			if (isLimits_go_homeRunning() == 0) {
-				// Homing cycle complete! Setup system for normal operation.
-				// -------------------------------------------------------------------------------------
-				//TODO Here rewrite all coorinates at one, so that no rounding errors can happen
-
-				// Sync gcode parser and planner positions to homed position.
-				gc_sync_position();
-				plan_sync_position();
-
-				// If hard limits feature enabled, re-enable hard limits pin change register after homing cycle.
-				limits_enable();
-				do_mc_homing_cycle = 0;
-				mc_homing_state_machine = MC_HOMING_IDLE;
-			}
-			break;
-		}
-		default : {
-			do_mc_homing_cycle = 0;
-			mc_homing_state_machine = MC_HOMING_IDLE;
-			break;
-		}
-	}
+	do_homing();
 }
 
 uint8 isArcGeneratingRunning(void) {
 	uint8 result = 0;
 	if (do_ArcGenerating != 0) {
-		result = 1;
-	}
-	return result;
-}
-
-uint8 isMc_homing_cycleRunning(void) {
-	uint8 result = 0;
-	if (do_mc_homing_cycle != 0) {
 		result = 1;
 	}
 	return result;
@@ -386,14 +306,6 @@ void mc_dwell_ms(float milliseconds) {
 void mc_dwell_s(float seconds) {
 	float ms_time = seconds * 1000.0;
 	mc_dwell_ms(ms_time);
-}
-
-// Perform homing cycle to locate and set machine zero. Only '$H' executes this command.
-// NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
-// executing the homing cycle. This prevents incorrect buffered plans after homing.
-void mc_homing_cycle(uint8 cycle_mask) {
-	cycle_mask_buffer = cycle_mask;
-	do_mc_homing_cycle = 1;
 }
 
 // Former mc_reset now does not reset the uC, instead of it stops all motion and flush all buffers

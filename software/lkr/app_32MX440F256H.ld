@@ -29,7 +29,7 @@ OPTIONAL("libmchp_peripheral_32MX440F256H.a")
  * For interrupt vector handling
  *************************************************************************/
 PROVIDE(_vector_spacing = 0x00000001);
-_ebase_address =  0x9D006000;
+_ebase_address =  0x9D007000;
 
 /*************************************************************************
  * Memory Address Equates
@@ -40,9 +40,9 @@ _ebase_address =  0x9D006000;
  * _DBG_CODE_SIZE   -- In-circuit Debug Executive size
  * _GEN_EXCPT_ADDR  -- General Exception Vector
  *************************************************************************/
-_RESET_ADDR              = (0x9D006000 + 0x1000);
-_BEV_EXCPT_ADDR          = ((0x9D006000 + 0x1000) + 0x380);
-_DBG_EXCPT_ADDR          = ((0x9D006000 + 0x1000) + 0x480);
+_RESET_ADDR              = (0x9D007000 + 0x1000);
+_BEV_EXCPT_ADDR          = ((0x9D007000 + 0x1000) + 0x380);
+_DBG_EXCPT_ADDR          = ((0x9D007000 + 0x1000) + 0x480);
 _DBG_CODE_ADDR           = 0xBFC02000;
 _DBG_CODE_SIZE           = 0xFF0     ;
 _GEN_EXCPT_ADDR          = _ebase_address + 0x180;
@@ -56,10 +56,10 @@ _GEN_EXCPT_ADDR          = _ebase_address + 0x180;
  *************************************************************************/
 MEMORY
 {
-  kseg0_program_mem    (rx)  : ORIGIN = (0x9D006000 + 0x1000 + 0x490), LENGTH = 0x40000 - (0x6000 + 0x1000 + 0x490) /* All C Files will be located here */ 
-  kseg0_boot_mem             : ORIGIN = 0x9D006000, LENGTH = 0x0 /* This memory region is dummy */ 
-  exception_mem              : ORIGIN = 0x9D006000, LENGTH = 0x1000 /* Interrupt vector table */
-  kseg1_boot_mem             : ORIGIN = (0x9D006000 + 0x1000), LENGTH = 0x490 /* C Startup code */
+  kseg0_program_mem    (rx)  : ORIGIN = (0x9D007000 + 0x1000 + 0x490), LENGTH = 0x40000 - (0x7000 + 0x1000 + 0x490) /* All C Files will be located here */ 
+  kseg0_boot_mem             : ORIGIN = 0x9D007000, LENGTH = 0x0 /* This memory region is dummy */ 
+  exception_mem              : ORIGIN = 0x9D007000, LENGTH = 0x1000 /* Interrupt vector table */
+  kseg1_boot_mem             : ORIGIN = (0x9D007000 + 0x1000), LENGTH = 0x490 /* C Startup code */
   debug_exec_mem             : ORIGIN = 0xBFC02000, LENGTH = 0xFF0
   config3                    : ORIGIN = 0xBFC02FF0, LENGTH = 0x4
   config2                    : ORIGIN = 0xBFC02FF4, LENGTH = 0x4

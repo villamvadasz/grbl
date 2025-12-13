@@ -24,6 +24,7 @@ public:
 protected:
 	HICON m_hIcon;
 	CBootLoader mBootLoader;
+	bool CryptoSignature_send;
 	bool EraseProgVer;
 	bool ConnectionEstablished;
 	void PrintKonsole(CString string);
@@ -97,10 +98,17 @@ public:
 	afx_msg void OnBnClickedCheckEthEnable();
 	CButton ctrlCheckBoxEthEnable;
 	BOOL boolCheckEthEnable;
+	BOOL boolCheckCryptoEnable;
 	DWORD ip_value;
 	UINT valEditBoxSocket;
 	CIPAddressCtrl ctrlEditBoxIPaddress;
 	CEdit ctrlEditBoxSocketaddress;
 	BOOL OnDeviceChange(UINT wParam, DWORD lParam);
 	afx_msg void OnDevModeChange(LPTSTR lpDeviceName);
+	CEdit ctrlEditBoxCRYPTO_SIGNATURE;
+	CString stringEditBoxCRYPTO_SIGNATURE;
+	afx_msg void OnBnClickedCheckCryptoEnable2();
+	afx_msg void OnBnClickedButton1();
+	void StoreSignature();
+	afx_msg void OnBnClickedButton2();
 };

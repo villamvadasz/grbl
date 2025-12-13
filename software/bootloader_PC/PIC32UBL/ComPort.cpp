@@ -3,6 +3,8 @@
 #include "Ethernet.h"
 #include "USB_HID.h"
 #include "Hex.h"
+#include "HexEnc.h"
+#include "FileLoader.h"
 #include "BootLoader.h"
 #include "PIC32UBL.h"
 #include "PIC32UBLDlg.h"

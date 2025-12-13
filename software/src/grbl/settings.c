@@ -46,9 +46,13 @@ void settings_init(void) {
 	//memset(eep_coord_teached, 0, sizeof(eep_coord_teached)); //read by eeprom
 
 	if(!read_global_settings()) {
-		report_status_message(STATUS_SETTING_READ_FAIL, 0);
+		#ifndef _ISSUE_TESTING_
+			report_status_message(STATUS_SETTING_READ_FAIL, 0);
+		#endif
 		settings_restore(SETTINGS_RESTORE_ALL); // Force restore all EEPROM data.
-		report_grbl_settings();
+		#ifndef _ISSUE_TESTING_
+			report_grbl_settings();
+		#endif
 	}
 }
 

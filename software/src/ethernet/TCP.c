@@ -61,6 +61,8 @@
 #include "TCPIP.h"
 
 #if defined(STACK_USE_TCP)
+	#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
+	#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 
 /****************************************************************************
   Section:

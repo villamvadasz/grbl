@@ -4,6 +4,11 @@
 #include "noinitram.h"
 #include "exceptions.h"
 
+#if defined (__32MX440F256H__) || defined (__32MX440F512H__) || defined (__32MX470F512H__) || defined (__32MX460F512L__)  || defined (__32MX470F512L__)  || defined (__32MX795F512H__)
+#else
+	#error TODO Implement
+#endif
+
 #ifdef __DEBUG
 	#ifndef _STANDALONE_APPLICATION
 		#define _STANDALONE_APPLICATION
@@ -12,6 +17,104 @@
 
 #ifdef _STANDALONE_APPLICATION
 	#ifdef __32MX440F256H__
+		#ifdef XTAL_8MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_10MHZ
+			#pragma config POSCMOD  = XT
+			#pragma config UPLLEN   = OFF			// Not possible to generate USB clock from 10MHz
+			#pragma config FPLLMUL  = MUL_16
+			#pragma config FPLLIDIV = DIV_2			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#pragma config UPLLIDIV = DIV_2			// USB PLL Input Divider. PLL input need 4MHz. Not possible
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#ifdef XTAL_20MHZ
+			#pragma config POSCMOD  = HS
+			#pragma config UPLLEN   = ON
+			#pragma config FPLLMUL  = MUL_20
+			#pragma config UPLLIDIV = DIV_5			// USB PLL Input Divider. PLL input need 4MHz
+			#pragma config FPLLIDIV = DIV_5			// PLL Input Divider. PLL input need 4MHz...5MHz
+			#ifdef SYS_FREQ_10MHZ
+				#pragma config FPLLODIV = DIV_8
+			#endif
+			#ifdef SYS_FREQ_20MHZ
+				#pragma config FPLLODIV = DIV_4
+			#endif
+			#ifdef SYS_FREQ_40MHZ
+				#pragma config FPLLODIV = DIV_2
+			#endif
+			#ifdef SYS_FREQ_80MHZ
+				#pragma config FPLLODIV = DIV_1
+			#endif
+		#endif
+		#if (PB_DIV == 2)
+			#pragma config FPBDIV   = DIV_2
+		#endif	
+		#if (PB_DIV == 4)
+			#pragma config FPBDIV   = DIV_4
+		#endif	
+		#ifdef INT_OSC_8MHZ
+			#ifndef XTAL_8MHZ
+				#error Internal 8MHz need 8MHz configuration (XTAL_8MHZ)
+			#endif
+			#pragma config FNOSC = FRCPLL
+		#else 
+			#pragma config FNOSC = PRIPLL
+		#endif
+		#pragma config FWDTEN   = OFF				// Watchdog Timer
+		#ifndef APP_SLEEP_MODE
+			#pragma config WDTPS	= PS1				// Watchdog Timer Postscale
+		#else
+			//1:1024 1.024 s
+			//1:2048 2.048 s
+			//1:4096 4.096 s
+			//1:8192 8.192 s
+			//1:16384 16.384 s
+			//#pragma config WDTPS	= PS16384				// Watchdog Timer Postscale
+			//1:32768 32.768 s
+			//1:65536 65.536 s
+			//1:131072 131.072 s		2.2min
+			//1:262144 262.144 s		4.4min
+			//1:524288 524.288 s		8.7min
+			//1:1045876 1048.576 s		17.5min
+			#pragma config WDTPS	= PS1048576				// Watchdog Timer Postscale
+		#endif
+		#pragma config FCKSM	= CSECMD			// Clock Switching & Fail Safe Clock Monitor
+		#pragma config OSCIOFNC = OFF				// CLKO Enable
+		#pragma config IESO	 = OFF				// Internal/External Switch-over
+		#pragma config FSOSCEN  = OFF				// Secondary Oscillator Enable (KLO was off)
+		#pragma config CP	   = OFF				// Code Protect
+		#pragma config BWP	  = OFF				// Boot Flash Write Protect
+		#pragma config PWP	  = OFF				// Program Flash Write Protect
+	#endif
+	#ifdef __32MX440F512H__
 		#ifdef XTAL_8MHZ
 			#pragma config POSCMOD  = XT
 			#pragma config UPLLEN   = ON
@@ -494,33 +597,27 @@ __attribute__(( weak )) unsigned int bootloader_get_bootloader_was_reset_called(
 void init_mal(void) {
 	#ifdef __32MX440F256H__
 		DDPCON = 0; //Turn off JTAG and TRACE
-	#else
+	#endif
 	#ifdef __32MX470F512H__
 		CM1CON = 0;
 		CM2CON = 0;
 		DDPCONbits.JTAGEN = 0;
-	#else
+	#endif
 	#ifdef __32MX460F512L__
 		DDPCON = 0; //Turn off JTAG and TRACE
-	#else
+	#endif
 	#ifdef __32MX470F512L__
 		CM1CON = 0;
 		CM2CON = 0;
 		DDPCONbits.JTAGEN = 0;
-	#else
+	#endif
 	#ifdef __32MX795F512H__
 		CM1CON = 0;
 		CM2CON = 0;
 		DDPCONbits.JTAGEN = 0;
-	#else
+	#endif
 	#ifdef __32MX795F512H__
 		DDPCON = 0; //Turn off JTAG and TRACE
-		#error TODO Implement
-	#endif
-	#endif
-	#endif
-	#endif
-	#endif
 	#endif
 
 	mal_RCON_temp = RCON;
@@ -566,7 +663,7 @@ void init_mal(void) {
 
 	#ifdef __32MX440F256H__
 		AD1PCFG = 0xFFFF;
-	#else
+	#endif
 	#ifdef __32MX470F512H__
 		ANSELB = 0;
 		ANSELC = 0;
@@ -574,10 +671,10 @@ void init_mal(void) {
 		ANSELE = 0;
 		ANSELF = 0;
 		ANSELG = 0;
-	#else
+	#endif
 	#ifdef __32MX460F512L__
 		AD1PCFG = 0xFFFF;
-	#else
+	#endif
 	#ifdef __32MX470F512L__
 		ANSELB = 0;
 		ANSELC = 0;
@@ -585,17 +682,13 @@ void init_mal(void) {
 		ANSELE = 0;
 		ANSELF = 0;
 		ANSELG = 0;
-	#else
+	#endif
 	#ifdef __32MX795F512H__
 		AD1PCFG = 0xFFFF;
-	#else
-		#error TODO Implement
 	#endif
+	#ifdef __32MX440F512H__
+		AD1PCFG = 0xFFFF;
 	#endif
-	#endif
-	#endif
-	#endif
-
 	init_exception();
 
 	mal_reset_counter = 0;
@@ -689,6 +782,7 @@ void mal_DmaResume(int susp) {
 	}
 }
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 void mal_clockswitch_slowdown(void) {
 	#ifndef _STANDALONE_APPLICATION
@@ -726,7 +820,10 @@ void mal_clockswitch_slowdown(void) {
 		#endif
 	#endif
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
 void mal_clockswitch(void) {
 	#ifndef _STANDALONE_APPLICATION
 		int	int_status = 0;
