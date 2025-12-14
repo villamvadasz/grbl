@@ -1,6 +1,6 @@
 # grbl
 
-The Project is not finished yet. Still under work...
+The Project is not finished yet. Still under work... Lot of the stuffs might be here even outdated.
 
 The Project contains a port of GRBL from Atmel to a PIC32MX and/or PIC32MZ. 
 Supposed to run on the boards from Olimex:
