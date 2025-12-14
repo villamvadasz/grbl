@@ -48,18 +48,18 @@ build.bat will build application.
 #### Flash Bootloader
 Need: Mplab 8.92 with PICkit3 (other tools are also good like Mplab X, Mplab IPE, ICD3, ICD4)
 The bootloader_PIC project supports builds for USB, ethernet and SDCard, however only one can be active. So when building the project it will emitt different hex file. Currently the USBHIDBootloader_795F512H_RCINT8_F80MHZ_eth_decrypt.hex is used.
-Open the project USBHIDBootloader.mcp. 
-Select debugger tool.
-Optionally change IP address in TCPIPConfig.h. There is no DHCP supported.
-Build or Import one of the prebuilt files. Highly suggested: USBHIDBootloader_795F512H_RCINT8_F80MHZ_eth_decrypt.hex
-Flash.
-Start bootloader_PC. 
-Select USB or Ethernet. 
-Add IP address.
-Connect.
-Add serial number to the label box and click the button. This will write a serial number into the device.
-Add the crypto key to the label box and click the button. This will write a crypto key into the deivce.
 
+* Open the project USBHIDBootloader.mcp. 
+* Select debugger tool.
+* Optionally change IP address in TCPIPConfig.h. There is no DHCP supported.
+* Build or Import one of the prebuilt files. Highly suggested: USBHIDBootloader_795F512H_RCINT8_F80MHZ_eth_decrypt.hex
+* Flash.
+* Start bootloader_PC. 
+* Select USB or Ethernet. 
+* Add IP address.
+* Connect.
+* Add serial number to the label box and click the button. This will write a serial number into the device.
+* Add the crypto key to the label box and click the button. This will write a crypto key into the deivce.
 #### Bootloader Encryption and Signature
 It is highly suggested, that in fazit.txt you add your board. This file is not used activley in any process, but is good for storage.
 Format is:
@@ -88,8 +88,11 @@ set BOOTLOADER_UID=NA
 call :sign_enc_file_bootloader
 ```
 FILE_NAME: Select also which HEX file to process.
+
 AES_KEY_SIGNATURE: Signature and encryption keys are the same. So you only need to set AES_KEY_SIGNATURE properly. 
+
 SERIAL_NUMBER: This is important since each device have its unique cryptokeys, so this will make sure the output file have a different name.
+
 BOOTLOADER_UID: Must be NA, not used here, only for update over the air (under development).
 
 When done properly, this will take the HEX file specificed, and calculate a signature for it and creates an encrypted one. The encrypted one make sure that a 3rd party can not reverse engineer the file. The signature make sure that only a signed file can be flashed.
@@ -98,23 +101,27 @@ Some features are stil missing. Like the same key is used for Encryption and Sig
 
 #### Flash Application with Encryption
 The application must be properly build with build.bat. Make sure that for your device a signature is generated. For this please see the signature chapter.
+
 You need a bootloader that does support encryption on the target! (example: USBHIDBootloader_795F512H_RCINT8_F80MHZ_eth_decrypt.hex)
-Select ENC File for flashing. For example: cnc_1_0_0_795F512H_simulator.hex_DE000003.hex.enc
-Add the signature from the signature_bootloader.txt for the corresponding device and hex file.
-Erase-Program-Verfy
-Run Application
-Disconnect
-Close Bootloader
+
+* Select ENC File for flashing. For example: cnc_1_0_0_795F512H_simulator.hex_DE000003.hex.enc
+* Add the signature from the signature_bootloader.txt for the corresponding device and hex file.
+* Erase-Program-Verfy
+* Run Application
+* Disconnect
+* Close Bootloader
 
 #### Flash Application without Encryption
 The application must be properly build with build.bat.
+
 You need a bootloader that does NOT support encryption on the target! (example: USBHIDBootloader_795F512H_RCINT8_F80MHZ_eth.hex or USBHIDBootloader_795F512H_RCINT8_F80MHZ.hex)
-Select HEX File for flashing. For example: cnc_1_0_0_795F512H_simulator.hex
-Unselect the Enable mark in the Crypto part. This will make sure you are flashing simple hex files.
-Erase-Program-Verfy
-Run Application
-Disconnect
-Close Bootloader
+
+* Select HEX File for flashing. For example: cnc_1_0_0_795F512H_simulator.hex
+* Unselect the Enable mark in the Crypto part. This will make sure you are flashing simple hex files.
+* Erase-Program-Verfy
+* Run Application
+* Disconnect
+* Close Bootloader
 
 #### UGS
 To use the board the UGS is higly suggested:
@@ -122,10 +129,15 @@ https://winder.github.io/ugs_website/
 	
 ## Tools
 make: Everything is built from build.bat with a make.
+
 bootloader_PC: Bootloader. Can be entered by either doing a Reset or Power On (waits some seconds in the bootloader), or sending BOOTLOADER command in UGS.
+
 netcat: Can be used to send a reset packet. See batch files. Sadly not completly automated. Still need some work, but it works.
+
 disoverer_pc: Sends an UPD broadcast, that will be answered by the device. This way it is earyier to get the IP address.
+
 signer_pc: Used for encryption and signature generation.
+
 eeprom_analyser:
 
 ## Configure project
@@ -135,7 +147,9 @@ Please see the excel table, which is used to generate the configuration for GRBL
 The emergency stop or abort is sensitiv on booth edges (rising and falling). This way, any change on the line will cause an abort. Not only pressing the button, but releasing it too. In case somehow the signal would be inverted, the emergency stop or abort would still work.
 
 The input of the abort is not invertable in SW. It is assumed that:
+
 //uC PIN is 1 ==> Emergency abort button is pressed in, so machine must stop everything
+
 //uC PIN is 0 ==> Emergency abort button is released, it is allowed to move
 
 Stepper enable signal gets disabled after 50ms. This window can be used to slow down the machine (not implemented yet). After 50ms the signal will be set to disable the motors.
